@@ -1,0 +1,130 @@
+{
+  "user_id": "b8ef0bf5-8782-4bd0-a0cf-ff040edbaaee",
+  "timestamp": "2025-11-04T15:58:28.923896",
+  "assigned_personas": [
+    "subscription_heavy",
+    "balanced_stable"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "3 recurring subscriptions detected",
+        "Monthly subscription spend: $422.08 (\u2265$50)",
+        "Subscriptions are 44.6% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "b8ef0bf5-8782-4bd0-a0cf-ff040edbaaee",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:58:28.900486",
+    "end_date": "2025-11-04T15:58:28.900486",
+    "subscriptions": {
+      "recurring_merchants": 3,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "HBO Max",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 53.98311491876902,
+          "average_amount": 8.997185819794836,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        },
+        {
+          "merchant_name": "YouTube Premium",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 66.62363908072224,
+          "average_amount": 11.103939846787041,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        },
+        {
+          "merchant_name": "STUDENT LOAN PAYMENT",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 2411.8554166158565,
+          "average_amount": 401.9759027693094,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        }
+      ],
+      "monthly_recurring_spend": 422.0770284358913,
+      "total_subscription_spend": 2532.4621706153475,
+      "subscription_share_of_total": 44.62582375472404,
+      "total_spend": 5674.880500883222
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 7.826659546662564,
+      "total_savings_balance": 4256.431071130099,
+      "average_monthly_expenses": 543.8375140445609,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 2.1938272989270633,
+      "checking_balance": 1252.9503630387958,
+      "average_monthly_expenses": 571.1253404730523,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified subscription-heavy spending because 3 recurring subscriptions detected, Monthly subscription spend: $422.08 (\u2265$50), Subscriptions are 44.6% of total spend (\u226510%). Focus on auditing and optimizing recurring expenses."
+}

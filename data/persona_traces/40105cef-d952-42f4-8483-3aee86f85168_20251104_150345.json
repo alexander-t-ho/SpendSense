@@ -1,0 +1,129 @@
+{
+  "user_id": "40105cef-d952-42f4-8483-3aee86f85168",
+  "timestamp": "2025-11-04T15:03:45.829340",
+  "assigned_personas": [
+    "subscription_heavy",
+    "balanced_stable"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "3 recurring subscriptions detected",
+        "Subscriptions are 12.2% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "40105cef-d952-42f4-8483-3aee86f85168",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:03:45.811397",
+    "end_date": "2025-11-04T15:03:45.811397",
+    "subscriptions": {
+      "recurring_merchants": 3,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "HBO Max",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 85.98963612904167,
+          "average_amount": 14.331606021506945,
+          "first_transaction": "2025-06-07 14:50:03.483114",
+          "last_transaction": "2025-11-04 14:50:03.483114"
+        },
+        {
+          "merchant_name": "Spotify",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 55.35915582008006,
+          "average_amount": 9.226525970013343,
+          "first_transaction": "2025-06-07 14:50:03.483114",
+          "last_transaction": "2025-11-04 14:50:03.483114"
+        },
+        {
+          "merchant_name": "Adobe Creative Cloud",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 74.38311644698332,
+          "average_amount": 12.39718607449722,
+          "first_transaction": "2025-06-07 14:50:03.483114",
+          "last_transaction": "2025-11-04 14:50:03.483114"
+        }
+      ],
+      "monthly_recurring_spend": 35.95531806601751,
+      "total_subscription_spend": 215.73190839610504,
+      "subscription_share_of_total": 12.150648382637403,
+      "total_spend": 1775.476514523899
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 12.790887122337296,
+      "total_savings_balance": 3784.986614272674,
+      "average_monthly_expenses": 295.91275242064984,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 2.8831826658481585,
+      "checking_balance": 726.4362617784088,
+      "average_monthly_expenses": 251.9563780620573,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified subscription-heavy spending because 3 recurring subscriptions detected, Subscriptions are 12.2% of total spend (\u226510%). Focus on auditing and optimizing recurring expenses."
+}

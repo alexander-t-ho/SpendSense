@@ -1,0 +1,118 @@
+{
+  "user_id": "6118b5a4-375b-4348-873b-4c73c322ecfd",
+  "timestamp": "2025-11-04T15:58:30.153847",
+  "assigned_personas": [
+    "savings_builder",
+    "balanced_stable"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 3.3% (\u22652%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "6118b5a4-375b-4348-873b-4c73c322ecfd",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:58:30.133006",
+    "end_date": "2025-11-04T15:58:30.133006",
+    "subscriptions": {
+      "recurring_merchants": 2,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Metro Transit",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 27.5,
+          "total_amount": 179.6553802736683,
+          "average_amount": 59.88512675788943,
+          "first_transaction": "2025-08-02 20:06:44.273945",
+          "last_transaction": "2025-09-27 20:30:51.734993"
+        },
+        {
+          "merchant_name": "MORTGAGE PAYMENT",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 8335.116544397371,
+          "average_amount": 1389.1860907328953,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        }
+      ],
+      "monthly_recurring_spend": 1449.0712174907846,
+      "total_subscription_spend": 8514.77192467104,
+      "subscription_share_of_total": 77.43208673705648,
+      "total_spend": 10996.438664484742
+    },
+    "savings": {
+      "net_inflow": 75.22938359141075,
+      "monthly_net_inflow": 12.53823059856846,
+      "growth_rate_percent": 3.3050160868717953,
+      "emergency_fund_coverage_months": 5.301382522547765,
+      "total_savings_balance": 2351.4477623834905,
+      "average_monthly_expenses": 443.55368668122816,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 1.3583969253741992,
+      "checking_balance": 645.3111338692531,
+      "average_monthly_expenses": 475.05344116668147,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified strong savings behavior because Savings growth rate: 3.3% (\u22652%). Focus on optimizing savings goals and returns."
+}

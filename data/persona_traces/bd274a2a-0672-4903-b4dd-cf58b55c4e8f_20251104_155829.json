@@ -1,0 +1,110 @@
+{
+  "user_id": "bd274a2a-0672-4903-b4dd-cf58b55c4e8f",
+  "timestamp": "2025-11-04T15:58:29.733768",
+  "assigned_personas": [
+    "savings_builder",
+    "balanced_stable"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 22.3% (\u22652%)",
+        "Monthly savings inflow: $727.02 (\u2265$200)",
+        "All credit utilizations < 30% (max: 0.0%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "bd274a2a-0672-4903-b4dd-cf58b55c4e8f",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:58:29.713005",
+    "end_date": "2025-11-04T15:58:29.713005",
+    "subscriptions": {
+      "recurring_merchants": 1,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Amazon Prime",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 78.94182460032012,
+          "average_amount": 13.15697076672002,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        }
+      ],
+      "monthly_recurring_spend": 13.15697076672002,
+      "total_subscription_spend": 78.94182460032012,
+      "subscription_share_of_total": 3.773986477327054,
+      "total_spend": 2091.7357567277527
+    },
+    "savings": {
+      "net_inflow": 4362.121914695509,
+      "monthly_net_inflow": 727.0203191159181,
+      "growth_rate_percent": 22.282100662881064,
+      "emergency_fund_coverage_months": 68.66714455698038,
+      "total_savings_balance": 23938.920263704887,
+      "average_monthly_expenses": 348.6226261212921,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 2.732312756716975,
+      "checking_balance": 1027.5506589104664,
+      "average_monthly_expenses": 376.07358688509925,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified strong savings behavior because Savings growth rate: 22.3% (\u22652%), Monthly savings inflow: $727.02 (\u2265$200), All credit utilizations < 30% (max: 0.0%). Focus on optimizing savings goals and returns."
+}

@@ -1,0 +1,135 @@
+{
+  "user_id": "5ca9fa94-1983-4e95-abd6-1fc847199581",
+  "timestamp": "2025-11-04T15:09:15.865831",
+  "assigned_personas": [
+    "subscription_heavy",
+    "savings_builder",
+    "balanced_stable"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "3 recurring subscriptions detected",
+        "Monthly subscription spend: $71.01 (\u2265$50)",
+        "Subscriptions are 12.2% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 25.2% (\u22652%)",
+        "Monthly savings inflow: $337.22 (\u2265$200)",
+        "All credit utilizations < 30% (max: 0.0%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "5ca9fa94-1983-4e95-abd6-1fc847199581",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:09:15.841707",
+    "end_date": "2025-11-04T15:09:15.841707",
+    "subscriptions": {
+      "recurring_merchants": 3,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "HBO Max",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 89.55495186198442,
+          "average_amount": 14.925825310330737,
+          "first_transaction": "2025-06-07 15:05:34.815933",
+          "last_transaction": "2025-11-04 15:05:34.815933"
+        },
+        {
+          "merchant_name": "Fitness App",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 206.18690636101562,
+          "average_amount": 34.3644843935026,
+          "first_transaction": "2025-06-07 15:05:34.815933",
+          "last_transaction": "2025-11-04 15:05:34.815933"
+        },
+        {
+          "merchant_name": "Adobe Creative Cloud",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 130.3291595251944,
+          "average_amount": 21.7215265875324,
+          "first_transaction": "2025-06-07 15:05:34.815933",
+          "last_transaction": "2025-11-04 15:05:34.815933"
+        }
+      ],
+      "monthly_recurring_spend": 71.01183629136574,
+      "total_subscription_spend": 426.07101774819444,
+      "subscription_share_of_total": 12.194821718652618,
+      "total_spend": 3493.8683613266485
+    },
+    "savings": {
+      "net_inflow": 2023.3029921680618,
+      "monthly_net_inflow": 337.21716536134363,
+      "growth_rate_percent": 25.230757527329832,
+      "emergency_fund_coverage_months": 17.245919471176023,
+      "total_savings_balance": 10042.495400388187,
+      "average_monthly_expenses": 582.3113935544415,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 14.975514279830401,
+      "checking_balance": 8324.897444289381,
+      "average_monthly_expenses": 555.9006047292595,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified subscription-heavy spending because 3 recurring subscriptions detected, Monthly subscription spend: $71.01 (\u2265$50), Subscriptions are 12.2% of total spend (\u226510%). Focus on auditing and optimizing recurring expenses."
+}

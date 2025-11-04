@@ -1,0 +1,248 @@
+{
+  "user_id": "e7e6c3c3-ad95-42d2-ba8f-e3b4dab7201f",
+  "timestamp": "2025-11-04T15:58:29.321879",
+  "assigned_personas": [
+    "high_utilization",
+    "subscription_heavy",
+    "savings_builder"
+  ],
+  "primary_persona": "high_utilization",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "reasons": [
+        "Making only minimum payments on credit card"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "10 recurring subscriptions detected",
+        "Monthly subscription spend: $443.24 (\u2265$50)",
+        "Subscriptions are 29.5% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 13.7% (\u22652%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "e7e6c3c3-ad95-42d2-ba8f-e3b4dab7201f",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:58:29.288730",
+    "end_date": "2025-11-04T15:58:29.288730",
+    "subscriptions": {
+      "recurring_merchants": 10,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "BP",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 34.25,
+          "total_amount": 152.31459866148694,
+          "average_amount": 30.462919732297387,
+          "first_transaction": "2025-06-17 00:05:39.419655",
+          "last_transaction": "2025-11-02 07:18:20.693556"
+        },
+        {
+          "merchant_name": "Chevron",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 31.333333333333332,
+          "total_amount": 171.44694415099713,
+          "average_amount": 42.86173603774928,
+          "first_transaction": "2025-05-27 14:28:53.372345",
+          "last_transaction": "2025-08-31 01:43:10.863920"
+        },
+        {
+          "merchant_name": "Mobil",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 27.8,
+          "total_amount": 229.40561737208833,
+          "average_amount": 38.234269562014724,
+          "first_transaction": "2025-06-13 07:21:36.265471",
+          "last_transaction": "2025-11-02 07:11:46.000275"
+        },
+        {
+          "merchant_name": "Cable Company",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 31.0,
+          "total_amount": 147.84678673528404,
+          "average_amount": 29.56935734705681,
+          "first_transaction": "2025-06-02 21:48:58.582379",
+          "last_transaction": "2025-10-06 08:41:14.411729"
+        },
+        {
+          "merchant_name": "Phone Company",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 35.0,
+          "total_amount": 552.325419561264,
+          "average_amount": 110.4650839122528,
+          "first_transaction": "2025-06-08 08:51:22.615407",
+          "last_transaction": "2025-10-28 06:56:28.722484"
+        },
+        {
+          "merchant_name": "Shell",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 31.5,
+          "total_amount": 225.44372502421245,
+          "average_amount": 45.088745004842494,
+          "first_transaction": "2025-06-17 08:45:52.233547",
+          "last_transaction": "2025-10-22 20:24:58.229403"
+        },
+        {
+          "merchant_name": "AMC Theaters",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 31.0,
+          "total_amount": 203.73235687993918,
+          "average_amount": 50.933089219984794,
+          "first_transaction": "2025-07-03 06:08:14.873122",
+          "last_transaction": "2025-10-05 03:27:29.764295"
+        },
+        {
+          "merchant_name": "Subway",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 6.5,
+          "total_amount": 197.1676134671872,
+          "average_amount": 65.72253782239574,
+          "first_transaction": "2025-06-07 03:04:17.365876",
+          "last_transaction": "2025-06-21 00:36:22.894062"
+        },
+        {
+          "merchant_name": "Doctor Office",
+          "occurrences": 7,
+          "cadence": "monthly",
+          "average_interval_days": 27.666666666666668,
+          "total_amount": 340.76166188012417,
+          "average_amount": 48.680237411446306,
+          "first_transaction": "2025-05-08 22:43:51.038595",
+          "last_transaction": "2025-10-25 22:05:52.286881"
+        },
+        {
+          "merchant_name": "Chipotle",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 32.0,
+          "total_amount": 187.758558089122,
+          "average_amount": 46.9396395222805,
+          "first_transaction": "2025-06-23 23:24:41.862908",
+          "last_transaction": "2025-09-28 19:42:58.661681"
+        }
+      ],
+      "monthly_recurring_spend": 443.23507774992504,
+      "total_subscription_spend": 2408.2032818217053,
+      "subscription_share_of_total": 29.49651129761639,
+      "total_spend": 8164.366482270438
+    },
+    "savings": {
+      "net_inflow": 893.64594312823,
+      "monthly_net_inflow": 148.94099052137167,
+      "growth_rate_percent": 13.712864158954098,
+      "emergency_fund_coverage_months": 13.77562923115278,
+      "total_savings_balance": 7410.489782383399,
+      "average_monthly_expenses": 537.9420176049025,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 2,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "123244123361",
+          "name": "Mastercard Credit Card #1",
+          "utilization": {
+            "account_id": "123244123361",
+            "utilization_percent": 14.960262431335686,
+            "balance": 2992.0524862671373,
+            "limit": 20000.0,
+            "available": 17007.947513732863,
+            "is_high_utilization_30": false,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": false,
+            "total_interest_charges": 0,
+            "monthly_interest_estimate": 0.0,
+            "interest_transactions": 0
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        },
+        {
+          "account_id": "886376731625",
+          "name": "Mastercard Credit Card #2",
+          "utilization": {
+            "account_id": "886376731625",
+            "utilization_percent": 20.34135589746687,
+            "balance": 2034.135589746687,
+            "limit": 10000.0,
+            "available": 7965.864410253313,
+            "is_high_utilization_30": false,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": false,
+            "total_interest_charges": 0,
+            "monthly_interest_estimate": 0.0,
+            "interest_transactions": 0
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 10.443342458651191,
+      "checking_balance": 4404.5007642988585,
+      "average_monthly_expenses": 421.75201873708556,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified high credit utilization because Making only minimum payments on credit card. Focus on reducing debt and improving payment habits."
+}

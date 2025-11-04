@@ -1,0 +1,113 @@
+{
+  "user_id": "3b1c57a1-7eef-4226-8771-f3f1c8bbb3f4",
+  "timestamp": "2025-11-04T14:48:29.677144",
+  "assigned_personas": [
+    "savings_builder",
+    "balanced_stable"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "priority": 5
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "priority": 4
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "reasons": [],
+      "priority": 3
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 2.8% (\u22652%)"
+      ],
+      "priority": 2
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "priority": 1
+    }
+  },
+  "features_snapshot": {
+    "user_id": "3b1c57a1-7eef-4226-8771-f3f1c8bbb3f4",
+    "window_days": 180,
+    "start_date": "2025-05-08T14:48:29.660301",
+    "end_date": "2025-11-04T14:48:29.660301",
+    "subscriptions": {
+      "recurring_merchants": 2,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Amtrak",
+          "occurrences": 4,
+          "cadence": "weekly",
+          "average_interval_days": 6.0,
+          "total_amount": 77.78944905350002,
+          "average_amount": 19.447362263375005,
+          "first_transaction": "2025-10-13 09:00:37.531216",
+          "last_transaction": "2025-11-01 09:53:53.239500"
+        },
+        {
+          "merchant_name": "Chevron",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 6.0,
+          "total_amount": 148.9961763375448,
+          "average_amount": 49.66539211251493,
+          "first_transaction": "2025-10-19 19:22:07.828669",
+          "last_transaction": "2025-11-01 11:05:13.436987"
+        }
+      ],
+      "monthly_recurring_spend": 0,
+      "total_subscription_spend": 226.78562539104482,
+      "subscription_share_of_total": 4.991643527637212,
+      "total_spend": 4543.30570954039
+    },
+    "savings": {
+      "net_inflow": 523.9238871985438,
+      "monthly_net_inflow": 87.32064786642395,
+      "growth_rate_percent": 2.7864234186030328,
+      "emergency_fund_coverage_months": 25.52325928808624,
+      "total_savings_balance": 19326.66160827367,
+      "average_monthly_expenses": 757.2176182567317,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 2.760289441506529,
+      "checking_balance": 4180.279593193556,
+      "average_monthly_expenses": 1514.4352365134635,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified strong savings behavior because Savings growth rate: 2.8% (\u22652%). Focus on optimizing savings goals and returns."
+}

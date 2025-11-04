@@ -1,0 +1,162 @@
+{
+  "user_id": "760b8021-af53-46e6-9b99-795c3af3b4bf",
+  "timestamp": "2025-11-04T15:58:29.175995",
+  "assigned_personas": [
+    "subscription_heavy",
+    "savings_builder"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "6 recurring subscriptions detected",
+        "Monthly subscription spend: $455.96 (\u2265$50)",
+        "Subscriptions are 50.3% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 8.2% (\u22652%)",
+        "Monthly savings inflow: $528.73 (\u2265$200)",
+        "All credit utilizations < 30% (max: 0.0%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "760b8021-af53-46e6-9b99-795c3af3b4bf",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:58:29.147927",
+    "end_date": "2025-11-04T15:58:29.147927",
+    "subscriptions": {
+      "recurring_merchants": 6,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Netflix",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 53.95002790233334,
+          "average_amount": 8.991671317055557,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        },
+        {
+          "merchant_name": "HBO Max",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 88.21176297692014,
+          "average_amount": 14.701960496153356,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        },
+        {
+          "merchant_name": "Newsletter Subscription",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 79.68635640623867,
+          "average_amount": 13.281059401039778,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        },
+        {
+          "merchant_name": "Water Utility",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 26.8,
+          "total_amount": 314.9238866741913,
+          "average_amount": 52.48731444569855,
+          "first_transaction": "2025-05-29 02:28:50.021109",
+          "last_transaction": "2025-10-11 23:09:56.719734"
+        },
+        {
+          "merchant_name": "Cable Company",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 26.666666666666668,
+          "total_amount": 177.8276536854301,
+          "average_amount": 44.45691342135753,
+          "first_transaction": "2025-08-06 00:03:05.486452",
+          "last_transaction": "2025-10-26 04:53:23.368845"
+        },
+        {
+          "merchant_name": "STUDENT LOAN PAYMENT",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 1932.2737792453693,
+          "average_amount": 322.0456298742282,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        }
+      ],
+      "monthly_recurring_spend": 455.96454895553296,
+      "total_subscription_spend": 2646.8734668904826,
+      "subscription_share_of_total": 50.33243160396884,
+      "total_spend": 5258.783218972814
+    },
+    "savings": {
+      "net_inflow": 3172.400585601203,
+      "monthly_net_inflow": 528.7334309335339,
+      "growth_rate_percent": 8.167181246507326,
+      "emergency_fund_coverage_months": 75.78335543105223,
+      "total_savings_balance": 42015.6745359359,
+      "average_monthly_expenses": 554.4182399545742,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 4.893641568862662,
+      "checking_balance": 3075.6044637305718,
+      "average_monthly_expenses": 628.4899334066629,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified subscription-heavy spending because 6 recurring subscriptions detected, Monthly subscription spend: $455.96 (\u2265$50), Subscriptions are 50.3% of total spend (\u226510%). Focus on auditing and optimizing recurring expenses."
+}

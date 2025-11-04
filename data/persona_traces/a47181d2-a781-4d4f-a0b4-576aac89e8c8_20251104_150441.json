@@ -1,0 +1,162 @@
+{
+  "user_id": "a47181d2-a781-4d4f-a0b4-576aac89e8c8",
+  "timestamp": "2025-11-04T15:04:41.479689",
+  "assigned_personas": [
+    "subscription_heavy",
+    "savings_builder"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "6 recurring subscriptions detected",
+        "Monthly subscription spend: $199.13 (\u2265$50)",
+        "Subscriptions are 23.3% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 50.8% (\u22652%)",
+        "Monthly savings inflow: $1585.61 (\u2265$200)",
+        "All credit utilizations < 30% (max: 0.0%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "a47181d2-a781-4d4f-a0b4-576aac89e8c8",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:04:41.441782",
+    "end_date": "2025-11-04T15:04:41.441782",
+    "subscriptions": {
+      "recurring_merchants": 6,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Microsoft 365",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 134.6979392239279,
+          "average_amount": 22.449656537321317,
+          "first_transaction": "2025-06-07 15:04:21.475307",
+          "last_transaction": "2025-11-04 15:04:21.475307"
+        },
+        {
+          "merchant_name": "Apple Music",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 62.59871115027142,
+          "average_amount": 10.433118525045236,
+          "first_transaction": "2025-06-07 15:04:21.475307",
+          "last_transaction": "2025-11-04 15:04:21.475307"
+        },
+        {
+          "merchant_name": "BP",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 28.5,
+          "total_amount": 206.77913188567706,
+          "average_amount": 41.355826377135415,
+          "first_transaction": "2025-06-26 19:48:53.358047",
+          "last_transaction": "2025-10-21 13:25:13.180220"
+        },
+        {
+          "merchant_name": "Mobil",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 29.2,
+          "total_amount": 315.43399457858226,
+          "average_amount": 52.57233242976371,
+          "first_transaction": "2025-06-03 10:56:02.685652",
+          "last_transaction": "2025-10-30 06:45:15.386377"
+        },
+        {
+          "merchant_name": "Exxon",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 33.75,
+          "total_amount": 144.31801262268706,
+          "average_amount": 28.863602524537413,
+          "first_transaction": "2025-06-05 16:22:08.578898",
+          "last_transaction": "2025-10-21 00:11:07.137681"
+        },
+        {
+          "merchant_name": "Metro Transit",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 34.25,
+          "total_amount": 217.26551739992894,
+          "average_amount": 43.453103479985785,
+          "first_transaction": "2025-05-10 08:44:23.833230",
+          "last_transaction": "2025-09-26 18:28:20.749125"
+        }
+      ],
+      "monthly_recurring_spend": 199.1276398737889,
+      "total_subscription_spend": 1081.0933068610748,
+      "subscription_share_of_total": 23.340119000638744,
+      "total_spend": 4631.910003678596
+    },
+    "savings": {
+      "net_inflow": 9513.643364604579,
+      "monthly_net_inflow": 1585.6072274340966,
+      "growth_rate_percent": 50.771075444007195,
+      "emergency_fund_coverage_months": 36.596510296041416,
+      "total_savings_balance": 28251.957023326824,
+      "average_monthly_expenses": 771.9850006130993,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 4.091579814428676,
+      "checking_balance": 3607.798604527708,
+      "average_monthly_expenses": 881.7617566215018,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified subscription-heavy spending because 6 recurring subscriptions detected, Monthly subscription spend: $199.13 (\u2265$50), Subscriptions are 23.3% of total spend (\u226510%). Focus on auditing and optimizing recurring expenses."
+}

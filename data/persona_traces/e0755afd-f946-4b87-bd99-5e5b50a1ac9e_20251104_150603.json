@@ -1,0 +1,226 @@
+{
+  "user_id": "e0755afd-f946-4b87-bd99-5e5b50a1ac9e",
+  "timestamp": "2025-11-04T15:06:03.545926",
+  "assigned_personas": [
+    "high_utilization",
+    "subscription_heavy"
+  ],
+  "primary_persona": "high_utilization",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "reasons": [
+        "Interest charges detected on credit card",
+        "Making only minimum payments on credit card"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "8 recurring subscriptions detected",
+        "Monthly subscription spend: $392.26 (\u2265$50)",
+        "Subscriptions are 20.9% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "e0755afd-f946-4b87-bd99-5e5b50a1ac9e",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:06:03.501336",
+    "end_date": "2025-11-04T15:06:03.501336",
+    "subscriptions": {
+      "recurring_merchants": 8,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Spotify",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 86.92333480297714,
+          "average_amount": 14.487222467162857,
+          "first_transaction": "2025-06-07 15:05:34.815933",
+          "last_transaction": "2025-11-04 15:05:34.815933"
+        },
+        {
+          "merchant_name": "Delta Airlines",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 31.75,
+          "total_amount": 158.2502506334581,
+          "average_amount": 31.65005012669162,
+          "first_transaction": "2025-06-09 17:10:40.239495",
+          "last_transaction": "2025-10-17 02:58:15.482814"
+        },
+        {
+          "merchant_name": "Cable Company",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 29.0,
+          "total_amount": 215.33171632175362,
+          "average_amount": 71.77723877391787,
+          "first_transaction": "2025-07-02 22:26:24.182641",
+          "last_transaction": "2025-08-30 23:09:59.720151"
+        },
+        {
+          "merchant_name": "Dunkin' Donuts",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 35.0,
+          "total_amount": 110.76043823676106,
+          "average_amount": 36.920146078920354,
+          "first_transaction": "2025-07-25 00:44:34.785153",
+          "last_transaction": "2025-10-04 19:56:18.587340"
+        },
+        {
+          "merchant_name": "Walgreens",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 25.5,
+          "total_amount": 125.82991404995717,
+          "average_amount": 41.943304683319056,
+          "first_transaction": "2025-06-17 15:11:36.610074",
+          "last_transaction": "2025-08-08 08:48:39.678058"
+        },
+        {
+          "merchant_name": "Disney+",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 26.5,
+          "total_amount": 212.2611812059395,
+          "average_amount": 70.7537270686465,
+          "first_transaction": "2025-06-29 17:14:08.897785",
+          "last_transaction": "2025-08-22 14:55:34.390964"
+        },
+        {
+          "merchant_name": "Hospital",
+          "occurrences": 7,
+          "cadence": "monthly",
+          "average_interval_days": 25.333333333333332,
+          "total_amount": 317.6356794174461,
+          "average_amount": 45.37652563106373,
+          "first_transaction": "2025-05-30 13:31:49.090737",
+          "last_transaction": "2025-11-01 02:26:02.035106"
+        },
+        {
+          "merchant_name": "Doctor Office",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 33.0,
+          "total_amount": 238.0438430092371,
+          "average_amount": 79.3479476697457,
+          "first_transaction": "2025-07-25 01:33:52.499372",
+          "last_transaction": "2025-09-30 16:02:57.970000"
+        }
+      ],
+      "monthly_recurring_spend": 392.2561624994676,
+      "total_subscription_spend": 1465.0363576775298,
+      "subscription_share_of_total": 20.892077935148805,
+      "total_spend": 7012.401362014616
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 6.335897442027493,
+      "total_savings_balance": 2140.0316505401324,
+      "average_monthly_expenses": 337.7629878199734,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 2,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": true,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "229514520580",
+          "name": "Mastercard Credit Card #1",
+          "utilization": {
+            "account_id": "229514520580",
+            "utilization_percent": 42.260044057095236,
+            "balance": 4226.004405709524,
+            "limit": 10000.0,
+            "available": 5773.995594290476,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 321.99775639810457,
+            "monthly_interest_estimate": 53.66629273301743,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": false,
+          "is_overdue": false
+        },
+        {
+          "account_id": "324065474769",
+          "name": "American Express Credit Card #2",
+          "utilization": {
+            "account_id": "324065474769",
+            "utilization_percent": 42.09672302862403,
+            "balance": 6314.508454293604,
+            "limit": 15000.0,
+            "available": 8685.491545706396,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 595.3022749121909,
+            "monthly_interest_estimate": 99.21704581869848,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 1.0320363906319998,
+      "checking_balance": 368.3581261938987,
+      "average_monthly_expenses": 356.9235828673862,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified high credit utilization because Interest charges detected on credit card, Making only minimum payments on credit card. Focus on reducing debt and improving payment habits."
+}

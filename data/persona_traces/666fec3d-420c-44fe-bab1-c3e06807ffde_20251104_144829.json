@@ -1,0 +1,115 @@
+{
+  "user_id": "666fec3d-420c-44fe-bab1-c3e06807ffde",
+  "timestamp": "2025-11-04T14:48:29.473388",
+  "assigned_personas": [
+    "savings_builder",
+    "balanced_stable"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "priority": 5
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "priority": 4
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "reasons": [],
+      "priority": 3
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 5.1% (\u22652%)",
+        "Monthly savings inflow: $360.69 (\u2265$200)",
+        "All credit utilizations < 30% (max: 0.0%)"
+      ],
+      "priority": 2
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "priority": 1
+    }
+  },
+  "features_snapshot": {
+    "user_id": "666fec3d-420c-44fe-bab1-c3e06807ffde",
+    "window_days": 180,
+    "start_date": "2025-05-08T14:48:29.444225",
+    "end_date": "2025-11-04T14:48:29.444225",
+    "subscriptions": {
+      "recurring_merchants": 2,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "CVS Pharmacy",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 6.0,
+          "total_amount": 125.72170617677419,
+          "average_amount": 41.907235392258066,
+          "first_transaction": "2025-10-21 17:23:38.096420",
+          "last_transaction": "2025-11-03 05:31:21.884135"
+        },
+        {
+          "merchant_name": "Internet Provider",
+          "occurrences": 4,
+          "cadence": "weekly",
+          "average_interval_days": 8.0,
+          "total_amount": 126.13204557717833,
+          "average_amount": 31.533011394294583,
+          "first_transaction": "2025-10-09 05:53:53.875690",
+          "last_transaction": "2025-11-03 00:34:43.962212"
+        }
+      ],
+      "monthly_recurring_spend": 0,
+      "total_subscription_spend": 251.8537517539525,
+      "subscription_share_of_total": 9.277434530270828,
+      "total_spend": 2714.6917710083844
+    },
+    "savings": {
+      "net_inflow": 2164.1473903957576,
+      "monthly_net_inflow": 360.69123173262625,
+      "growth_rate_percent": 5.0712894730475755,
+      "emergency_fund_coverage_months": 99.10218279005836,
+      "total_savings_balance": 44838.6466848567,
+      "average_monthly_expenses": 452.4486285013974,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 1.5326220701866626,
+      "checking_balance": 1386.865507333856,
+      "average_monthly_expenses": 904.8972570027948,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified strong savings behavior because Savings growth rate: 5.1% (\u22652%), Monthly savings inflow: $360.69 (\u2265$200), All credit utilizations < 30% (max: 0.0%). Focus on optimizing savings goals and returns."
+}

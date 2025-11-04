@@ -1,0 +1,120 @@
+{
+  "user_id": "6c6cfe1c-1c23-43d5-b042-1d9bcdd334b0",
+  "timestamp": "2025-11-04T15:03:08.232783",
+  "assigned_personas": [
+    "savings_builder",
+    "balanced_stable"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 141.6% (\u22652%)",
+        "Monthly savings inflow: $366.78 (\u2265$200)",
+        "All credit utilizations < 30% (max: 0.0%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "6c6cfe1c-1c23-43d5-b042-1d9bcdd334b0",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:03:08.215956",
+    "end_date": "2025-11-04T15:03:08.215956",
+    "subscriptions": {
+      "recurring_merchants": 2,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Gym Membership",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 318.9061295936423,
+          "average_amount": 53.15102159894038,
+          "first_transaction": "2025-06-07 14:50:03.483114",
+          "last_transaction": "2025-11-04 14:50:03.483114"
+        },
+        {
+          "merchant_name": "Fitness App",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 247.88346766325824,
+          "average_amount": 41.313911277209705,
+          "first_transaction": "2025-06-07 14:50:03.483114",
+          "last_transaction": "2025-11-04 14:50:03.483114"
+        }
+      ],
+      "monthly_recurring_spend": 94.46493287615009,
+      "total_subscription_spend": 566.7895972569005,
+      "subscription_share_of_total": 32.33581219870341,
+      "total_spend": 1752.8231354573104
+    },
+    "savings": {
+      "net_inflow": 2200.697022234784,
+      "monthly_net_inflow": 366.7828370391307,
+      "growth_rate_percent": 141.56906152077786,
+      "emergency_fund_coverage_months": 12.854238936706453,
+      "total_savings_balance": 3755.201232825875,
+      "average_monthly_expenses": 292.1371892428851,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 29.010233358941203,
+      "checking_balance": 7111.420553630563,
+      "average_monthly_expenses": 245.13489656017404,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified strong savings behavior because Savings growth rate: 141.6% (\u22652%), Monthly savings inflow: $366.78 (\u2265$200), All credit utilizations < 30% (max: 0.0%). Focus on optimizing savings goals and returns."
+}
