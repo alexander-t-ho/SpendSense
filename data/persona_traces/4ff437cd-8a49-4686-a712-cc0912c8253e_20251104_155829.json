@@ -1,0 +1,183 @@
+{
+  "user_id": "4ff437cd-8a49-4686-a712-cc0912c8253e",
+  "timestamp": "2025-11-04T15:58:29.461490",
+  "assigned_personas": [
+    "high_utilization",
+    "subscription_heavy"
+  ],
+  "primary_persona": "high_utilization",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "reasons": [
+        "Making only minimum payments on credit card"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "6 recurring subscriptions detected",
+        "Monthly subscription spend: $244.63 (\u2265$50)",
+        "Subscriptions are 19.4% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "4ff437cd-8a49-4686-a712-cc0912c8253e",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:58:29.435371",
+    "end_date": "2025-11-04T15:58:29.435371",
+    "subscriptions": {
+      "recurring_merchants": 6,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Gym Membership",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 314.63168885788104,
+          "average_amount": 52.43861480964684,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        },
+        {
+          "merchant_name": "Subway",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 27.5,
+          "total_amount": 119.86877086218092,
+          "average_amount": 39.95625695406031,
+          "first_transaction": "2025-08-01 05:17:42.195490",
+          "last_transaction": "2025-09-25 20:18:55.991782"
+        },
+        {
+          "merchant_name": "Exxon",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 34.5,
+          "total_amount": 135.20867374977098,
+          "average_amount": 45.06955791659033,
+          "first_transaction": "2025-07-26 02:53:47.097908",
+          "last_transaction": "2025-10-03 17:07:58.224368"
+        },
+        {
+          "merchant_name": "McDonald's",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 29.0,
+          "total_amount": 205.87994650182674,
+          "average_amount": 41.175989300365345,
+          "first_transaction": "2025-05-12 19:01:26.436369",
+          "last_transaction": "2025-09-08 02:43:44.114620"
+        },
+        {
+          "merchant_name": "Vision Center",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 31.8,
+          "total_amount": 155.0056238967438,
+          "average_amount": 25.8342706494573,
+          "first_transaction": "2025-05-15 05:31:50.831088",
+          "last_transaction": "2025-10-24 11:38:45.650272"
+        },
+        {
+          "merchant_name": "Electric Company",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 34.666666666666664,
+          "total_amount": 160.6356054078035,
+          "average_amount": 40.158901351950874,
+          "first_transaction": "2025-07-08 02:40:56.498653",
+          "last_transaction": "2025-10-22 00:17:09.327984"
+        }
+      ],
+      "monthly_recurring_spend": 244.633590982071,
+      "total_subscription_spend": 1091.230309276207,
+      "subscription_share_of_total": 19.35393152547541,
+      "total_spend": 5638.287537805071
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 0.0,
+      "total_savings_balance": 0,
+      "average_monthly_expenses": 571.7007628507871,
+      "has_emergency_fund": false
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 1,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "542101750961",
+          "name": "Discover Credit Card",
+          "utilization": {
+            "account_id": "542101750961",
+            "utilization_percent": 25.9165253505818,
+            "balance": 2591.65253505818,
+            "limit": 10000.0,
+            "available": 7408.34746494182,
+            "is_high_utilization_30": false,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": false,
+            "total_interest_charges": 0,
+            "monthly_interest_estimate": 0.0,
+            "interest_transactions": 0
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 10.600668482779051,
+      "checking_balance": 5843.569857719675,
+      "average_monthly_expenses": 551.2454112882263,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified high credit utilization because Making only minimum payments on credit card. Focus on reducing debt and improving payment habits."
+}

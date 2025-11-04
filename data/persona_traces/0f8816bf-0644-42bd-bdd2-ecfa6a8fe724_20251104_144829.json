@@ -1,0 +1,105 @@
+{
+  "user_id": "0f8816bf-0644-42bd-bdd2-ecfa6a8fe724",
+  "timestamp": "2025-11-04T14:48:29.718441",
+  "assigned_personas": [
+    "savings_builder",
+    "balanced_stable"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "priority": 5
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "priority": 4
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "reasons": [],
+      "priority": 3
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 12.6% (\u22652%)",
+        "Monthly savings inflow: $559.18 (\u2265$200)",
+        "All credit utilizations < 30% (max: 0.0%)"
+      ],
+      "priority": 2
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "priority": 1
+    }
+  },
+  "features_snapshot": {
+    "user_id": "0f8816bf-0644-42bd-bdd2-ecfa6a8fe724",
+    "window_days": 180,
+    "start_date": "2025-05-08T14:48:29.702696",
+    "end_date": "2025-11-04T14:48:29.702696",
+    "subscriptions": {
+      "recurring_merchants": 1,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Dental Office",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 6.0,
+          "total_amount": 155.27911463897357,
+          "average_amount": 51.75970487965785,
+          "first_transaction": "2025-10-15 02:35:10.805424",
+          "last_transaction": "2025-10-28 00:26:17.138885"
+        }
+      ],
+      "monthly_recurring_spend": 0,
+      "total_subscription_spend": 155.27911463897357,
+      "subscription_share_of_total": 6.884374561785885,
+      "total_spend": 2255.52972525499
+    },
+    "savings": {
+      "net_inflow": 3355.082111791824,
+      "monthly_net_inflow": 559.180351965304,
+      "growth_rate_percent": 12.57139642648819,
+      "emergency_fund_coverage_months": 79.91906250331887,
+      "total_savings_balance": 30043.303515124528,
+      "average_monthly_expenses": 375.92162087583165,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 4.48591474818976,
+      "checking_balance": 3372.704686500586,
+      "average_monthly_expenses": 751.8432417516633,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified strong savings behavior because Savings growth rate: 12.6% (\u22652%), Monthly savings inflow: $559.18 (\u2265$200), All credit utilizations < 30% (max: 0.0%). Focus on optimizing savings goals and returns."
+}

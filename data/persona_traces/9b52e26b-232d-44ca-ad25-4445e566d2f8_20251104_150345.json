@@ -1,0 +1,235 @@
+{
+  "user_id": "9b52e26b-232d-44ca-ad25-4445e566d2f8",
+  "timestamp": "2025-11-04T15:03:45.616199",
+  "assigned_personas": [
+    "high_utilization",
+    "subscription_heavy"
+  ],
+  "primary_persona": "high_utilization",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "reasons": [
+        "Credit utilization is 87.9% (\u226550% threshold)",
+        "Interest charges detected on credit card",
+        "Making only minimum payments on credit card"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "11 recurring subscriptions detected",
+        "Monthly subscription spend: $684.06 (\u2265$50)",
+        "Subscriptions are 37.7% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "9b52e26b-232d-44ca-ad25-4445e566d2f8",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:03:45.594947",
+    "end_date": "2025-11-04T15:03:45.594947",
+    "subscriptions": {
+      "recurring_merchants": 11,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Spotify",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 66.21955466601099,
+          "average_amount": 11.036592444335165,
+          "first_transaction": "2025-06-07 14:50:03.483114",
+          "last_transaction": "2025-11-04 14:50:03.483114"
+        },
+        {
+          "merchant_name": "Phone Company",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 30.75,
+          "total_amount": 352.4007940614194,
+          "average_amount": 70.48015881228388,
+          "first_transaction": "2025-05-28 22:30:22.515133",
+          "last_transaction": "2025-09-30 16:56:31.789899"
+        },
+        {
+          "merchant_name": "McDonald's",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 29.333333333333332,
+          "total_amount": 222.63719805642137,
+          "average_amount": 55.65929951410534,
+          "first_transaction": "2025-06-13 06:49:47.294908",
+          "last_transaction": "2025-09-10 18:55:16.359774"
+        },
+        {
+          "merchant_name": "Costco",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 28.0,
+          "total_amount": 74.63946467703076,
+          "average_amount": 24.879821559010253,
+          "first_transaction": "2025-07-15 06:58:28.660870",
+          "last_transaction": "2025-09-09 19:42:28.341127"
+        },
+        {
+          "merchant_name": "Panera Bread",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 28.0,
+          "total_amount": 165.769864634753,
+          "average_amount": 27.628310772458832,
+          "first_transaction": "2025-05-14 13:47:06.874813",
+          "last_transaction": "2025-10-04 22:05:25.556604"
+        },
+        {
+          "merchant_name": "Dental Office",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 28.0,
+          "total_amount": 353.61479505955776,
+          "average_amount": 58.93579917659296,
+          "first_transaction": "2025-05-12 15:56:56.021539",
+          "last_transaction": "2025-10-03 04:39:14.813638"
+        },
+        {
+          "merchant_name": "Trader Joe's",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 163.53833576493554,
+          "average_amount": 54.512778588311846,
+          "first_transaction": "2025-07-22 17:17:29.415275",
+          "last_transaction": "2025-09-21 21:24:35.660758"
+        },
+        {
+          "merchant_name": "Lyft",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 33.75,
+          "total_amount": 305.0457964827398,
+          "average_amount": 61.009159296547956,
+          "first_transaction": "2025-06-09 15:29:22.376173",
+          "last_transaction": "2025-10-25 09:47:39.637076"
+        },
+        {
+          "merchant_name": "Delta Airlines",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 34.5,
+          "total_amount": 86.30635374652694,
+          "average_amount": 28.768784582175645,
+          "first_transaction": "2025-07-06 01:48:07.449743",
+          "last_transaction": "2025-09-13 18:16:48.993046"
+        },
+        {
+          "merchant_name": "MoviePass",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 25.0,
+          "total_amount": 203.60741436977537,
+          "average_amount": 67.86913812325845,
+          "first_transaction": "2025-06-10 18:51:01.064633",
+          "last_transaction": "2025-07-31 03:22:43.160778"
+        },
+        {
+          "merchant_name": "INTEREST CHARGE",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 1339.6743711216511,
+          "average_amount": 223.2790618536085,
+          "first_transaction": "2025-06-07 14:50:03.483114",
+          "last_transaction": "2025-11-04 14:50:03.483114"
+        }
+      ],
+      "monthly_recurring_spend": 684.0589047226888,
+      "total_subscription_spend": 3333.453942640822,
+      "subscription_share_of_total": 37.730343097111266,
+      "total_spend": 8834.942036071863
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 0.0,
+      "total_savings_balance": 0,
+      "average_monthly_expenses": 907.2019598126503,
+      "has_emergency_fund": false
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 1,
+      "any_high_utilization_50": true,
+      "any_high_utilization_80": true,
+      "any_interest_charges": true,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "964908108186",
+          "name": "Discover Credit Card",
+          "utilization": {
+            "account_id": "964908108186",
+            "utilization_percent": 87.86920794240687,
+            "balance": 13180.381191361032,
+            "limit": 15000.0,
+            "available": 1819.6188086389684,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": true,
+            "is_high_utilization_80": true
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 1339.6743711216511,
+            "monthly_interest_estimate": 223.2790618536085,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 3.81795049948658,
+      "checking_balance": 3353.735919384375,
+      "average_monthly_expenses": 878.412624740779,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified high credit utilization because Credit utilization is 87.9% (\u226550% threshold), Interest charges detected on credit card, Making only minimum payments on credit card. Focus on reducing debt and improving payment habits."
+}

@@ -1,0 +1,286 @@
+{
+  "user_id": "cf28f76a-c170-4fc8-aff3-36ce7cdcb8be",
+  "timestamp": "2025-11-04T15:06:01.722485",
+  "assigned_personas": [
+    "high_utilization",
+    "subscription_heavy"
+  ],
+  "primary_persona": "high_utilization",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "reasons": [
+        "Interest charges detected on credit card",
+        "Making only minimum payments on credit card"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "14 recurring subscriptions detected",
+        "Monthly subscription spend: $467.76 (\u2265$50)",
+        "Subscriptions are 32.6% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "cf28f76a-c170-4fc8-aff3-36ce7cdcb8be",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:06:01.668350",
+    "end_date": "2025-11-04T15:06:01.668350",
+    "subscriptions": {
+      "recurring_merchants": 14,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Amazon Prime",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 76.87993739101769,
+          "average_amount": 12.813322898502948,
+          "first_transaction": "2025-06-07 15:05:34.815933",
+          "last_transaction": "2025-11-04 15:05:34.815933"
+        },
+        {
+          "merchant_name": "Netflix",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 31.5,
+          "total_amount": 131.63502737821563,
+          "average_amount": 26.327005475643126,
+          "first_transaction": "2025-06-30 10:34:01.469356",
+          "last_transaction": "2025-11-04 15:05:34.815933"
+        },
+        {
+          "merchant_name": "AMC Theaters",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 32.5,
+          "total_amount": 220.73265506600268,
+          "average_amount": 44.14653101320054,
+          "first_transaction": "2025-05-19 05:09:47.373441",
+          "last_transaction": "2025-09-28 03:36:38.217646"
+        },
+        {
+          "merchant_name": "Chipotle",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 27.4,
+          "total_amount": 135.59669822715148,
+          "average_amount": 22.599449704525245,
+          "first_transaction": "2025-06-09 09:08:46.979641",
+          "last_transaction": "2025-10-27 07:19:30.996953"
+        },
+        {
+          "merchant_name": "Mobil",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 33.0,
+          "total_amount": 152.14618656170154,
+          "average_amount": 38.036546640425385,
+          "first_transaction": "2025-05-30 20:37:40.316787",
+          "last_transaction": "2025-09-08 08:43:40.705640"
+        },
+        {
+          "merchant_name": "Phone Company",
+          "occurrences": 7,
+          "cadence": "monthly",
+          "average_interval_days": 27.166666666666668,
+          "total_amount": 165.47151658193937,
+          "average_amount": 23.638788083134195,
+          "first_transaction": "2025-05-13 21:19:51.150429",
+          "last_transaction": "2025-10-26 19:40:49.282212"
+        },
+        {
+          "merchant_name": "Shell",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 329.79241413500904,
+          "average_amount": 54.96540235583484,
+          "first_transaction": "2025-05-20 06:27:15.627487",
+          "last_transaction": "2025-10-20 12:46:57.890857"
+        },
+        {
+          "merchant_name": "Amtrak",
+          "occurrences": 7,
+          "cadence": "monthly",
+          "average_interval_days": 25.166666666666668,
+          "total_amount": 148.32413685288157,
+          "average_amount": 21.18916240755451,
+          "first_transaction": "2025-05-31 04:06:51.075464",
+          "last_transaction": "2025-10-31 12:10:41.392831"
+        },
+        {
+          "merchant_name": "Walgreens",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.8,
+          "total_amount": 199.5334465211962,
+          "average_amount": 33.255574420199366,
+          "first_transaction": "2025-05-25 05:51:13.904398",
+          "last_transaction": "2025-10-28 19:10:58.138551"
+        },
+        {
+          "merchant_name": "BP",
+          "occurrences": 7,
+          "cadence": "monthly",
+          "average_interval_days": 26.333333333333332,
+          "total_amount": 290.5496145746471,
+          "average_amount": 41.50708779637815,
+          "first_transaction": "2025-05-20 04:42:23.426280",
+          "last_transaction": "2025-10-29 03:38:57.288687"
+        },
+        {
+          "merchant_name": "Vision Center",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 27.0,
+          "total_amount": 245.86126881320075,
+          "average_amount": 61.46531720330019,
+          "first_transaction": "2025-07-10 10:20:30.090894",
+          "last_transaction": "2025-09-30 17:22:47.858173"
+        },
+        {
+          "merchant_name": "Dunkin' Donuts",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 26.333333333333332,
+          "total_amount": 133.06834862848854,
+          "average_amount": 33.267087157122134,
+          "first_transaction": "2025-05-31 13:32:10.438102",
+          "last_transaction": "2025-08-20 12:24:46.025141"
+        },
+        {
+          "merchant_name": "Uber",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 31.0,
+          "total_amount": 50.60708012243923,
+          "average_amount": 16.869026707479744,
+          "first_transaction": "2025-07-22 15:51:05.822037",
+          "last_transaction": "2025-09-24 11:01:34.593558"
+        },
+        {
+          "merchant_name": "Cable Company",
+          "occurrences": 7,
+          "cadence": "monthly",
+          "average_interval_days": 27.833333333333332,
+          "total_amount": 263.7534230130639,
+          "average_amount": 37.6790604304377,
+          "first_transaction": "2025-05-16 22:31:51.724042",
+          "last_transaction": "2025-11-04 01:15:23.462454"
+        }
+      ],
+      "monthly_recurring_spend": 467.75936229373804,
+      "total_subscription_spend": 2543.9517538669543,
+      "subscription_share_of_total": 32.593463600620524,
+      "total_spend": 7805.097933251015
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 0.0,
+      "total_savings_balance": 0,
+      "average_monthly_expenses": 497.6350262365042,
+      "has_emergency_fund": false
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 2,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": true,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "846452059960",
+          "name": "American Express Credit Card #1",
+          "utilization": {
+            "account_id": "846452059960",
+            "utilization_percent": 22.357318332018995,
+            "balance": 2235.7318332018995,
+            "limit": 10000.0,
+            "available": 7764.2681667981005,
+            "is_high_utilization_30": false,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 259.1031557677496,
+            "monthly_interest_estimate": 43.18385929462494,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        },
+        {
+          "account_id": "888116162028",
+          "name": "Visa Credit Card #2",
+          "utilization": {
+            "account_id": "888116162028",
+            "utilization_percent": 32.873518306425815,
+            "balance": 3287.3518306425813,
+            "limit": 10000.0,
+            "available": 6712.648169357419,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 460.846294003056,
+            "monthly_interest_estimate": 76.807715667176,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 2.0259713777207335,
+      "checking_balance": 1001.4350115469956,
+      "average_monthly_expenses": 494.29869669414285,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified high credit utilization because Interest charges detected on credit card, Making only minimum payments on credit card. Focus on reducing debt and improving payment habits."
+}

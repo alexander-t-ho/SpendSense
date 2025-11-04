@@ -1,0 +1,183 @@
+{
+  "user_id": "36258da5-ea8a-4e54-ad20-ee4812d8e92e",
+  "timestamp": "2025-11-04T15:58:30.188002",
+  "assigned_personas": [
+    "high_utilization",
+    "subscription_heavy"
+  ],
+  "primary_persona": "high_utilization",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "reasons": [
+        "Making only minimum payments on credit card"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "6 recurring subscriptions detected",
+        "Monthly subscription spend: $1596.80 (\u2265$50)",
+        "Subscriptions are 64.6% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "36258da5-ea8a-4e54-ad20-ee4812d8e92e",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:58:30.154580",
+    "end_date": "2025-11-04T15:58:30.154580",
+    "subscriptions": {
+      "recurring_merchants": 6,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Adobe Creative Cloud",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 76.90386007960365,
+          "average_amount": 12.817310013267274,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        },
+        {
+          "merchant_name": "Amtrak",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 29.75,
+          "total_amount": 243.56759383330166,
+          "average_amount": 48.71351876666033,
+          "first_transaction": "2025-06-26 10:00:10.390767",
+          "last_transaction": "2025-10-24 15:53:55.764652"
+        },
+        {
+          "merchant_name": "Dunkin' Donuts",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 33.5,
+          "total_amount": 186.3877729389257,
+          "average_amount": 37.27755458778514,
+          "first_transaction": "2025-05-15 04:11:57.255816",
+          "last_transaction": "2025-09-28 08:06:35.566343"
+        },
+        {
+          "merchant_name": "Phone Company",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 28.0,
+          "total_amount": 278.8284901886909,
+          "average_amount": 46.47141503144849,
+          "first_transaction": "2025-06-03 18:57:12.130956",
+          "last_transaction": "2025-10-23 17:44:58.341927"
+        },
+        {
+          "merchant_name": "Chipotle",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 25.0,
+          "total_amount": 227.4517534401337,
+          "average_amount": 56.862938360033425,
+          "first_transaction": "2025-07-24 05:44:13.647682",
+          "last_transaction": "2025-10-09 13:52:20.985640"
+        },
+        {
+          "merchant_name": "MORTGAGE PAYMENT",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 8367.962866701215,
+          "average_amount": 1394.6604777835357,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        }
+      ],
+      "monthly_recurring_spend": 1596.8032145427303,
+      "total_subscription_spend": 9381.10233718187,
+      "subscription_share_of_total": 64.56275245848482,
+      "total_spend": 14530.208177252222
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 7.941744208018111,
+      "total_savings_balance": 5492.162450638876,
+      "average_monthly_expenses": 691.5562006006063,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 1,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "345190826110",
+          "name": "Mastercard Credit Card",
+          "utilization": {
+            "account_id": "345190826110",
+            "utilization_percent": 24.59756977358,
+            "balance": 1229.878488679,
+            "limit": 5000.0,
+            "available": 3770.121511321,
+            "is_high_utilization_30": false,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": false,
+            "total_interest_charges": 0,
+            "monthly_interest_estimate": 0.0,
+            "interest_transactions": 0
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 1.4034984762272302,
+      "checking_balance": 787.9248350994127,
+      "average_monthly_expenses": 561.400563267762,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified high credit utilization because Making only minimum payments on credit card. Focus on reducing debt and improving payment habits."
+}

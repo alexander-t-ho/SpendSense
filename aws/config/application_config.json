@@ -1,0 +1,60 @@
+{
+  "application_name": "spendsense",
+  "environment": "development",
+  "region": "us-east-1",
+  "account_id": "971422717446",
+  "aws_resources": {
+    "region": "us-east-1",
+    "environment": "development",
+    "s3_buckets": {
+      "parquet_data": "spendsense-parquet-data-bda3bf9a",
+      "insights": "spendsense-insights-bda3bf9a",
+      "historical": "spendsense-historical-bda3bf9a"
+    },
+    "dynamodb_tables": {
+      "insights_metadata": "spendsense-insights-metadata-dev",
+      "user_preferences": "spendsense-user-preferences-dev"
+    },
+    "iam_roles": {
+      "lambda": "SpendSenseLambdaRole-dev",
+      "lambda_arn": "arn:aws:iam::971422717446:role/SpendSenseLambdaRole-dev"
+    },
+    "lambda_functions": {
+      "weekly_recap": "spendsense-insights-weekly-recap-dev",
+      "spending_analysis": "spendsense-insights-spending-analysis-dev",
+      "net_worth": "spendsense-insights-net-worth-dev",
+      "budget_suggestion": "spendsense-insights-budget-suggestion-dev",
+      "budget_tracking": "spendsense-insights-budget-tracking-dev"
+    },
+    "api_gateway": {
+      "api_id": "43k2bhxxpi",
+      "api_url": "https://43k2bhxxpi.execute-api.us-east-1.amazonaws.com/dev",
+      "stage": "dev"
+    }
+  },
+  "api_endpoints": {
+    "local": "http://localhost:8000",
+    "lambda": "https://43k2bhxxpi.execute-api.us-east-1.amazonaws.com/dev"
+  },
+  "deployment": {
+    "backend": {
+      "type": "lambda",
+      "functions": [
+        "spendsense-insights-weekly-recap-dev",
+        "spendsense-insights-spending-analysis-dev",
+        "spendsense-insights-net-worth-dev",
+        "spendsense-insights-budget-suggestion-dev",
+        "spendsense-insights-budget-tracking-dev"
+      ]
+    },
+    "frontend": {
+      "type": "s3_static_hosting",
+      "bucket": "N/A"
+    },
+    "database": {
+      "type": "sqlite_local",
+      "path": "data/spendsense.db",
+      "note": "For production, consider RDS or DynamoDB"
+    }
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "user_id": "9c6fd17f-2112-4956-a8ea-14a70ff37d5d",
+  "timestamp": "2025-11-04T15:04:40.387429",
+  "assigned_personas": [
+    "subscription_heavy"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "7 recurring subscriptions detected",
+        "Monthly subscription spend: $216.26 (\u2265$50)",
+        "Subscriptions are 24.2% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "9c6fd17f-2112-4956-a8ea-14a70ff37d5d",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:04:40.362955",
+    "end_date": "2025-11-04T15:04:40.362955",
+    "subscriptions": {
+      "recurring_merchants": 7,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "HBO Max",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 64.9721339027753,
+          "average_amount": 10.828688983795884,
+          "first_transaction": "2025-06-07 15:04:21.475307",
+          "last_transaction": "2025-11-04 15:04:21.475307"
+        },
+        {
+          "merchant_name": "Adobe Creative Cloud",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 62.29097440083363,
+          "average_amount": 10.381829066805606,
+          "first_transaction": "2025-06-07 15:04:21.475307",
+          "last_transaction": "2025-11-04 15:04:21.475307"
+        },
+        {
+          "merchant_name": "Electric Company",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.4,
+          "total_amount": 102.69595842629042,
+          "average_amount": 17.115993071048404,
+          "first_transaction": "2025-05-16 13:18:58.533751",
+          "last_transaction": "2025-10-18 07:29:22.780932"
+        },
+        {
+          "merchant_name": "Metro Transit",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 34.333333333333336,
+          "total_amount": 118.71289830643097,
+          "average_amount": 29.678224576607743,
+          "first_transaction": "2025-06-25 23:55:50.149265",
+          "last_transaction": "2025-10-07 16:48:33.834272"
+        },
+        {
+          "merchant_name": "Internet Provider",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 33.0,
+          "total_amount": 260.4819977118678,
+          "average_amount": 86.8273325706226,
+          "first_transaction": "2025-06-14 04:53:08.426032",
+          "last_transaction": "2025-08-20 15:44:44.973338"
+        },
+        {
+          "merchant_name": "Walgreens Pharmacy",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 30.5,
+          "total_amount": 34.52461974785056,
+          "average_amount": 11.508206582616852,
+          "first_transaction": "2025-06-06 05:51:18.503111",
+          "last_transaction": "2025-08-06 19:36:14.511566"
+        },
+        {
+          "merchant_name": "Dental Office",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 27.25,
+          "total_amount": 249.57681546069804,
+          "average_amount": 49.91536309213961,
+          "first_transaction": "2025-06-24 19:42:46.430424",
+          "last_transaction": "2025-10-14 04:56:41.849933"
+        }
+      ],
+      "monthly_recurring_spend": 216.25563794363669,
+      "total_subscription_spend": 893.2553979567468,
+      "subscription_share_of_total": 24.21679170580032,
+      "total_spend": 3688.5786061528433
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 7.8703809067821,
+      "total_savings_balance": 4838.419772505045,
+      "average_monthly_expenses": 614.7631010254739,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 4.875407517385887,
+      "checking_balance": 2897.709192926189,
+      "average_monthly_expenses": 594.352201860634,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified subscription-heavy spending because 7 recurring subscriptions detected, Monthly subscription spend: $216.26 (\u2265$50), Subscriptions are 24.2% of total spend (\u226510%). Focus on auditing and optimizing recurring expenses."
+}

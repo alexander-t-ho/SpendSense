@@ -1,0 +1,4 @@
+# Lambda function dependencies for budget tracking
+sqlalchemy==2.0.23
+python-dateutil==2.8.2
+

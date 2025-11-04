@@ -1,0 +1,135 @@
+{
+  "user_id": "5ed234be-fe57-48b0-860a-3102a9640cca",
+  "timestamp": "2025-11-04T15:58:29.753956",
+  "assigned_personas": [
+    "subscription_heavy",
+    "savings_builder",
+    "balanced_stable"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "3 recurring subscriptions detected",
+        "Monthly subscription spend: $478.82 (\u2265$50)",
+        "Subscriptions are 70.5% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 11.9% (\u22652%)",
+        "Monthly savings inflow: $441.75 (\u2265$200)",
+        "All credit utilizations < 30% (max: 0.0%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "5ed234be-fe57-48b0-860a-3102a9640cca",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:58:29.734511",
+    "end_date": "2025-11-04T15:58:29.734511",
+    "subscriptions": {
+      "recurring_merchants": 3,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Amtrak",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 34.333333333333336,
+          "total_amount": 99.47410152487325,
+          "average_amount": 24.868525381218312,
+          "first_transaction": "2025-05-25 03:33:45.332663",
+          "last_transaction": "2025-09-06 14:07:17.819346"
+        },
+        {
+          "merchant_name": "Amazon",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 34.5,
+          "total_amount": 125.56634364146882,
+          "average_amount": 41.855447880489606,
+          "first_transaction": "2025-05-22 23:36:11.670744",
+          "last_transaction": "2025-08-01 02:54:02.003589"
+        },
+        {
+          "merchant_name": "STUDENT LOAN PAYMENT",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 2472.589083719749,
+          "average_amount": 412.09818061995816,
+          "first_transaction": "2025-06-07 15:54:41.838482",
+          "last_transaction": "2025-11-04 15:54:41.838482"
+        }
+      ],
+      "monthly_recurring_spend": 478.82215388166605,
+      "total_subscription_spend": 2697.629528886091,
+      "subscription_share_of_total": 70.46993699257285,
+      "total_spend": 3828.0572454185767
+    },
+    "savings": {
+      "net_inflow": 2650.4819878606545,
+      "monthly_net_inflow": 441.74699797677573,
+      "growth_rate_percent": 11.949173824387337,
+      "emergency_fund_coverage_months": 109.91824878834053,
+      "total_savings_balance": 24831.781103714384,
+      "average_monthly_expenses": 225.9113602831379,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 13.680050917858695,
+      "checking_balance": 1909.5600109345596,
+      "average_monthly_expenses": 139.58720054482504,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified subscription-heavy spending because 3 recurring subscriptions detected, Monthly subscription spend: $478.82 (\u2265$50), Subscriptions are 70.5% of total spend (\u226510%). Focus on auditing and optimizing recurring expenses."
+}

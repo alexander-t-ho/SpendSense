@@ -1,0 +1,188 @@
+{
+  "user_id": "ca97e53f-ca10-4dcb-b60e-07ed8a98b6eb",
+  "timestamp": "2025-11-04T14:39:16.373768",
+  "assigned_personas": [
+    "high_utilization",
+    "subscription_heavy"
+  ],
+  "primary_persona": "high_utilization",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "reasons": [
+        "Interest charges detected on credit card",
+        "Making only minimum payments on credit card"
+      ],
+      "priority": 5
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "priority": 4
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "7 recurring subscriptions detected",
+        "Subscriptions are 22.3% of total spend (\u226510%)"
+      ],
+      "priority": 3
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "priority": 2
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "priority": 1
+    }
+  },
+  "features_snapshot": {
+    "user_id": "ca97e53f-ca10-4dcb-b60e-07ed8a98b6eb",
+    "window_days": 180,
+    "start_date": "2025-05-08T14:39:16.346971",
+    "end_date": "2025-11-04T14:39:16.346971",
+    "subscriptions": {
+      "recurring_merchants": 7,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Apple Music",
+          "occurrences": 5,
+          "cadence": "weekly",
+          "average_interval_days": 7.25,
+          "total_amount": 142.19056092624822,
+          "average_amount": 28.438112185249643,
+          "first_transaction": "2025-10-05 09:25:09.141957",
+          "last_transaction": "2025-11-04 09:25:09.141957"
+        },
+        {
+          "merchant_name": "Nike",
+          "occurrences": 4,
+          "cadence": "weekly",
+          "average_interval_days": 6.333333333333333,
+          "total_amount": 140.6497127018498,
+          "average_amount": 35.16242817546245,
+          "first_transaction": "2025-10-07 00:09:18.854993",
+          "last_transaction": "2025-10-27 05:41:50.011151"
+        },
+        {
+          "merchant_name": "Dental Office",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 8.0,
+          "total_amount": 162.51833731759626,
+          "average_amount": 54.17277910586542,
+          "first_transaction": "2025-10-10 13:18:30.381494",
+          "last_transaction": "2025-10-27 16:28:26.586855"
+        },
+        {
+          "merchant_name": "Trader Joe's",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 7.0,
+          "total_amount": 254.97958145680138,
+          "average_amount": 84.99319381893379,
+          "first_transaction": "2025-10-10 21:50:56.472281",
+          "last_transaction": "2025-10-25 23:33:15.099298"
+        },
+        {
+          "merchant_name": "Exxon",
+          "occurrences": 4,
+          "cadence": "weekly",
+          "average_interval_days": 7.333333333333333,
+          "total_amount": 100.43370461433906,
+          "average_amount": 25.108426153584766,
+          "first_transaction": "2025-10-10 00:23:54.532356",
+          "last_transaction": "2025-11-03 08:20:03.850547"
+        },
+        {
+          "merchant_name": "Chipotle",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 6.0,
+          "total_amount": 350.4845034231926,
+          "average_amount": 116.82816780773088,
+          "first_transaction": "2025-10-15 04:56:22.887954",
+          "last_transaction": "2025-10-27 22:25:07.753653"
+        },
+        {
+          "merchant_name": "Panera Bread",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 7.5,
+          "total_amount": 137.89573590251263,
+          "average_amount": 45.965245300837545,
+          "first_transaction": "2025-10-13 18:12:45.232613",
+          "last_transaction": "2025-10-29 14:32:57.233489"
+        }
+      ],
+      "monthly_recurring_spend": 0,
+      "total_subscription_spend": 1289.15213634254,
+      "subscription_share_of_total": 22.289316533225893,
+      "total_spend": 5783.722145184876
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 7.783771191671748,
+      "total_savings_balance": 2990.4472403448067,
+      "average_monthly_expenses": 384.1900239236783,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 1,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": true,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "200649340391",
+          "name": "Visa Credit Card",
+          "utilization": {
+            "account_id": "200649340391",
+            "utilization_percent": 46.65708266228321,
+            "balance": 4665.708266228321,
+            "limit": 10000.0,
+            "available": 5334.291733771679,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 225.94421940452096,
+            "monthly_interest_estimate": 37.657369900753494,
+            "interest_transactions": 2
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 8.286959679751748,
+      "checking_balance": 6367.534475236764,
+      "average_monthly_expenses": 768.3800478473566,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified high credit utilization because Interest charges detected on credit card, Making only minimum payments on credit card. Focus on reducing debt and improving payment habits."
+}

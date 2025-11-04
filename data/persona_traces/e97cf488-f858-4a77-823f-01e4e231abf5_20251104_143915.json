@@ -1,0 +1,214 @@
+{
+  "user_id": "e97cf488-f858-4a77-823f-01e4e231abf5",
+  "timestamp": "2025-11-04T14:39:15.931002",
+  "assigned_personas": [
+    "high_utilization",
+    "subscription_heavy"
+  ],
+  "primary_persona": "high_utilization",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "reasons": [
+        "Credit utilization is 94.2% (\u226550% threshold)",
+        "Interest charges detected on credit card",
+        "Making only minimum payments on credit card",
+        "Credit card payment is overdue"
+      ],
+      "priority": 5
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "priority": 4
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "5 recurring subscriptions detected",
+        "Subscriptions are 17.7% of total spend (\u226510%)"
+      ],
+      "priority": 3
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "priority": 2
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "priority": 1
+    }
+  },
+  "features_snapshot": {
+    "user_id": "e97cf488-f858-4a77-823f-01e4e231abf5",
+    "window_days": 180,
+    "start_date": "2025-05-08T14:39:15.891171",
+    "end_date": "2025-11-04T14:39:15.891171",
+    "subscriptions": {
+      "recurring_merchants": 5,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Walmart",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 8.0,
+          "total_amount": 185.62179353492425,
+          "average_amount": 61.873931178308084,
+          "first_transaction": "2025-10-14 18:08:16.475594",
+          "last_transaction": "2025-11-01 00:25:59.741105"
+        },
+        {
+          "merchant_name": "BP",
+          "occurrences": 4,
+          "cadence": "weekly",
+          "average_interval_days": 6.666666666666667,
+          "total_amount": 232.19201854539398,
+          "average_amount": 58.048004636348495,
+          "first_transaction": "2025-10-08 22:19:32.476404",
+          "last_transaction": "2025-10-31 04:53:04.974735"
+        },
+        {
+          "merchant_name": "HBO Max",
+          "occurrences": 4,
+          "cadence": "weekly",
+          "average_interval_days": 7.0,
+          "total_amount": 117.73071407922929,
+          "average_amount": 29.43267851980732,
+          "first_transaction": "2025-10-13 07:01:50.304977",
+          "last_transaction": "2025-11-04 07:14:23.282933"
+        },
+        {
+          "merchant_name": "Whole Foods",
+          "occurrences": 4,
+          "cadence": "weekly",
+          "average_interval_days": 7.333333333333333,
+          "total_amount": 172.82843601751358,
+          "average_amount": 43.207109004378395,
+          "first_transaction": "2025-10-08 03:13:41.823573",
+          "last_transaction": "2025-10-31 21:03:08.858215"
+        },
+        {
+          "merchant_name": "INTEREST CHARGE",
+          "occurrences": 6,
+          "cadence": "weekly",
+          "average_interval_days": 6.0,
+          "total_amount": 2130.8185115557208,
+          "average_amount": 355.13641859262015,
+          "first_transaction": "2025-10-05 09:25:09.141957",
+          "last_transaction": "2025-11-04 09:25:09.141957"
+        }
+      ],
+      "monthly_recurring_spend": 0,
+      "total_subscription_spend": 2839.191473732782,
+      "subscription_share_of_total": 17.670092983178215,
+      "total_spend": 16067.778910024237
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 3.369844424351881,
+      "total_savings_balance": 2551.2177897347783,
+      "average_monthly_expenses": 757.0728699813648,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 3,
+      "any_high_utilization_50": true,
+      "any_high_utilization_80": true,
+      "any_interest_charges": true,
+      "any_minimum_payment_only": true,
+      "any_overdue": true,
+      "card_details": [
+        {
+          "account_id": "947139155963",
+          "name": "Discover Credit Card #1",
+          "utilization": {
+            "account_id": "947139155963",
+            "utilization_percent": 94.24511750509394,
+            "balance": 23561.279376273487,
+            "limit": 25000.0,
+            "available": 1438.7206237265127,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": true,
+            "is_high_utilization_80": true
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 692.1346620909802,
+            "monthly_interest_estimate": 115.35577701516337,
+            "interest_transactions": 2
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        },
+        {
+          "account_id": "178515867342",
+          "name": "American Express Credit Card #2",
+          "utilization": {
+            "account_id": "178515867342",
+            "utilization_percent": 86.1256333352222,
+            "balance": 17225.126667044442,
+            "limit": 20000.0,
+            "available": 2774.873332955558,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": true,
+            "is_high_utilization_80": true
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 784.095426449393,
+            "monthly_interest_estimate": 130.68257107489885,
+            "interest_transactions": 2
+          },
+          "minimum_payment_only": true,
+          "is_overdue": true
+        },
+        {
+          "account_id": "134864518376",
+          "name": "Visa Credit Card #3",
+          "utilization": {
+            "account_id": "134864518376",
+            "utilization_percent": 80.52214147614013,
+            "balance": 20130.53536903503,
+            "limit": 25000.0,
+            "available": 4869.464630964969,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": true,
+            "is_high_utilization_80": true
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 654.5884230153475,
+            "monthly_interest_estimate": 109.09807050255792,
+            "interest_transactions": 2
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 3.378471792803958,
+      "checking_balance": 5115.498672658358,
+      "average_monthly_expenses": 1514.1457399627295,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified high credit utilization because Credit utilization is 94.2% (\u226550% threshold), Interest charges detected on credit card, Making only minimum payments on credit card, Credit card payment is overdue. Focus on reducing debt and improving payment habits."
+}

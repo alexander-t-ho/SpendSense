@@ -1,0 +1,137 @@
+{
+  "user_id": "67bfefc2-0dfc-4497-9938-bc8e5a0ee8e3",
+  "timestamp": "2025-11-04T15:22:58.214455",
+  "assigned_personas": [
+    "subscription_heavy"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "4 recurring subscriptions detected",
+        "Monthly subscription spend: $127.98 (\u2265$50)",
+        "Subscriptions are 22.1% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "67bfefc2-0dfc-4497-9938-bc8e5a0ee8e3",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:22:58.191617",
+    "end_date": "2025-11-04T15:22:58.191617",
+    "subscriptions": {
+      "recurring_merchants": 4,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Newsletter Subscription",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 58.81254224330357,
+          "average_amount": 9.802090373883928,
+          "first_transaction": "2025-06-07 15:05:34.815933",
+          "last_transaction": "2025-11-04 15:05:34.815933"
+        },
+        {
+          "merchant_name": "Fitness App",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 357.68042687523365,
+          "average_amount": 59.613404479205606,
+          "first_transaction": "2025-06-07 15:05:34.815933",
+          "last_transaction": "2025-11-04 15:05:34.815933"
+        },
+        {
+          "merchant_name": "Netflix",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 59.48500679334729,
+          "average_amount": 9.914167798891215,
+          "first_transaction": "2025-06-07 15:05:34.815933",
+          "last_transaction": "2025-11-04 15:05:34.815933"
+        },
+        {
+          "merchant_name": "Internet Provider",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 26.5,
+          "total_amount": 145.95652753047628,
+          "average_amount": 48.652175843492095,
+          "first_transaction": "2025-08-02 06:00:59.545023",
+          "last_transaction": "2025-09-25 01:45:48.774644"
+        }
+      ],
+      "monthly_recurring_spend": 127.98183849547286,
+      "total_subscription_spend": 621.9345034423608,
+      "subscription_share_of_total": 22.102609101858288,
+      "total_spend": 2813.8510733109392
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 0.0,
+      "total_savings_balance": 0,
+      "average_monthly_expenses": 468.97517888515654,
+      "has_emergency_fund": false
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 0.8408135258691674,
+      "checking_balance": 388.11102256918207,
+      "average_monthly_expenses": 461.58988958697256,
+      "has_sufficient_buffer": false,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified subscription-heavy spending because 4 recurring subscriptions detected, Monthly subscription spend: $127.98 (\u2265$50), Subscriptions are 22.1% of total spend (\u226510%). Focus on auditing and optimizing recurring expenses."
+}

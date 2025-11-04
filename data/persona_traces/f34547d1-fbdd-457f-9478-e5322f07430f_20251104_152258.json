@@ -1,0 +1,178 @@
+{
+  "user_id": "f34547d1-fbdd-457f-9478-e5322f07430f",
+  "timestamp": "2025-11-04T15:22:58.998703",
+  "assigned_personas": [
+    "high_utilization",
+    "subscription_heavy",
+    "savings_builder"
+  ],
+  "primary_persona": "high_utilization",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "reasons": [
+        "Interest charges detected on credit card",
+        "Making only minimum payments on credit card"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "3 recurring subscriptions detected",
+        "Monthly subscription spend: $67.49 (\u2265$50)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 22.7% (\u22652%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "f34547d1-fbdd-457f-9478-e5322f07430f",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:22:58.814715",
+    "end_date": "2025-11-04T15:22:58.814715",
+    "subscriptions": {
+      "recurring_merchants": 3,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Amazon Prime",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 74.13753519001811,
+          "average_amount": 12.35625586500302,
+          "first_transaction": "2025-06-07 15:05:34.815933",
+          "last_transaction": "2025-11-04 15:05:34.815933"
+        },
+        {
+          "merchant_name": "Cable Company",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 8.0,
+          "total_amount": 106.9695348171761,
+          "average_amount": 35.65651160572536,
+          "first_transaction": "2025-07-17 06:26:04.724761",
+          "last_transaction": "2025-08-03 12:12:13.487135"
+        },
+        {
+          "merchant_name": "Metro Transit",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 34.0,
+          "total_amount": 275.68660211634995,
+          "average_amount": 55.13732042326999,
+          "first_transaction": "2025-06-18 20:45:20.950827",
+          "last_transaction": "2025-11-03 04:57:46.381256"
+        }
+      ],
+      "monthly_recurring_spend": 67.493576288273,
+      "total_subscription_spend": 456.7936721235442,
+      "subscription_share_of_total": 6.634736179647264,
+      "total_spend": 6884.880721027096
+    },
+    "savings": {
+      "net_inflow": 2550.716210249001,
+      "monthly_net_inflow": 425.1193683748335,
+      "growth_rate_percent": 22.705513249007346,
+      "emergency_fund_coverage_months": 49.52328155215825,
+      "total_savings_balance": 13784.623069238483,
+      "average_monthly_expenses": 278.34631787718723,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 2,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": true,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "648158268687",
+          "name": "Discover Credit Card #1",
+          "utilization": {
+            "account_id": "648158268687",
+            "utilization_percent": 33.463329019308716,
+            "balance": 3346.3329019308712,
+            "limit": 10000.0,
+            "available": 6653.667098069129,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 277.05424694071604,
+            "monthly_interest_estimate": 46.175707823452676,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        },
+        {
+          "account_id": "980644200629",
+          "name": "Discover Credit Card #2",
+          "utilization": {
+            "account_id": "980644200629",
+            "utilization_percent": 19.80149856108663,
+            "balance": 4950.374640271657,
+            "limit": 25000.0,
+            "available": 20049.625359728343,
+            "is_high_utilization_30": false,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 679.9415175438609,
+            "monthly_interest_estimate": 113.32358625731014,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 14.225631845139542,
+      "checking_balance": 3726.603142339084,
+      "average_monthly_expenses": 261.9639804338356,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified high credit utilization because Interest charges detected on credit card, Making only minimum payments on credit card. Focus on reducing debt and improving payment habits."
+}

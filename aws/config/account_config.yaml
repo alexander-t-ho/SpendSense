@@ -1,0 +1,36 @@
+# Account Configuration for SpendSense
+# This ensures all resources are scoped to a single AWS account
+
+account:
+  id: "971422717446"  # Your AWS account ID
+  name: "SpendSense Personal Account"
+  region: "us-east-1"
+  
+# Resource naming with account scoping
+resources:
+  # All resources are prefixed and scoped to this account
+  account_id: "971422717446"
+  region: "us-east-1"
+  
+  # IAM policy scoping
+  iam_policy_name: "AlexHoSpendSenseUserPolicy-development"
+  iam_policy_arn: "arn:aws:iam::971422717446:policy/AlexHoSpendSenseUserPolicy-development"
+  iam_role_arn: "arn:aws:iam::971422717446:role/AlexHoSpendSenseLambdaRole-dev"
+  
+  # Lambda function scoping
+  lambda_resource_pattern: "arn:aws:lambda:us-east-1:971422717446:function:spendsense-*"
+  
+  # DynamoDB table scoping
+  dynamodb_resource_pattern: "arn:aws:dynamodb:us-east-1:971422717446:table/spendsense-*"
+  
+  # CloudWatch Logs scoping
+  cloudwatch_resource_pattern: "arn:aws:logs:us-east-1:971422717446:*"
+  
+  # S3 bucket scoping (bucket names are globally unique, but we restrict access)
+  s3_resource_pattern: "arn:aws:s3:::spendsense-*"
+  
+# Organization isolation
+organization:
+  isolated: true  # This application only affects the account specified above
+  cross_account_access: false  # No cross-account access allowed
+

@@ -1,0 +1,100 @@
+{
+  "user_id": "2f371029-222b-4645-a122-41bef77942a3",
+  "timestamp": "2025-11-04T14:34:41.655620",
+  "assigned_personas": [
+    "balanced_stable"
+  ],
+  "primary_persona": "balanced_stable",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "priority": 5
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "priority": 4
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "reasons": [],
+      "priority": 3
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "priority": 2
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "priority": 1
+    }
+  },
+  "features_snapshot": {
+    "user_id": "2f371029-222b-4645-a122-41bef77942a3",
+    "window_days": 180,
+    "start_date": "2025-05-08T14:34:41.605216",
+    "end_date": "2025-11-04T14:34:41.605216",
+    "subscriptions": {
+      "recurring_merchants": 1,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Doctor Office",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 7.5,
+          "total_amount": 193.9661836452702,
+          "average_amount": 64.6553945484234,
+          "first_transaction": "2025-10-13 09:31:59.892357",
+          "last_transaction": "2025-10-28 22:20:42.547762"
+        }
+      ],
+      "monthly_recurring_spend": 0,
+      "total_subscription_spend": 193.9661836452702,
+      "subscription_share_of_total": 6.196222751009835,
+      "total_spend": 3130.39397451711
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 1.651899836430034,
+      "total_savings_balance": 861.8495490777296,
+      "average_monthly_expenses": 521.732329086185,
+      "has_emergency_fund": false
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 2.469715423949248,
+      "checking_balance": 2577.060760634232,
+      "average_monthly_expenses": 1043.46465817237,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified a stable financial profile because Stable financial profile with low risk indicators. Focus on maintaining good habits and optimization."
+}

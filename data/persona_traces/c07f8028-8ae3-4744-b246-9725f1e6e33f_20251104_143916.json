@@ -1,0 +1,110 @@
+{
+  "user_id": "c07f8028-8ae3-4744-b246-9725f1e6e33f",
+  "timestamp": "2025-11-04T14:39:16.309963",
+  "assigned_personas": [
+    "balanced_stable"
+  ],
+  "primary_persona": "balanced_stable",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "reasons": [],
+      "priority": 5
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "priority": 4
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "reasons": [],
+      "priority": 3
+    },
+    "savings_builder": {
+      "matched": false,
+      "reasons": [],
+      "priority": 2
+    },
+    "balanced_stable": {
+      "matched": true,
+      "reasons": [
+        "Stable financial profile with low risk indicators"
+      ],
+      "priority": 1
+    }
+  },
+  "features_snapshot": {
+    "user_id": "c07f8028-8ae3-4744-b246-9725f1e6e33f",
+    "window_days": 180,
+    "start_date": "2025-05-08T14:39:16.288507",
+    "end_date": "2025-11-04T14:39:16.288507",
+    "subscriptions": {
+      "recurring_merchants": 2,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "CVS Pharmacy",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 8.0,
+          "total_amount": 92.75077158217273,
+          "average_amount": 30.916923860724243,
+          "first_transaction": "2025-10-10 14:41:51.709623",
+          "last_transaction": "2025-10-27 10:46:35.683389"
+        },
+        {
+          "merchant_name": "MoviePass",
+          "occurrences": 4,
+          "cadence": "weekly",
+          "average_interval_days": 7.0,
+          "total_amount": 183.40840441218802,
+          "average_amount": 45.852101103047005,
+          "first_transaction": "2025-10-06 00:51:29.935581",
+          "last_transaction": "2025-10-28 08:37:57.385650"
+        }
+      ],
+      "monthly_recurring_spend": 0,
+      "total_subscription_spend": 276.15917599436074,
+      "subscription_share_of_total": 8.587858933186308,
+      "total_spend": 3215.692970074194
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 6.498320434748919,
+      "total_savings_balance": 3482.7672232185964,
+      "average_monthly_expenses": 535.948828345699,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 2.0808104410866552,
+      "checking_balance": 2230.41583581978,
+      "average_monthly_expenses": 1071.897656691398,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified a stable financial profile because Stable financial profile with low risk indicators. Focus on maintaining good habits and optimization."
+}

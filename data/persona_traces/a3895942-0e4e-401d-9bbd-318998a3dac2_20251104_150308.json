@@ -1,0 +1,219 @@
+{
+  "user_id": "a3895942-0e4e-401d-9bbd-318998a3dac2",
+  "timestamp": "2025-11-04T15:03:08.020725",
+  "assigned_personas": [
+    "high_utilization",
+    "subscription_heavy",
+    "savings_builder"
+  ],
+  "primary_persona": "high_utilization",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "reasons": [
+        "Interest charges detected on credit card",
+        "Making only minimum payments on credit card"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "reasons": [
+        "7 recurring subscriptions detected",
+        "Monthly subscription spend: $315.98 (\u2265$50)",
+        "Subscriptions are 22.1% of total spend (\u226510%)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "reasons": [
+        "Savings growth rate: 32.0% (\u22652%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": false,
+      "reasons": [],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "a3895942-0e4e-401d-9bbd-318998a3dac2",
+    "window_days": 180,
+    "start_date": "2025-05-08T15:03:07.990311",
+    "end_date": "2025-11-04T15:03:07.990311",
+    "subscriptions": {
+      "recurring_merchants": 7,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Microsoft 365",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 146.3182272984739,
+          "average_amount": 24.386371216412314,
+          "first_transaction": "2025-06-07 14:50:03.483114",
+          "last_transaction": "2025-11-04 14:50:03.483114"
+        },
+        {
+          "merchant_name": "Walgreens",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 26.8,
+          "total_amount": 319.6784539277775,
+          "average_amount": 53.279742321296254,
+          "first_transaction": "2025-05-15 05:47:35.059566",
+          "last_transaction": "2025-09-27 22:19:54.933493"
+        },
+        {
+          "merchant_name": "Mobil",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 29.0,
+          "total_amount": 275.35206723941695,
+          "average_amount": 45.89201120656949,
+          "first_transaction": "2025-05-24 01:49:04.316069",
+          "last_transaction": "2025-10-19 04:34:32.597586"
+        },
+        {
+          "merchant_name": "Water Utility",
+          "occurrences": 7,
+          "cadence": "monthly",
+          "average_interval_days": 25.666666666666668,
+          "total_amount": 364.526235883693,
+          "average_amount": 52.07517655481329,
+          "first_transaction": "2025-05-10 09:34:04.810187",
+          "last_transaction": "2025-10-14 10:53:51.295971"
+        },
+        {
+          "merchant_name": "MoviePass",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 25.6,
+          "total_amount": 329.614915263452,
+          "average_amount": 54.93581921057534,
+          "first_transaction": "2025-05-16 11:27:52.754241",
+          "last_transaction": "2025-09-24 05:33:46.364721"
+        },
+        {
+          "merchant_name": "Shell",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 35.0,
+          "total_amount": 171.89097205566054,
+          "average_amount": 34.37819441113211,
+          "first_transaction": "2025-06-03 06:00:38.485463",
+          "last_transaction": "2025-10-23 22:17:48.586679"
+        },
+        {
+          "merchant_name": "Whole Foods",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 31.6,
+          "total_amount": 306.16995820605234,
+          "average_amount": 51.02832636767539,
+          "first_transaction": "2025-05-18 10:44:15.577096",
+          "last_transaction": "2025-10-25 03:58:14.902733"
+        }
+      ],
+      "monthly_recurring_spend": 315.9756412884742,
+      "total_subscription_spend": 1913.5508298745265,
+      "subscription_share_of_total": 22.08539767853112,
+      "total_spend": 8664.325894093636
+    },
+    "savings": {
+      "net_inflow": 2277.3429803382155,
+      "monthly_net_inflow": 379.55716338970257,
+      "growth_rate_percent": 32.042253067136535,
+      "emergency_fund_coverage_months": 12.736452930693748,
+      "total_savings_balance": 9384.655239456237,
+      "average_monthly_expenses": 736.834288991092,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 2,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": true,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "162607870104",
+          "name": "Visa Credit Card #1",
+          "utilization": {
+            "account_id": "162607870104",
+            "utilization_percent": 36.33415705561859,
+            "balance": 9083.539263904648,
+            "limit": 25000.0,
+            "available": 15916.460736095352,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 1240.851549263472,
+            "monthly_interest_estimate": 206.808591543912,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        },
+        {
+          "account_id": "298038287232",
+          "name": "American Express Credit Card #2",
+          "utilization": {
+            "account_id": "298038287232",
+            "utilization_percent": 35.92942373324889,
+            "balance": 5389.413559987333,
+            "limit": 15000.0,
+            "available": 9610.586440012667,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 729.6241027571365,
+            "monthly_interest_estimate": 121.60401712618942,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": false,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 5.643910285446307,
+      "checking_balance": 4562.85712444968,
+      "average_monthly_expenses": 808.4567070840426,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "We identified high credit utilization because Interest charges detected on credit card, Making only minimum payments on credit card. Focus on reducing debt and improving payment habits."
+}
