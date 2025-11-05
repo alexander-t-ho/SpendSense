@@ -1,0 +1,164 @@
+{
+  "user_id": "cbe3f341-a27a-4239-a824-dae5e7fc6f8a",
+  "timestamp": "2025-11-05T14:07:29.250673",
+  "assigned_personas": [
+    "balanced_stable",
+    "subscription_heavy"
+  ],
+  "primary_persona": "balanced_stable",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 4,
+      "total_criteria": 5,
+      "score": 4,
+      "reasons": [
+        "Criterion 1: 4 recurring subscriptions (\u22653)",
+        "Criterion 3: Monthly subscription spend $460.74 (\u2265$50)",
+        "Criterion 4: Subscriptions 65.7% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $460.74 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 3,
+      "total_criteria": 5,
+      "score": 3,
+      "reasons": [
+        "Criterion 1: Savings growth 4.3% (\u22652%)",
+        "Criterion 3: Max credit utilization 0.0% (<30%)",
+        "Criterion 5: Savings balance $20606.02 (\u2265$5,000)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "matched_criteria": 5,
+      "total_criteria": 5,
+      "score": 5,
+      "reasons": [
+        "Criterion 1: Utilization 0.0% (<50%) and no interest",
+        "Criterion 2: No overdue payments",
+        "Criterion 3: Cash-flow buffer 20.4 months (\u22651)",
+        "Criterion 4: 4 subscriptions (<5)",
+        "Criterion 5: Regular pay schedule (gap 0 days \u226430)"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "cbe3f341-a27a-4239-a824-dae5e7fc6f8a",
+    "window_days": 180,
+    "start_date": "2025-05-09T14:07:29.141992",
+    "end_date": "2025-11-05T14:07:29.141992",
+    "subscriptions": {
+      "recurring_merchants": 4,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Newsletter Subscription",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 74.62221930505764,
+          "average_amount": 12.43703655084294,
+          "first_transaction": "2025-06-07 16:08:58.465132",
+          "last_transaction": "2025-11-04 16:08:58.465132"
+        },
+        {
+          "merchant_name": "Water Utility",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 27.5,
+          "total_amount": 180.54645961581122,
+          "average_amount": 36.109291923162246,
+          "first_transaction": "2025-06-04 11:34:23.215493",
+          "last_transaction": "2025-09-24 11:37:20.232851"
+        },
+        {
+          "merchant_name": "Cable Company",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 27.0,
+          "total_amount": 151.7773231565071,
+          "average_amount": 50.59244105216903,
+          "first_transaction": "2025-06-14 08:57:41.449383",
+          "last_transaction": "2025-08-07 23:45:00.665403"
+        },
+        {
+          "merchant_name": "STUDENT LOAN PAYMENT",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 2169.6125234950696,
+          "average_amount": 361.6020872491783,
+          "first_transaction": "2025-06-07 16:08:58.465132",
+          "last_transaction": "2025-11-04 16:08:58.465132"
+        }
+      ],
+      "monthly_recurring_spend": 460.7408567753525,
+      "total_subscription_spend": 2576.5585255724454,
+      "subscription_share_of_total": 65.72773512688302,
+      "total_spend": 3920.0476337706914
+    },
+    "savings": {
+      "net_inflow": 854.8391313112904,
+      "monthly_net_inflow": 142.47318855188175,
+      "growth_rate_percent": 4.328041579608664,
+      "emergency_fund_coverage_months": 70.63163498737882,
+      "total_savings_balance": 20606.015629679987,
+      "average_monthly_expenses": 291.739185045937,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 20.35306566583038,
+      "checking_balance": 4668.415189977772,
+      "average_monthly_expenses": 229.37159770556397,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "Assigned to Balanced & Stable (5/5 criteria, 56%) and Subscription-Heavy (4/5 criteria, 44%) personas based on financial behavior patterns."
+}

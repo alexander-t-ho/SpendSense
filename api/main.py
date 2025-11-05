@@ -1162,12 +1162,14 @@ def submit_feedback(
 @app.get("/api/operator/recommendations")
 def get_recommendation_queue(
     status: str = Query("pending", description="Filter by status: pending, approved, flagged, all"),
+    user_id: Optional[str] = Query(None, description="Filter by user ID (optional)"),
     limit: int = Query(50, description="Maximum number of recommendations to return")
 ):
     """Get recommendation approval queue for operators.
     
     Args:
         status: Filter by approval status (pending, approved, flagged, all)
+        user_id: Optional user ID to filter recommendations by user
         limit: Maximum number of recommendations to return
     
     Returns:
@@ -1179,6 +1181,10 @@ def get_recommendation_queue(
     session = get_session()
     try:
         query = session.query(Recommendation).join(User)
+        
+        # Filter by user_id if provided
+        if user_id:
+            query = query.filter(Recommendation.user_id == user_id)
         
         if status == "pending":
             query = query.filter(
@@ -1261,8 +1267,56 @@ def get_recommendation_queue(
         session.close()
 
 
+@app.put("/api/operator/recommendations/{recommendation_id}/approve")
+async def approve_recommendation(recommendation_id: str):
+    """Approve a recommendation.
+    
+    Args:
+        recommendation_id: Recommendation ID
+    
+    Returns:
+        Updated recommendation
+    """
+    from ingest.schema import Recommendation
+    from datetime import datetime
+    
+    session = get_session()
+    try:
+        recommendation = session.query(Recommendation).filter(Recommendation.id == recommendation_id).first()
+        if not recommendation:
+            raise HTTPException(status_code=404, detail="Recommendation not found")
+        
+        recommendation.approved = True
+        recommendation.approved_at = datetime.utcnow()
+        recommendation.rejected = False
+        recommendation.flagged = False
+        recommendation.updated_at = datetime.utcnow()
+        
+        session.commit()
+        
+        # Broadcast real-time update via WebSocket
+        recommendation_data = {
+            "id": recommendation.id,
+            "user_id": recommendation.user_id,
+            "approved": True,
+            "rejected": False,
+            "flagged": False,
+            "approved_at": recommendation.approved_at.isoformat() if recommendation.approved_at else None,
+        }
+        await manager.broadcast_recommendation_update(recommendation.id, "approved", recommendation_data)
+        
+        return {
+            "id": recommendation.id,
+            "approved": recommendation.approved,
+            "approved_at": recommendation.approved_at.isoformat(),
+            "message": "Recommendation approved"
+        }
+    finally:
+        session.close()
+
+
 @app.put("/api/operator/recommendations/{recommendation_id}/flag")
-def flag_recommendation(recommendation_id: str):
+async def flag_recommendation(recommendation_id: str):
     """Flag a recommendation for review.
     
     Args:
@@ -1287,6 +1341,16 @@ def flag_recommendation(recommendation_id: str):
         
         session.commit()
         
+        # Broadcast real-time update via WebSocket
+        recommendation_data = {
+            "id": recommendation.id,
+            "user_id": recommendation.user_id,
+            "approved": False,
+            "rejected": False,
+            "flagged": True,
+        }
+        await manager.broadcast_recommendation_update(recommendation.id, "flagged", recommendation_data)
+        
         return {
             "id": recommendation.id,
             "flagged": recommendation.flagged,
@@ -1297,7 +1361,7 @@ def flag_recommendation(recommendation_id: str):
 
 
 @app.put("/api/operator/recommendations/{recommendation_id}/reject")
-def reject_recommendation(recommendation_id: str):
+async def reject_recommendation(recommendation_id: str):
     """Reject a recommendation.
     
     Args:
@@ -1322,6 +1386,17 @@ def reject_recommendation(recommendation_id: str):
         recommendation.updated_at = datetime.utcnow()
         
         session.commit()
+        
+        # Broadcast real-time update via WebSocket
+        recommendation_data = {
+            "id": recommendation.id,
+            "user_id": recommendation.user_id,
+            "approved": False,
+            "rejected": True,
+            "flagged": False,
+            "rejected_at": recommendation.rejected_at.isoformat() if recommendation.rejected_at else None,
+        }
+        await manager.broadcast_recommendation_update(recommendation.id, "rejected", recommendation_data)
         
         return {
             "id": recommendation.id,
@@ -1473,6 +1548,30 @@ async def websocket_consent_endpoint(websocket: WebSocket, user_id: str):
     except Exception as e:
         print(f"WebSocket error for user {user_id}: {e}")
         manager.disconnect(websocket, user_id)
+
+
+@app.websocket("/ws/operator/recommendations")
+async def websocket_operator_recommendations_endpoint(websocket: WebSocket):
+    """WebSocket endpoint for real-time recommendation updates for operators.
+    
+    Broadcasts updates when recommendations are approved, rejected, or flagged.
+    All operators connected to this endpoint will receive updates in real-time.
+    """
+    await manager.connect_operator(websocket)
+    try:
+        # Send initial connection confirmation
+        await websocket.send_json({"type": "connected", "message": "Operator WebSocket connected"})
+        
+        while True:
+            # Keep connection alive and listen for messages
+            data = await websocket.receive_text()
+            # Echo back to keep connection alive
+            await websocket.send_json({"type": "ack", "message": "Connection active"})
+    except WebSocketDisconnect:
+        manager.disconnect_operator(websocket)
+    except Exception as e:
+        print(f"Operator WebSocket error: {e}")
+        manager.disconnect_operator(websocket)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,116 @@
+{
+  "user_id": "eb1b2791-4a2a-4c87-bb07-cb6ba9f370a2",
+  "timestamp": "2025-11-05T14:11:44.997937",
+  "assigned_personas": [
+    "balanced_stable",
+    "savings_builder"
+  ],
+  "primary_persona": "balanced_stable",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 3: Max credit utilization 0.0% (<30%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "matched_criteria": 5,
+      "total_criteria": 5,
+      "score": 5,
+      "reasons": [
+        "Criterion 1: Utilization 0.0% (<50%) and no interest",
+        "Criterion 2: No overdue payments",
+        "Criterion 3: Cash-flow buffer 13.9 months (\u22651)",
+        "Criterion 4: 0 subscriptions (<5)",
+        "Criterion 5: Regular pay schedule (gap 0 days \u226430)"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "eb1b2791-4a2a-4c87-bb07-cb6ba9f370a2",
+    "window_days": 30,
+    "start_date": "2025-10-06T14:11:44.970984",
+    "end_date": "2025-11-05T14:11:44.970984",
+    "subscriptions": {
+      "recurring_merchants": 0,
+      "recurring_merchant_details": [],
+      "monthly_recurring_spend": 0,
+      "total_subscription_spend": 0,
+      "subscription_share_of_total": 0.0,
+      "total_spend": 309.8633876415115
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 0.0,
+      "total_savings_balance": 0,
+      "average_monthly_expenses": 315.6690275302167,
+      "has_emergency_fund": false
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 13.87538635531596,
+      "checking_balance": 4940.886082643031,
+      "average_monthly_expenses": 356.08998237011764,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "Assigned to Balanced & Stable (5/5 criteria, 83%) and Savings Builder (1/5 criteria, 17%) personas based on financial behavior patterns."
+}

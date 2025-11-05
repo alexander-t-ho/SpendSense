@@ -41,12 +41,16 @@ export interface RecommendationQueue {
 
 export async function fetchRecommendationQueue(
   status: string = 'pending',
+  userId?: string,
   limit: number = 50
 ): Promise<RecommendationQueue> {
   const params = new URLSearchParams({
     status,
     limit: limit.toString(),
   })
+  if (userId) {
+    params.append('user_id', userId)
+  }
   const response = await fetch(`${API_BASE_URL}/operator/recommendations?${params}`)
   if (!response.ok) {
     throw new Error('Failed to fetch recommendation queue')
