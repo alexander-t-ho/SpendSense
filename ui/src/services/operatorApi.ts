@@ -1,0 +1,122 @@
+/**
+ * API service for operator endpoints
+ */
+
+const API_BASE_URL = '/api'
+
+export interface OperatorRecommendation {
+  id: string
+  user_id: string
+  user_name: string
+  user_email: string
+  recommendation_type: string
+  title: string
+  description: string | null
+  rationale: string
+  content_id: string | null
+  persona_id: string | null
+  persona_name: string | null  // Human-readable persona name
+  persona_info: {
+    primary_persona: string
+    risk: string
+    risk_level: string
+  } | null
+  approved: boolean
+  approved_at: string | null
+  flagged: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface RecommendationQueue {
+  recommendations: OperatorRecommendation[]
+  total: number
+  status: string
+}
+
+export async function fetchRecommendationQueue(
+  status: string = 'pending',
+  limit: number = 50
+): Promise<RecommendationQueue> {
+  const params = new URLSearchParams({
+    status,
+    limit: limit.toString(),
+  })
+  const response = await fetch(`${API_BASE_URL}/operator/recommendations?${params}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch recommendation queue')
+  }
+  return response.json()
+}
+
+export async function approveRecommendation(recommendationId: string): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/operator/recommendations/${recommendationId}/approve`,
+    {
+      method: 'PUT',
+    }
+  )
+  if (!response.ok) {
+    throw new Error('Failed to approve recommendation')
+  }
+}
+
+export async function flagRecommendation(recommendationId: string): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/operator/recommendations/${recommendationId}/flag`,
+    {
+      method: 'PUT',
+    }
+  )
+  if (!response.ok) {
+    throw new Error('Failed to flag recommendation')
+  }
+}
+
+export interface UserSignals {
+  user_id: string
+  window_days: number
+  signals: Record<string, any>
+  timestamp: string
+}
+
+export async function fetchUserSignals(
+  userId: string,
+  windowDays: number = 180
+): Promise<UserSignals> {
+  const params = new URLSearchParams({
+    window_days: windowDays.toString(),
+  })
+  const response = await fetch(
+    `${API_BASE_URL}/operator/signals/${userId}?${params}`
+  )
+  if (!response.ok) {
+    throw new Error('Failed to fetch user signals')
+  }
+  return response.json()
+}
+
+export interface DecisionTrace {
+  user_id: string
+  timestamp: string
+  assigned_personas: string[]
+  primary_persona: string
+  matching_results: Record<string, any>
+  features_snapshot: Record<string, any>
+  rationale: string
+}
+
+export interface UserTraces {
+  user_id: string
+  traces: DecisionTrace[]
+  total: number
+}
+
+export async function fetchUserTraces(userId: string): Promise<UserTraces> {
+  const response = await fetch(`${API_BASE_URL}/operator/traces/${userId}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch decision traces')
+  }
+  return response.json()
+}
+

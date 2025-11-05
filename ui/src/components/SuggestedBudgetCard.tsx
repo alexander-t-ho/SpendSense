@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchSuggestedBudget } from '../services/api'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart, ReferenceLine } from 'recharts'
-import { Target, TrendingUp, DollarSign, Calendar } from 'lucide-react'
+import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, ReferenceLine } from 'recharts'
+import { Target } from 'lucide-react'
 
 interface SuggestedBudgetCardProps {
   userId: string

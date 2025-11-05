@@ -1,0 +1,36 @@
+Metric,Value,Target,Status
+Coverage (%),20.0,100%,✗
+Explainability (%),100.0,100%,✓
+Relevance (%),100.0,≥80%,✓
+"Latency (avg, s)",0.0,<5s,✓
+Fairness Score,0.976,≥0.7,✓
+Overall Score,0.796,≥0.8,✗
+
+Coverage Details
+Total Users,50
+Users with Persona,50
+Users with ≥3 Behaviors,10
+Users Meeting Coverage,10
+
+Explainability Details
+Total Recommendations,80
+With Rationales,80
+
+Relevance Details
+Total Recommendations,54
+Relevant Recommendations,54
+
+Latency Details
+Users Tested,0
+Average (s),0.0
+Min (s),0.0
+Max (s),0.0
+P95 (s),0.0
+P99 (s),0.0
+
+Fairness Details
+Total Users,50
+Persona: balanced_stable,13,26.0%
+Persona: subscription_heavy,25,50.0%
+Persona: high_utilization,7,14.0%
+Persona: savings_builder,5,10.0%

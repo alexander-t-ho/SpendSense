@@ -138,7 +138,6 @@ export default function TransactionTable({ transactions }: TransactionTableProps
               <tbody className="bg-white divide-y divide-gray-200">
                 {accountData.transactions.map((tx, index) => {
                   const isExpense = tx.amount < 0
-                  const isIncome = tx.amount > 0
                   
                   return (
                     <tr key={index} className="hover:bg-gray-50">

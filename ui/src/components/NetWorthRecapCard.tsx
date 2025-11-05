@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchNetWorth, fetchNetWorthHistory } from '../services/api'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
-import { TrendingUp, TrendingDown, DollarSign, Calendar, ArrowUp, ArrowDown } from 'lucide-react'
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts'
+import { TrendingUp, TrendingDown, DollarSign, ArrowUp, ArrowDown } from 'lucide-react'
 import { useState } from 'react'
 
 interface NetWorthRecapCardProps {

@@ -1,0 +1,291 @@
+{
+  "user_id": "7023697f-d6a3-49f4-a82a-16d393b2437c",
+  "timestamp": "2025-11-04T21:43:23.341495",
+  "assigned_personas": [
+    "subscription_heavy",
+    "balanced_stable"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 4: Making only minimum payments"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 5,
+      "total_criteria": 5,
+      "score": 5,
+      "reasons": [
+        "Criterion 1: 12 recurring subscriptions (\u22653)",
+        "Criterion 2: 12 recurring subscriptions (\u22655)",
+        "Criterion 3: Monthly subscription spend $1884.85 (\u2265$50)",
+        "Criterion 4: Subscriptions 64.5% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $1884.85 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 3,
+      "total_criteria": 5,
+      "score": 3,
+      "reasons": [
+        "Criterion 1: Savings growth 11.5% (\u22652%)",
+        "Criterion 3: Max credit utilization 25.5% (<30%)",
+        "Criterion 5: Savings balance $10305.31 (\u2265$5,000)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "matched_criteria": 4,
+      "total_criteria": 5,
+      "score": 4,
+      "reasons": [
+        "Criterion 1: Utilization 25.5% (<50%) and no interest",
+        "Criterion 2: No overdue payments",
+        "Criterion 3: Cash-flow buffer 9.2 months (\u22651)",
+        "Criterion 5: Regular pay schedule (gap 0 days \u226430)"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "7023697f-d6a3-49f4-a82a-16d393b2437c",
+    "window_days": 180,
+    "start_date": "2025-05-08T21:43:23.292382",
+    "end_date": "2025-11-04T21:43:23.292382",
+    "subscriptions": {
+      "recurring_merchants": 12,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Starbucks",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 26.25,
+          "total_amount": 216.2957338699054,
+          "average_amount": 43.25914677398108,
+          "first_transaction": "2025-05-20 08:08:27.028640",
+          "last_transaction": "2025-09-04 22:32:29.239521"
+        },
+        {
+          "merchant_name": "Chevron",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 25.2,
+          "total_amount": 197.10281692482792,
+          "average_amount": 32.85046948747132,
+          "first_transaction": "2025-05-22 06:32:11.600545",
+          "last_transaction": "2025-09-26 06:33:26.045949"
+        },
+        {
+          "merchant_name": "Whole Foods",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 33.75,
+          "total_amount": 244.8948132197999,
+          "average_amount": 48.978962643959974,
+          "first_transaction": "2025-05-28 05:47:02.402644",
+          "last_transaction": "2025-10-12 15:33:31.057364"
+        },
+        {
+          "merchant_name": "Doctor Office",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 27.0,
+          "total_amount": 256.2004348766998,
+          "average_amount": 51.240086975339956,
+          "first_transaction": "2025-07-05 16:50:58.765494",
+          "last_transaction": "2025-10-23 20:27:17.818642"
+        },
+        {
+          "merchant_name": "Walgreens Pharmacy",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 25.25,
+          "total_amount": 183.16262963472911,
+          "average_amount": 36.632525926945824,
+          "first_transaction": "2025-07-09 08:34:42.898548",
+          "last_transaction": "2025-10-21 06:01:24.713824"
+        },
+        {
+          "merchant_name": "Water Utility",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 27.0,
+          "total_amount": 111.62054967013395,
+          "average_amount": 27.90513741753349,
+          "first_transaction": "2025-06-28 20:02:45.840700",
+          "last_transaction": "2025-09-19 02:54:06.506973"
+        },
+        {
+          "merchant_name": "Walmart",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 25.666666666666668,
+          "total_amount": 160.4154373788628,
+          "average_amount": 40.1038593447157,
+          "first_transaction": "2025-06-06 23:48:14.365803",
+          "last_transaction": "2025-08-24 08:46:42.711188"
+        },
+        {
+          "merchant_name": "Hospital",
+          "occurrences": 3,
+          "cadence": "weekly",
+          "average_interval_days": 7.0,
+          "total_amount": 158.46944753666062,
+          "average_amount": 52.82314917888687,
+          "first_transaction": "2025-08-02 08:37:26.839782",
+          "last_transaction": "2025-08-16 20:58:58.770206"
+        },
+        {
+          "merchant_name": "Amtrak",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 31.25,
+          "total_amount": 131.2466510679915,
+          "average_amount": 26.249330213598302,
+          "first_transaction": "2025-06-16 08:08:26.923162",
+          "last_transaction": "2025-10-22 05:41:23.022001"
+        },
+        {
+          "merchant_name": "Amazon",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 27.0,
+          "total_amount": 165.30567117520468,
+          "average_amount": 33.06113423504094,
+          "first_transaction": "2025-07-02 19:04:24.095435",
+          "last_transaction": "2025-10-20 19:36:22.212662"
+        },
+        {
+          "merchant_name": "MORTGAGE PAYMENT",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 6851.73128180089,
+          "average_amount": 1141.9552136334817,
+          "first_transaction": "2025-06-07 16:08:58.465132",
+          "last_transaction": "2025-11-04 16:08:58.465132"
+        },
+        {
+          "merchant_name": "STUDENT LOAN PAYMENT",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 2415.655324942031,
+          "average_amount": 402.6092208236718,
+          "first_transaction": "2025-06-07 16:08:58.465132",
+          "last_transaction": "2025-11-04 16:08:58.465132"
+        }
+      ],
+      "monthly_recurring_spend": 1884.84508747574,
+      "total_subscription_spend": 11092.100792097737,
+      "subscription_share_of_total": 64.53813942998958,
+      "total_spend": 17186.892727408656
+    },
+    "savings": {
+      "net_inflow": 1061.3963485383817,
+      "monthly_net_inflow": 176.89939142306363,
+      "growth_rate_percent": 11.482113228877035,
+      "emergency_fund_coverage_months": 14.82425886646379,
+      "total_savings_balance": 10305.307529182495,
+      "average_monthly_expenses": 695.1651088942934,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 2,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "470858062350",
+          "name": "American Express Credit Card #1",
+          "utilization": {
+            "account_id": "470858062350",
+            "utilization_percent": 25.483505854786397,
+            "balance": 3822.52587821796,
+            "limit": 15000.0,
+            "available": 11177.474121782041,
+            "is_high_utilization_30": false,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": false,
+            "total_interest_charges": 0,
+            "monthly_interest_estimate": 0.0,
+            "interest_transactions": 0
+          },
+          "minimum_payment_only": false,
+          "is_overdue": false
+        },
+        {
+          "account_id": "679001248255",
+          "name": "American Express Credit Card #2",
+          "utilization": {
+            "account_id": "679001248255",
+            "utilization_percent": 21.428175731231704,
+            "balance": 4285.635146246341,
+            "limit": 20000.0,
+            "available": 15714.36485375366,
+            "is_high_utilization_30": false,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": false,
+            "total_interest_charges": 0,
+            "monthly_interest_estimate": 0.0,
+            "interest_transactions": 0
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 9.238745437814856,
+      "checking_balance": 7781.141830117593,
+      "average_monthly_expenses": 842.2292704666171,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "Assigned to Subscription-Heavy (5/5 criteria, 56%) and Balanced & Stable (4/5 criteria, 44%) personas based on financial behavior patterns."
+}

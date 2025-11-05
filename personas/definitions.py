@@ -26,16 +26,23 @@ class Persona:
     rationale_template: str  # Template for explaining assignment
     
     def matches(self, features: Dict[str, Any]) -> tuple[bool, List[str]]:
-        """Check if user features match this persona.
+        """Legacy method for backward compatibility. Use score_criteria instead."""
+        matched_count, total_criteria, reasons = self.score_criteria(features)
+        return matched_count > 0, reasons
+    
+    def score_criteria(self, features: Dict[str, Any]) -> tuple[int, int, List[str]]:
+        """Score how many criteria this persona matches.
         
         Args:
             features: Dictionary with user features (from FeaturePipeline)
         
         Returns:
-            Tuple of (matches: bool, reasons: List[str])
+            Tuple of (matched_criteria_count: int, total_criteria: int, reasons: List[str])
+            Each persona has exactly 5 criteria.
         """
         reasons = []
-        matches = False
+        matched_count = 0
+        total_criteria = 5
         
         # Extract feature sets
         credit = features.get('credit', {})
@@ -43,70 +50,114 @@ class Persona:
         subscriptions = features.get('subscriptions', {})
         savings = features.get('savings', {})
         
-        # Persona 1: High Utilization
+        # Persona 1: High Utilization - 5 Criteria
         if self.id == 'high_utilization':
-            # Criteria: utilization ≥50% OR interest > 0 OR min-payment-only OR overdue
-            # Check card_details for max utilization
             card_details = credit.get('card_details', [])
             max_utilization = 0.0
-            has_interest = credit.get('any_interest_charges', False)
-            min_payment_only = credit.get('any_minimum_payment_only', False)
-            is_overdue = credit.get('any_overdue', False)
-            
-            # Find max utilization from card details
             for card in card_details:
                 util = card.get('utilization', {})
                 util_percent = util.get('utilization_percent', 0.0)
                 if util_percent > max_utilization:
                     max_utilization = util_percent
             
+            # Criterion 1: Utilization ≥50%
             if max_utilization >= 50.0:
-                matches = True
-                reasons.append(f"Credit utilization is {max_utilization:.1f}% (≥50% threshold)")
+                matched_count += 1
+                reasons.append(f"Criterion 1: Credit utilization {max_utilization:.1f}% (≥50%)")
+            
+            # Criterion 2: Utilization ≥80%
+            if max_utilization >= 80.0:
+                matched_count += 1
+                reasons.append(f"Criterion 2: Credit utilization {max_utilization:.1f}% (≥80%)")
+            
+            # Criterion 3: Interest charges present
+            has_interest = credit.get('any_interest_charges', False)
             if has_interest:
-                matches = True
-                reasons.append("Interest charges detected on credit card")
+                matched_count += 1
+                reasons.append("Criterion 3: Interest charges detected")
+            
+            # Criterion 4: Minimum payment only
+            min_payment_only = credit.get('any_minimum_payment_only', False)
             if min_payment_only:
-                matches = True
-                reasons.append("Making only minimum payments on credit card")
+                matched_count += 1
+                reasons.append("Criterion 4: Making only minimum payments")
+            
+            # Criterion 5: Overdue payments
+            is_overdue = credit.get('any_overdue', False)
             if is_overdue:
-                matches = True
-                reasons.append("Credit card payment is overdue")
+                matched_count += 1
+                reasons.append("Criterion 5: Credit card payment overdue")
         
-        # Persona 2: Variable Income Budgeter
+        # Persona 2: Variable Income Budgeter - 5 Criteria
         elif self.id == 'variable_income_budgeter':
-            # Criteria: median pay gap > 45 days AND cash-flow buffer < 1 month
             median_pay_gap = income.get('median_days_between', 0.0)
             cash_flow_buffer = income.get('cash_flow_buffer_months', 0.0)
+            income_std = income.get('income_std', 0.0)
+            income_mean = income.get('income_mean', 0.0)
+            income_cv = (income_std / income_mean * 100) if income_mean > 0 else 0.0
             
-            if median_pay_gap > 45.0 and cash_flow_buffer < 1.0:
-                matches = True
-                reasons.append(f"Median pay gap is {median_pay_gap:.0f} days (>45 days)")
-                reasons.append(f"Cash-flow buffer is {cash_flow_buffer:.1f} months (<1 month)")
+            # Criterion 1: Median pay gap > 45 days
+            if median_pay_gap > 45.0:
+                matched_count += 1
+                reasons.append(f"Criterion 1: Median pay gap {median_pay_gap:.0f} days (>45)")
+            
+            # Criterion 2: Cash-flow buffer < 1 month
+            if cash_flow_buffer < 1.0:
+                matched_count += 1
+                reasons.append(f"Criterion 2: Cash-flow buffer {cash_flow_buffer:.1f} months (<1)")
+            
+            # Criterion 3: High income variability (CV > 30%)
+            if income_cv > 30.0:
+                matched_count += 1
+                reasons.append(f"Criterion 3: Income variability {income_cv:.1f}% (CV >30%)")
+            
+            # Criterion 4: Pay gap > 30 days
+            if median_pay_gap > 30.0:
+                matched_count += 1
+                reasons.append(f"Criterion 4: Median pay gap {median_pay_gap:.0f} days (>30)")
+            
+            # Criterion 5: Cash-flow buffer < 2 months
+            if cash_flow_buffer < 2.0:
+                matched_count += 1
+                reasons.append(f"Criterion 5: Cash-flow buffer {cash_flow_buffer:.1f} months (<2)")
         
-        # Persona 3: Subscription-Heavy
+        # Persona 3: Subscription-Heavy - 5 Criteria
         elif self.id == 'subscription_heavy':
-            # Criteria: ≥3 recurring merchants AND (≥$50/month OR ≥10% of spend)
             num_recurring = subscriptions.get('recurring_merchants', 0)
             monthly_recurring = subscriptions.get('monthly_recurring_spend', 0.0)
             subscription_share = subscriptions.get('subscription_share_of_total', 0.0)
             
+            # Criterion 1: ≥3 recurring merchants
             if num_recurring >= 3:
-                if monthly_recurring >= 50.0 or subscription_share >= 10.0:
-                    matches = True
-                    reasons.append(f"{num_recurring} recurring subscriptions detected")
-                    if monthly_recurring >= 50.0:
-                        reasons.append(f"Monthly subscription spend: ${monthly_recurring:.2f} (≥$50)")
-                    if subscription_share >= 10.0:
-                        reasons.append(f"Subscriptions are {subscription_share:.1f}% of total spend (≥10%)")
+                matched_count += 1
+                reasons.append(f"Criterion 1: {num_recurring} recurring subscriptions (≥3)")
+            
+            # Criterion 2: ≥5 recurring merchants
+            if num_recurring >= 5:
+                matched_count += 1
+                reasons.append(f"Criterion 2: {num_recurring} recurring subscriptions (≥5)")
+            
+            # Criterion 3: Monthly subscription spend ≥$50
+            if monthly_recurring >= 50.0:
+                matched_count += 1
+                reasons.append(f"Criterion 3: Monthly subscription spend ${monthly_recurring:.2f} (≥$50)")
+            
+            # Criterion 4: Subscription share ≥10% of total spend
+            if subscription_share >= 10.0:
+                matched_count += 1
+                reasons.append(f"Criterion 4: Subscriptions {subscription_share:.1f}% of total (≥10%)")
+            
+            # Criterion 5: Monthly subscription spend ≥$100
+            if monthly_recurring >= 100.0:
+                matched_count += 1
+                reasons.append(f"Criterion 5: Monthly subscription spend ${monthly_recurring:.2f} (≥$100)")
         
-        # Persona 4: Savings Builder
+        # Persona 4: Savings Builder - 5 Criteria
         elif self.id == 'savings_builder':
-            # Criteria: savings growth ≥2% OR net inflow ≥$200/month AND all utilizations < 30%
             savings_growth = savings.get('growth_rate_percent', 0.0)
             net_inflow = savings.get('monthly_net_inflow', savings.get('net_inflow_per_month', 0.0))
+            savings_balance = savings.get('total_savings_balance', 0.0)
             
-            # Find max utilization from card details
             card_details = credit.get('card_details', [])
             max_utilization = 0.0
             for card in card_details:
@@ -115,22 +166,33 @@ class Persona:
                 if util_percent > max_utilization:
                     max_utilization = util_percent
             
-            growth_match = savings_growth >= 2.0
-            inflow_match = net_inflow >= 200.0 and max_utilization < 30.0
+            # Criterion 1: Savings growth rate ≥2%
+            if savings_growth >= 2.0:
+                matched_count += 1
+                reasons.append(f"Criterion 1: Savings growth {savings_growth:.1f}% (≥2%)")
             
-            if growth_match:
-                matches = True
-                reasons.append(f"Savings growth rate: {savings_growth:.1f}% (≥2%)")
+            # Criterion 2: Monthly net inflow ≥$200
+            if net_inflow >= 200.0:
+                matched_count += 1
+                reasons.append(f"Criterion 2: Monthly savings inflow ${net_inflow:.2f} (≥$200)")
             
-            if inflow_match:
-                matches = True
-                reasons.append(f"Monthly savings inflow: ${net_inflow:.2f} (≥$200)")
-                reasons.append(f"All credit utilizations < 30% (max: {max_utilization:.1f}%)")
+            # Criterion 3: All credit utilizations < 30%
+            if max_utilization < 30.0:
+                matched_count += 1
+                reasons.append(f"Criterion 3: Max credit utilization {max_utilization:.1f}% (<30%)")
+            
+            # Criterion 4: Monthly net inflow ≥$500
+            if net_inflow >= 500.0:
+                matched_count += 1
+                reasons.append(f"Criterion 4: Monthly savings inflow ${net_inflow:.2f} (≥$500)")
+            
+            # Criterion 5: Savings balance > $5,000
+            if savings_balance >= 5000.0:
+                matched_count += 1
+                reasons.append(f"Criterion 5: Savings balance ${savings_balance:.2f} (≥$5,000)")
         
-        # Persona 5: Balanced/Stable
+        # Persona 5: Balanced/Stable - 5 Criteria
         elif self.id == 'balanced_stable':
-            # Default persona: doesn't match other high-priority personas
-            # Criteria: Low utilization, stable income, moderate subscriptions, steady savings
             card_details = credit.get('card_details', [])
             max_utilization = 0.0
             for card in card_details:
@@ -143,16 +205,34 @@ class Persona:
             is_overdue = credit.get('any_overdue', False)
             cash_flow_buffer = income.get('cash_flow_buffer_months', 0.0)
             num_recurring = subscriptions.get('recurring_merchants', 0)
+            median_pay_gap = income.get('median_days_between', 0.0)
             
-            if (max_utilization < 50.0 and 
-                not has_interest and 
-                not is_overdue and
-                cash_flow_buffer >= 1.0 and
-                num_recurring < 5):
-                matches = True
-                reasons.append("Stable financial profile with low risk indicators")
+            # Criterion 1: Utilization < 50% and no interest charges
+            if max_utilization < 50.0 and not has_interest:
+                matched_count += 1
+                reasons.append(f"Criterion 1: Utilization {max_utilization:.1f}% (<50%) and no interest")
+            
+            # Criterion 2: No overdue payments
+            if not is_overdue:
+                matched_count += 1
+                reasons.append("Criterion 2: No overdue payments")
+            
+            # Criterion 3: Cash-flow buffer ≥1 month
+            if cash_flow_buffer >= 1.0:
+                matched_count += 1
+                reasons.append(f"Criterion 3: Cash-flow buffer {cash_flow_buffer:.1f} months (≥1)")
+            
+            # Criterion 4: Moderate subscriptions (<5)
+            if num_recurring < 5:
+                matched_count += 1
+                reasons.append(f"Criterion 4: {num_recurring} subscriptions (<5)")
+            
+            # Criterion 5: Regular pay schedule (pay gap ≤30 days)
+            if median_pay_gap <= 30.0:
+                matched_count += 1
+                reasons.append(f"Criterion 5: Regular pay schedule (gap {median_pay_gap:.0f} days ≤30)")
         
-        return matches, reasons
+        return matched_count, total_criteria, reasons
 
 
 # Persona Definitions

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchWeeklyRecap } from '../services/api'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Card } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react'
 
 interface WeeklyRecapCardProps {

@@ -1,0 +1,141 @@
+{
+  "user_id": "da4e69b1-e7bc-4081-9f5d-4322fd72a4c3",
+  "timestamp": "2025-11-04T21:50:42.998617",
+  "assigned_personas": [
+    "balanced_stable",
+    "high_utilization"
+  ],
+  "primary_persona": "balanced_stable",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 4: Making only minimum payments"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 5: Cash-flow buffer 1.8 months (<2)"
+      ],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "matched_criteria": 5,
+      "total_criteria": 5,
+      "score": 5,
+      "reasons": [
+        "Criterion 1: Utilization 30.4% (<50%) and no interest",
+        "Criterion 2: No overdue payments",
+        "Criterion 3: Cash-flow buffer 1.8 months (\u22651)",
+        "Criterion 4: 0 subscriptions (<5)",
+        "Criterion 5: Regular pay schedule (gap 0 days \u226430)"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "da4e69b1-e7bc-4081-9f5d-4322fd72a4c3",
+    "window_days": 30,
+    "start_date": "2025-10-05T21:50:42.906997",
+    "end_date": "2025-11-04T21:50:42.906997",
+    "subscriptions": {
+      "recurring_merchants": 0,
+      "recurring_merchant_details": [],
+      "monthly_recurring_spend": 0,
+      "total_subscription_spend": 0,
+      "subscription_share_of_total": 0.0,
+      "total_spend": 1767.6642575970427
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 0.0,
+      "total_savings_balance": 0,
+      "average_monthly_expenses": 203.36014448285866,
+      "has_emergency_fund": false
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 1,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "398940626078",
+          "name": "Discover Credit Card",
+          "utilization": {
+            "account_id": "398940626078",
+            "utilization_percent": 30.36620386833947,
+            "balance": 7591.550967084868,
+            "limit": 25000.0,
+            "available": 17408.44903291513,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": false,
+            "total_interest_charges": 0,
+            "monthly_interest_estimate": 0.0,
+            "interest_transactions": 0
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 1.7950099174403817,
+      "checking_balance": 253.0573923402568,
+      "average_monthly_expenses": 140.97826974744927,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "Assigned to Balanced & Stable (5/5 criteria, 83%) and High Utilization (1/5 criteria, 17%) personas based on financial behavior patterns."
+}

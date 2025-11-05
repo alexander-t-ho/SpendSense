@@ -109,8 +109,15 @@ export default function Dashboard() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {users.map((user: any) => {
                   const persona = user.persona || {}
-                  const riskLevel = persona.risk_level || 'MINIMAL'
-                  const riskColor = getRiskColor(riskLevel)
+                  
+                  // Check for dual persona format
+                  const topPersonas = persona.top_personas || []
+                  const primaryPersona = topPersonas[0] || persona
+                  const secondaryPersona = topPersonas[1]
+                  
+                  const primaryName = primaryPersona.persona_name || primaryPersona.name || 'Not Assigned'
+                  const primaryRisk = primaryPersona.risk_level || persona.risk_level || 'MINIMAL'
+                  const primaryRiskColor = getRiskColor(primaryRisk)
                   
                   return (
                     <tr key={user.id} className="hover:bg-gray-50">
@@ -122,11 +129,30 @@ export default function Dashboard() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1">
-                          <span className="text-sm font-medium text-gray-900">
-                            {persona.name || 'Not Assigned'}
-                          </span>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${riskColor}`}>
-                            {riskLevel} Risk
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-900">
+                              {primaryName}
+                            </span>
+                            {primaryPersona.percentage && (
+                              <span className="text-xs font-semibold text-blue-600">
+                                {primaryPersona.percentage}%
+                              </span>
+                            )}
+                          </div>
+                          {secondaryPersona && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-600">
+                                {secondaryPersona.persona_name}
+                              </span>
+                              {secondaryPersona.percentage && (
+                                <span className="text-xs font-semibold text-blue-600">
+                                  {secondaryPersona.percentage}%
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${primaryRiskColor}`}>
+                            {primaryRisk} Risk
                           </span>
                         </div>
                       </td>
@@ -173,8 +199,8 @@ function getRiskColor(riskLevel: string): string {
   }
 }
 
-function StatCard({ title, value, icon, color }: any) {
-  const colorClasses = {
+function StatCard({ title, value, icon, color }: { title: string; value: number; icon: React.ReactNode; color: 'blue' | 'green' | 'purple' | 'orange' }) {
+  const colorClasses: Record<string, string> = {
     blue: 'bg-blue-100 text-blue-600',
     green: 'bg-green-100 text-green-600',
     purple: 'bg-purple-100 text-purple-600',
@@ -184,7 +210,7 @@ function StatCard({ title, value, icon, color }: any) {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center">
-        <div className={`${colorClasses[color]} p-3 rounded-lg`}>{icon}</div>
+        <div className={`${colorClasses[color] || colorClasses.blue} p-3 rounded-lg`}>{icon}</div>
         <div className="ml-4">
           <p className="text-sm font-medium text-gray-600">{title}</p>
           <p className="text-2xl font-semibold text-gray-900">{value.toLocaleString()}</p>

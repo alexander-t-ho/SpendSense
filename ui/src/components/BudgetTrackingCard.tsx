@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchBudgetTracking } from '../services/api'
-import { RadialBarChart, RadialBar, ResponsiveContainer, ProgressBar } from 'recharts'
+import { RadialBarChart, RadialBar, ResponsiveContainer } from 'recharts'
 import { CheckCircle, AlertCircle, XCircle, Target } from 'lucide-react'
 
 interface BudgetTrackingCardProps {
