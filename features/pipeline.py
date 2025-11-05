@@ -10,6 +10,7 @@ from features.subscriptions import SubscriptionDetector
 from features.savings import SavingsAnalyzer
 from features.credit import CreditAnalyzer
 from features.income import IncomeAnalyzer
+from features.fees import FeeAnalyzer
 from features.correlation import CorrelationAnalyzer
 
 
@@ -30,6 +31,7 @@ class FeaturePipeline:
         self.savings_analyzer = SavingsAnalyzer(self.session)
         self.credit_analyzer = CreditAnalyzer(self.session)
         self.income_analyzer = IncomeAnalyzer(self.session)
+        self.fee_analyzer = FeeAnalyzer(self.session)
         self.correlation_analyzer = CorrelationAnalyzer(self.session)
     
     def compute_features_for_user(
@@ -49,9 +51,33 @@ class FeaturePipeline:
         end_date = datetime.now()
         start_date = end_date - timedelta(days=window_days)
         
-        # Compute all feature sets
-        subscription_features = self.subscription_detector.calculate_subscription_metrics(
+        # Compute income features first (needed for subscription calculations)
+        income_features = self.income_analyzer.calculate_income_metrics(
             user_id, start_date, end_date
+        )
+        
+        # Calculate monthly income for subscription-to-income ratio
+        # Use average income per pay * frequency multiplier, or minimum monthly income
+        monthly_income = income_features.get('minimum_monthly_income', 0.0)
+        if monthly_income == 0.0:
+            # Fallback: use average income per pay * frequency
+            avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
+            frequency = income_features.get('payment_frequency', {}).get('frequency', 'monthly')
+            if frequency == 'weekly':
+                monthly_income = avg_income_per_pay * 4.33
+            elif frequency == 'biweekly':
+                monthly_income = avg_income_per_pay * 2.17
+            elif frequency == 'monthly':
+                monthly_income = avg_income_per_pay
+            else:
+                # For irregular, estimate from median days
+                median_days = income_features.get('payment_frequency', {}).get('median_days_between', 30.0)
+                if median_days > 0:
+                    monthly_income = avg_income_per_pay * (30.0 / median_days)
+        
+        # Compute subscription features with monthly income
+        subscription_features = self.subscription_detector.calculate_subscription_metrics(
+            user_id, start_date, end_date, monthly_income=monthly_income
         )
         
         savings_features = self.savings_analyzer.calculate_savings_metrics(
@@ -62,7 +88,7 @@ class FeaturePipeline:
             user_id, start_date, end_date
         )
         
-        income_features = self.income_analyzer.calculate_income_metrics(
+        fee_features = self.fee_analyzer.get_fee_metrics(
             user_id, start_date, end_date
         )
         
@@ -74,7 +100,8 @@ class FeaturePipeline:
             "subscriptions": subscription_features,
             "savings": savings_features,
             "credit": credit_features,
-            "income": income_features
+            "income": income_features,
+            "fees": fee_features
         }
     
     def compute_features_for_all_users(

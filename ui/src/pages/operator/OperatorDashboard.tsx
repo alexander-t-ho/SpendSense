@@ -220,6 +220,9 @@ export default function OperatorDashboard() {
                     Email
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Risk Level
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Accounts
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -231,30 +234,64 @@ export default function OperatorDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredUsers.map((user: any) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {user.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.email}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.account_count || 0}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Link
-                        to={`/user/${user.id}`}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        View Details
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {filteredUsers.map((user: any) => {
+                  const getRiskColor = (riskLevel: string) => {
+                    switch (riskLevel?.toUpperCase()) {
+                      case 'CRITICAL':
+                        return 'bg-red-100 text-red-800 border-red-300'
+                      case 'HIGH':
+                        return 'bg-orange-100 text-orange-800 border-orange-300'
+                      case 'MEDIUM':
+                        return 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                      case 'LOW':
+                        return 'bg-blue-100 text-blue-800 border-blue-300'
+                      case 'MINIMAL':
+                        return 'bg-green-100 text-green-800 border-green-300'
+                      case 'VERY_LOW':
+                        return 'bg-gray-100 text-gray-800 border-gray-300'
+                      default:
+                        return 'bg-gray-100 text-gray-800 border-gray-300'
+                    }
+                  }
+                  
+                  const riskLevel = user.persona?.risk_level || 'VERY_LOW'
+                  const riskPoints = user.persona?.total_risk_points || 0
+                  
+                  return (
+                    <tr key={user.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {user.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.email}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex flex-col gap-1">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRiskColor(riskLevel)}`}>
+                            {riskLevel}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {riskPoints.toFixed(2)} pts
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.account_count || 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <Link
+                          to={`/user/${user.id}`}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          View Details
+                        </Link>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

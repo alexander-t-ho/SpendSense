@@ -8,7 +8,7 @@ from sqlalchemy import func, and_
 from typing import Optional, Dict, Any
 from datetime import datetime
 
-from ingest.schema import get_session, User, Account, Transaction, Liability
+from ingest.schema import get_session, User, Account, Transaction, Liability, CancelledSubscription
 from features.pipeline import FeaturePipeline
 from api.websocket import manager
 
@@ -75,8 +75,10 @@ def get_users():
                 "id": persona_assignment_data.get('primary_persona'),
                 "name": persona_assignment_data.get('primary_persona_name'),
                 "risk": persona_assignment_data.get('primary_persona_risk', 0),
-                "risk_level": persona_assignment_data.get('primary_persona_risk_level', 'MINIMAL'),
+                "risk_level": persona_assignment_data.get('risk_level', persona_assignment_data.get('primary_persona_risk_level', 'VERY_LOW')),
+                "total_risk_points": persona_assignment_data.get('total_risk_points', 0.0),
                 "top_personas": persona_assignment_data.get('top_personas', []),
+                "all_matching_personas": persona_assignment_data.get('all_matching_personas', []),
                 "primary_persona": persona_assignment_data.get('primary_persona'),
                 "primary_persona_name": persona_assignment_data.get('primary_persona_name'),
                 "primary_persona_percentage": persona_assignment_data.get('primary_persona_percentage', 100),
@@ -356,8 +358,10 @@ def get_user_profile(
             "id": persona_data.get("primary_persona"),
             "name": persona_data.get("primary_persona_name"),
             "risk": persona_data.get("primary_persona_risk", 0),
-            "risk_level": persona_data.get("primary_persona_risk_level", "MINIMAL"),
+            "risk_level": persona_data.get("risk_level", persona_data.get("primary_persona_risk_level", "VERY_LOW")),
+            "total_risk_points": persona_data.get("total_risk_points", 0.0),
             "top_personas": persona_data.get("top_personas", []),
+            "all_matching_personas": persona_data.get("all_matching_personas", []),
             "primary_persona": persona_data.get("primary_persona"),
             "primary_persona_name": persona_data.get("primary_persona_name"),
             "primary_persona_percentage": persona_data.get("primary_persona_percentage", 100),
@@ -844,6 +848,234 @@ def generate_persona_recommendations(
         session.close()
 
 
+@app.get("/api/user/{user_id}/subscriptions")
+def get_user_subscriptions(user_id: str):
+    """Get user's active subscriptions/recurring merchants.
+    
+    Args:
+        user_id: User ID
+    
+    Returns:
+        List of recurring subscriptions with details
+    """
+    from features.subscriptions import SubscriptionDetector
+    from datetime import datetime, timedelta
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get subscriptions from last 180 days
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=180)
+        
+        detector = SubscriptionDetector(session)
+        recurring_merchants = detector.detect_recurring_merchants(user_id, start_date, end_date)
+        
+        # Additional filtering: exclude any merchants that might be loans (double-check)
+        loan_keywords = ['mortgage', 'student loan', 'studentloan', 'loan payment', 'loan servicer']
+        
+        subscriptions = []
+        for merchant in recurring_merchants:
+            merchant_lower = merchant["merchant_name"].lower()
+            # Skip if it's clearly a loan (already filtered in detector, but double-check)
+            if any(keyword in merchant_lower for keyword in loan_keywords):
+                continue
+            
+            subscriptions.append({
+                "merchant_name": merchant["merchant_name"],
+                "average_amount": merchant["average_amount"],
+                "cadence": merchant["cadence"],
+                "occurrences": merchant["occurrences"],
+                "last_transaction": merchant["last_transaction"].isoformat() if merchant.get("last_transaction") else None,
+                "first_transaction": merchant["first_transaction"].isoformat() if merchant.get("first_transaction") else None,
+            })
+        
+        # Get cancelled subscriptions for this user
+        cancelled_subs = session.query(CancelledSubscription).filter(
+            CancelledSubscription.user_id == user_id
+        ).all()
+        cancelled_merchant_names = {sub.merchant_name for sub in cancelled_subs}
+        
+        # Mark which subscriptions are cancelled
+        for sub in subscriptions:
+            sub["cancelled"] = sub["merchant_name"] in cancelled_merchant_names
+        
+        return {
+            "user_id": user_id,
+            "subscriptions": subscriptions,
+            "total": len(subscriptions),
+            "cancelled_count": len(cancelled_merchant_names)
+        }
+    finally:
+        session.close()
+
+
+@app.post("/api/user/{user_id}/subscriptions/cancel")
+async def cancel_subscription(user_id: str, request: Dict[str, Any] = Body(...)):
+    """Cancel a subscription for a user.
+    
+    Args:
+        user_id: User ID
+        request: Request body containing merchant_name
+    
+    Returns:
+        Cancellation confirmation
+    """
+    from datetime import datetime
+    import uuid
+    
+    merchant_name = request.get("merchant_name")
+    if not merchant_name:
+        raise HTTPException(status_code=400, detail="merchant_name is required")
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check if already cancelled
+        existing = session.query(CancelledSubscription).filter(
+            and_(
+                CancelledSubscription.user_id == user_id,
+                CancelledSubscription.merchant_name == merchant_name
+            )
+        ).first()
+        
+        if existing:
+            return {
+                "user_id": user_id,
+                "merchant_name": merchant_name,
+                "cancelled": True,
+                "cancelled_at": existing.cancelled_at.isoformat(),
+                "message": "Subscription already cancelled"
+            }
+        
+        # Create cancellation record
+        cancelled_sub = CancelledSubscription(
+            id=str(uuid.uuid4()),
+            user_id=user_id,
+            merchant_name=merchant_name,
+            cancelled_at=datetime.now()
+        )
+        session.add(cancelled_sub)
+        session.commit()
+        
+        # Broadcast cancellation via WebSocket
+        from api.websocket import manager
+        await manager.broadcast_subscription_cancellation(
+            user_id=user_id,
+            merchant_name=merchant_name,
+            cancelled=True
+        )
+        
+        return {
+            "user_id": user_id,
+            "merchant_name": merchant_name,
+            "cancelled": True,
+            "cancelled_at": cancelled_sub.cancelled_at.isoformat(),
+            "message": "Subscription cancelled successfully"
+        }
+    finally:
+        session.close()
+
+
+@app.post("/api/user/{user_id}/subscriptions/uncancel")
+async def uncancel_subscription(user_id: str, request: Dict[str, Any] = Body(...)):
+    """Uncancel a subscription for a user (restore it).
+    
+    Args:
+        user_id: User ID
+        request: Request body containing merchant_name
+    
+    Returns:
+        Uncancel confirmation
+    """
+    merchant_name = request.get("merchant_name")
+    if not merchant_name:
+        raise HTTPException(status_code=400, detail="merchant_name is required")
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Find and delete cancellation record
+        cancelled_sub = session.query(CancelledSubscription).filter(
+            and_(
+                CancelledSubscription.user_id == user_id,
+                CancelledSubscription.merchant_name == merchant_name
+            )
+        ).first()
+        
+        if not cancelled_sub:
+            return {
+                "user_id": user_id,
+                "merchant_name": merchant_name,
+                "cancelled": False,
+                "message": "Subscription was not cancelled"
+            }
+        
+        session.delete(cancelled_sub)
+        session.commit()
+        
+        # Broadcast uncancellation via WebSocket
+        from api.websocket import manager
+        await manager.broadcast_subscription_cancellation(
+            user_id=user_id,
+            merchant_name=merchant_name,
+            cancelled=False
+        )
+        
+        return {
+            "user_id": user_id,
+            "merchant_name": merchant_name,
+            "cancelled": False,
+            "message": "Subscription uncancelled successfully"
+        }
+    finally:
+        session.close()
+
+
+@app.get("/api/user/{user_id}/subscriptions/cancelled")
+def get_cancelled_subscriptions(user_id: str):
+    """Get list of cancelled subscriptions for a user.
+    
+    Args:
+        user_id: User ID
+    
+    Returns:
+        List of cancelled merchant names
+    """
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        cancelled_subs = session.query(CancelledSubscription).filter(
+            CancelledSubscription.user_id == user_id
+        ).all()
+        
+        return {
+            "user_id": user_id,
+            "cancelled_merchants": [
+                {
+                    "merchant_name": sub.merchant_name,
+                    "cancelled_at": sub.cancelled_at.isoformat()
+                }
+                for sub in cancelled_subs
+            ],
+            "total": len(cancelled_subs)
+        }
+    finally:
+        session.close()
+
+
 @app.get("/api/recommendations/{user_id}/approved")
 def get_approved_recommendations(user_id: str):
     """Get approved recommendations for a user.
@@ -876,6 +1108,7 @@ def get_approved_recommendations(user_id: str):
                 "action_items": rec.action_items if hasattr(rec, 'action_items') and rec.action_items else [],
                 "expected_impact": rec.expected_impact if hasattr(rec, 'expected_impact') else None,
                 "priority": rec.priority if hasattr(rec, 'priority') else None,
+                "content_id": rec.content_id,
                 "type": "actionable_recommendation",
                 "persona_id": rec.persona_id,
                 "created_at": rec.created_at.isoformat() if rec.created_at else None
@@ -1547,6 +1780,23 @@ async def websocket_consent_endpoint(websocket: WebSocket, user_id: str):
         manager.disconnect(websocket, user_id)
     except Exception as e:
         print(f"WebSocket error for user {user_id}: {e}")
+        manager.disconnect(websocket, user_id)
+
+
+@app.websocket("/ws/subscriptions/{user_id}")
+async def websocket_subscriptions(websocket: WebSocket, user_id: str):
+    """WebSocket endpoint for subscription cancellation updates."""
+    await manager.connect(websocket, user_id)
+    try:
+        while True:
+            # Keep connection alive and listen for messages
+            data = await websocket.receive_text()
+            # Echo back or handle client messages if needed
+            await websocket.send_json({"type": "pong", "message": "Connection alive"})
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
+    except Exception as e:
+        print(f"Error in subscription WebSocket: {e}")
         manager.disconnect(websocket, user_id)
 
 
