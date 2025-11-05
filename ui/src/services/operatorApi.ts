@@ -21,9 +21,14 @@ export interface OperatorRecommendation {
     risk: string
     risk_level: string
   } | null
+  action_items?: string[]
+  expected_impact?: string | null
+  priority?: string | null
   approved: boolean
   approved_at: string | null
   flagged: boolean
+  rejected?: boolean
+  rejected_at?: string | null
   created_at: string
   updated_at: string
 }
@@ -70,6 +75,18 @@ export async function flagRecommendation(recommendationId: string): Promise<void
   )
   if (!response.ok) {
     throw new Error('Failed to flag recommendation')
+  }
+}
+
+export async function rejectRecommendation(recommendationId: string): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/operator/recommendations/${recommendationId}/reject`,
+    {
+      method: 'PUT',
+    }
+  )
+  if (!response.ok) {
+    throw new Error('Failed to reject recommendation')
   }
 }
 

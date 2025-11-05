@@ -156,7 +156,8 @@ class PersonaAssigner:
                     'score': p['score'],
                     'percentage': persona1_percentage if i == 0 else persona2_percentage,
                     'risk': p['persona'].risk.value,
-                    'risk_level': p['persona'].risk.name
+                    'risk_level': p['persona'].risk.name,
+                    'matched_reasons': matching_results.get(p['persona'].id, {}).get('reasons', [])
                 }
                 for i, p in enumerate(top_personas)
             ],

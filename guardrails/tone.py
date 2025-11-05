@@ -134,3 +134,4 @@ class ToneValidator:
         all_text = f"{title} {description} {rationale}"
         return self.validate(all_text)
 
+

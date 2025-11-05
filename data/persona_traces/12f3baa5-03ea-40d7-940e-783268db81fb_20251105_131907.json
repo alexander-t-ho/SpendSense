@@ -1,0 +1,185 @@
+{
+  "user_id": "12f3baa5-03ea-40d7-940e-783268db81fb",
+  "timestamp": "2025-11-05T13:19:07.970017",
+  "assigned_personas": [
+    "balanced_stable",
+    "subscription_heavy"
+  ],
+  "primary_persona": "balanced_stable",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 4: Making only minimum payments"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL"
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH"
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 4,
+      "total_criteria": 5,
+      "score": 4,
+      "reasons": [
+        "Criterion 1: 4 recurring subscriptions (\u22653)",
+        "Criterion 3: Monthly subscription spend $1425.72 (\u2265$50)",
+        "Criterion 4: Subscriptions 69.1% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $1425.72 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM"
+    },
+    "savings_builder": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW"
+    },
+    "balanced_stable": {
+      "matched": true,
+      "matched_criteria": 5,
+      "total_criteria": 5,
+      "score": 5,
+      "reasons": [
+        "Criterion 1: Utilization 34.6% (<50%) and no interest",
+        "Criterion 2: No overdue payments",
+        "Criterion 3: Cash-flow buffer 6.1 months (\u22651)",
+        "Criterion 4: 4 subscriptions (<5)",
+        "Criterion 5: Regular pay schedule (gap 0 days \u226430)"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL"
+    }
+  },
+  "features_snapshot": {
+    "user_id": "12f3baa5-03ea-40d7-940e-783268db81fb",
+    "window_days": 180,
+    "start_date": "2025-05-09T13:19:07.816788",
+    "end_date": "2025-11-05T13:19:07.816788",
+    "subscriptions": {
+      "recurring_merchants": 4,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "HBO Max",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 78.5051300731392,
+          "average_amount": 13.0841883455232,
+          "first_transaction": "2025-06-07 16:08:58.465132",
+          "last_transaction": "2025-11-04 16:08:58.465132"
+        },
+        {
+          "merchant_name": "Delta Airlines",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 31.25,
+          "total_amount": 188.2379185659101,
+          "average_amount": 37.647583713182016,
+          "first_transaction": "2025-06-01 06:45:16.035455",
+          "last_transaction": "2025-10-07 16:31:28.528609"
+        },
+        {
+          "merchant_name": "Trader Joe's",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 32.666666666666664,
+          "total_amount": 47.86667905372703,
+          "average_amount": 11.966669763431758,
+          "first_transaction": "2025-07-12 14:07:44.256825",
+          "last_transaction": "2025-10-19 08:01:36.228984"
+        },
+        {
+          "merchant_name": "MORTGAGE PAYMENT",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 8178.146545139348,
+          "average_amount": 1363.0244241898913,
+          "first_transaction": "2025-06-07 16:08:58.465132",
+          "last_transaction": "2025-11-04 16:08:58.465132"
+        }
+      ],
+      "monthly_recurring_spend": 1425.7228660120284,
+      "total_subscription_spend": 8492.756272832125,
+      "subscription_share_of_total": 69.05921669103296,
+      "total_spend": 12297.78830366443
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 3.5224843012590874,
+      "total_savings_balance": 1215.7392596390196,
+      "average_monthly_expenses": 345.1368851252118,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 1,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "652963863960",
+          "name": "Discover Credit Card",
+          "utilization": {
+            "account_id": "652963863960",
+            "utilization_percent": 34.601031707505605,
+            "balance": 8650.257926876402,
+            "limit": 25000.0,
+            "available": 16349.742073123598,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": false,
+            "total_interest_charges": 0,
+            "monthly_interest_estimate": 0.0,
+            "interest_transactions": 0
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 6.112342282606979,
+      "checking_balance": 2196.047664382908,
+      "average_monthly_expenses": 359.2808718569128,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "Assigned to Balanced & Stable (5/5 criteria, 56%) and Subscription-Heavy (4/5 criteria, 44%) personas based on financial behavior patterns."
+}

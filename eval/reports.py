@@ -135,3 +135,4 @@ class ReportGenerator:
         
         return "\n".join(report)
 
+

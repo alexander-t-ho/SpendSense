@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchUserDetail } from '../services/api'
 import AccountCard from '../components/AccountCard'
 import FeatureCard from '../components/FeatureCard'
@@ -93,12 +93,34 @@ export default function UserDetail() {
                       </div>
                     </div>
                     {/* Progress bar */}
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-3">
                       <div
                         className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
                         style={{ width: `${persona.percentage}%` }}
                       ></div>
                     </div>
+                    {/* Matched Criteria Details - Always show if available */}
+                    {persona.matched_reasons && persona.matched_reasons.length > 0 ? (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <p className="text-sm font-medium text-gray-700 mb-2">
+                          Matched Criteria ({persona.matched_criteria}/{persona.total_criteria}):
+                        </p>
+                        <ul className="space-y-1">
+                          {persona.matched_reasons.map((reason: string, reasonIdx: number) => (
+                            <li key={reasonIdx} className="text-sm text-gray-600 flex items-start">
+                              <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                              <span>{reason}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <p className="text-sm text-gray-500 italic">
+                          No matched criteria details available. Matched {persona.matched_criteria}/{persona.total_criteria} criteria.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ))}
                 
@@ -137,6 +159,11 @@ export default function UserDetail() {
                 <p className="mt-1 text-sm text-gray-600">{user.persona.rationale}</p>
               </div>
             )}
+            
+            {/* Generate Recommendations Button */}
+            <div className="mt-4">
+              <GenerateRecommendationsButton userId={userId!} />
+            </div>
           </div>
         )}
 
@@ -276,6 +303,50 @@ export default function UserDetail() {
         <RecommendationsSection userId={user.id} windowDays={windowDays} readOnly={true} />
       </div>
     </div>
+  )
+}
+
+function GenerateRecommendationsButton({ userId }: { userId: string }) {
+  const queryClient = useQueryClient()
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  const generateMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/recommendations/generate/${userId}?num_recommendations=8`, {
+        method: 'POST',
+      })
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to generate recommendations' }))
+        const error = new Error(errorData.detail || 'Failed to generate recommendations')
+        ;(error as any).response = response
+        throw error
+      }
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+      alert('Recommendations generated! Please review and approve them in the Recommendation Queue.')
+    },
+    onError: async (error) => {
+      let errorMessage = 'Failed to generate recommendations'
+      try {
+        const errorData = await (error as any).response?.json()
+        errorMessage = errorData?.detail || errorMessage
+      } catch {
+        errorMessage = (error as Error).message || errorMessage
+      }
+      alert(`Error generating recommendations: ${errorMessage}`)
+    },
+  })
+
+  return (
+    <button
+      onClick={() => generateMutation.mutate()}
+      disabled={generateMutation.isPending}
+      className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {generateMutation.isPending ? 'Generating...' : 'Generate Recommendations'}
+    </button>
   )
 }
 

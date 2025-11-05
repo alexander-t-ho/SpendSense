@@ -142,3 +142,4 @@ class EligibilityChecker:
         """Close database connections."""
         self.feature_pipeline.close()
 
+

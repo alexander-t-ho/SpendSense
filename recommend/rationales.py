@@ -244,3 +244,4 @@ class RationaleBuilder:
             return f"{data_point}: {formatted_value} ({context})"
         return f"{data_point}: {formatted_value}"
 
+

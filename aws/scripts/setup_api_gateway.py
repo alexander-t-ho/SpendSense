@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Setup API Gateway for SpendSense insights Lambda functions.
+"""Setup API Gateway for SpendSense Lambda functions.
 
-This script creates an API Gateway REST API with endpoints for all insights Lambda functions.
+This script creates an API Gateway REST API with endpoints for:
+- Individual insights Lambda functions (weekly-recap, spending-analysis, etc.)
+- Main FastAPI Lambda function (proxy integration for all /api/* endpoints)
 
 Usage:
     python aws/scripts/setup_api_gateway.py
@@ -198,42 +200,173 @@ def setup_insights_endpoints(api_id: str, api_root_id: str):
     user_id_resource_id = create_resource(api_id, insights_resource_id, '{user_id}')
     print(f"  Created /insights/{{user_id}} resource")
     
-    lambda_functions = resources['lambda_functions']
+    lambda_functions = resources.get('lambda_functions', {})
     
     # Weekly recap endpoint: GET /insights/{user_id}/weekly-recap
     weekly_recap_resource_id = create_resource(api_id, user_id_resource_id, 'weekly-recap')
-    if create_lambda_integration(api_id, weekly_recap_resource_id, lambda_functions['weekly_recap'], 'GET'):
+    if lambda_functions.get('weekly_recap') and create_lambda_integration(api_id, weekly_recap_resource_id, lambda_functions['weekly_recap'], 'GET'):
         print(f"  ✅ Endpoint: GET /insights/{{user_id}}/weekly-recap")
     else:
         print(f"  ⏳ Endpoint: GET /insights/{{user_id}}/weekly-recap (Lambda pending)")
     
     # Spending analysis endpoint: GET /insights/{user_id}/spending-analysis
     spending_analysis_resource_id = create_resource(api_id, user_id_resource_id, 'spending-analysis')
-    if create_lambda_integration(api_id, spending_analysis_resource_id, lambda_functions['spending_analysis'], 'GET'):
+    if lambda_functions.get('spending_analysis') and create_lambda_integration(api_id, spending_analysis_resource_id, lambda_functions['spending_analysis'], 'GET'):
         print(f"  ✅ Endpoint: GET /insights/{{user_id}}/spending-analysis")
     else:
         print(f"  ⏳ Endpoint: GET /insights/{{user_id}}/spending-analysis (Lambda pending)")
     
     # Net worth endpoint: GET /insights/{user_id}/net-worth
     net_worth_resource_id = create_resource(api_id, user_id_resource_id, 'net-worth')
-    if create_lambda_integration(api_id, net_worth_resource_id, lambda_functions['net_worth'], 'GET'):
+    if lambda_functions.get('net_worth') and create_lambda_integration(api_id, net_worth_resource_id, lambda_functions['net_worth'], 'GET'):
         print(f"  ✅ Endpoint: GET /insights/{{user_id}}/net-worth")
     else:
         print(f"  ⏳ Endpoint: GET /insights/{{user_id}}/net-worth (Lambda pending)")
     
     # Budget suggestion endpoint: GET /insights/{user_id}/suggested-budget
     budget_suggestion_resource_id = create_resource(api_id, user_id_resource_id, 'suggested-budget')
-    if create_lambda_integration(api_id, budget_suggestion_resource_id, lambda_functions['budget_suggestion'], 'GET'):
+    if lambda_functions.get('budget_suggestion') and create_lambda_integration(api_id, budget_suggestion_resource_id, lambda_functions['budget_suggestion'], 'GET'):
         print(f"  ✅ Endpoint: GET /insights/{{user_id}}/suggested-budget")
     else:
         print(f"  ⏳ Endpoint: GET /insights/{{user_id}}/suggested-budget (Lambda pending)")
     
     # Budget tracking endpoint: GET /insights/{user_id}/budget-tracking
     budget_tracking_resource_id = create_resource(api_id, user_id_resource_id, 'budget-tracking')
-    if create_lambda_integration(api_id, budget_tracking_resource_id, lambda_functions['budget_tracking'], 'GET'):
+    if lambda_functions.get('budget_tracking') and create_lambda_integration(api_id, budget_tracking_resource_id, lambda_functions['budget_tracking'], 'GET'):
         print(f"  ✅ Endpoint: GET /insights/{{user_id}}/budget-tracking")
     else:
         print(f"  ⏳ Endpoint: GET /insights/{{user_id}}/budget-tracking (Lambda pending)")
+
+
+def setup_main_api_endpoints(api_id: str, api_root_id: str):
+    """Set up main API endpoints using proxy integration.
+    
+    This creates a catch-all proxy route that forwards all requests to the main FastAPI Lambda function.
+    The FastAPI app (via Mangum) handles routing internally.
+    
+    Args:
+        api_id: API ID
+        api_root_id: Root resource ID
+    """
+    print("\nSetting up main API endpoints (proxy integration)...")
+    
+    # Get main API Lambda function name from config
+    lambda_config = config['lambda']
+    main_api_config = lambda_config['functions'].get('main_api')
+    
+    if not main_api_config:
+        print("  ⚠️  Main API configuration not found in aws_config.yaml")
+        print("  ⏳ Skipping main API setup")
+        return
+    
+    main_api_function_name = main_api_config['name']
+    
+    # Check if Lambda function exists
+    try:
+        lambda_response = lambda_client.get_function(FunctionName=main_api_function_name)
+        lambda_arn = lambda_response['Configuration']['FunctionArn']
+        print(f"  Found Lambda function: {main_api_function_name}")
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceNotFoundException':
+            print(f"  ⚠️  Lambda function {main_api_function_name} not found")
+            print(f"  ⏳ Deploy Lambda function first: python aws/scripts/deploy_lambda.py main_api")
+            return
+        raise
+    
+    # Create proxy resource: {proxy+}
+    # This catches all paths under root and forwards to Lambda
+    try:
+        proxy_resource_id = create_resource(api_id, api_root_id, '{proxy+}')
+        print(f"  Created /{{proxy+}} resource")
+    except Exception as e:
+        # Try to find existing proxy resource
+        resources_response = apigateway_client.get_resources(restApiId=api_id)
+        for resource in resources_response['items']:
+            if resource.get('pathPart') == '{proxy+}':
+                proxy_resource_id = resource['id']
+                print(f"  Found existing /{{proxy+}} resource")
+                break
+        else:
+            raise
+    
+    # Give API Gateway permission to invoke Lambda
+    try:
+        lambda_client.add_permission(
+            FunctionName=main_api_function_name,
+            StatementId=f'api-gateway-invoke-{api_id}-main',
+            Action='lambda:InvokeFunction',
+            Principal='apigateway.amazonaws.com',
+            SourceArn=f'arn:aws:execute-api:{region}:*:{api_id}/*/*'
+        )
+        print(f"  ✅ Added Lambda invoke permission")
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceConflictException':
+            print(f"  Permission already exists")
+        else:
+            raise
+    
+    # Create proxy method for ANY (catches all HTTP methods)
+    methods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+    for http_method in methods:
+        try:
+            apigateway_client.put_method(
+                restApiId=api_id,
+                resourceId=proxy_resource_id,
+                httpMethod=http_method,
+                authorizationType='NONE',
+                apiKeyRequired=False
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConflictException':
+                pass  # Method already exists
+            else:
+                raise
+        
+        # Create Lambda integration
+        integration_uri = f'arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions/{lambda_arn}/invocations'
+        
+        apigateway_client.put_integration(
+            restApiId=api_id,
+            resourceId=proxy_resource_id,
+            httpMethod=http_method,
+            type='AWS_PROXY',
+            integrationHttpMethod='POST',
+            uri=integration_uri
+        )
+        
+        print(f"  ✅ Created {http_method} integration")
+    
+    # Also create method for root resource (for / endpoint)
+    for http_method in ['GET', 'OPTIONS']:
+        try:
+            apigateway_client.put_method(
+                restApiId=api_id,
+                resourceId=api_root_id,
+                httpMethod=http_method,
+                authorizationType='NONE',
+                apiKeyRequired=False
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConflictException':
+                pass
+            else:
+                raise
+        
+        if http_method == 'GET':
+            # Integrate root GET with Lambda
+            integration_uri = f'arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions/{lambda_arn}/invocations'
+            apigateway_client.put_integration(
+                restApiId=api_id,
+                resourceId=api_root_id,
+                httpMethod=http_method,
+                type='AWS_PROXY',
+                integrationHttpMethod='POST',
+                uri=integration_uri
+            )
+            print(f"  ✅ Created GET integration for root /")
+    
+    print(f"  ✅ Main API proxy integration complete")
+    print(f"     All requests to /{{proxy+}} will be forwarded to {main_api_function_name}")
 
 
 def deploy_api(api_id: str):
@@ -339,8 +472,11 @@ def main():
         api_id, api_root_id = create_api_gateway()
         print()
         
-        # Set up insights endpoints
+        # Set up insights endpoints (individual Lambda functions)
         setup_insights_endpoints(api_id, api_root_id)
+        
+        # Set up main API endpoints (proxy to main FastAPI Lambda)
+        setup_main_api_endpoints(api_id, api_root_id)
         
         # Enable CORS for root resource
         enable_cors(api_id, api_root_id)
@@ -357,11 +493,21 @@ def main():
         print("=" * 60)
         print(f"\nAPI Endpoint: {api_url}")
         print("\nAvailable endpoints:")
+        print("\n📊 Insights Endpoints (Individual Lambda Functions):")
         print(f"  GET {api_url}/insights/{{user_id}}/weekly-recap")
         print(f"  GET {api_url}/insights/{{user_id}}/spending-analysis")
         print(f"  GET {api_url}/insights/{{user_id}}/net-worth")
         print(f"  GET {api_url}/insights/{{user_id}}/suggested-budget")
         print(f"  GET {api_url}/insights/{{user_id}}/budget-tracking")
+        print("\n🚀 Main API Endpoints (FastAPI Lambda - Proxy Integration):")
+        print(f"  GET  {api_url}/api/stats")
+        print(f"  GET  {api_url}/api/users")
+        print(f"  GET  {api_url}/api/profile/{{user_id}}")
+        print(f"  GET  {api_url}/api/personas/{{user_id}}")
+        print(f"  GET  {api_url}/api/recommendations/{{user_id}}")
+        print(f"  POST {api_url}/api/consent")
+        print(f"  GET  {api_url}/api/operator/recommendations")
+        print(f"  ... and all other FastAPI endpoints")
         
         # Update resources file
         resources['api_gateway'] = {
