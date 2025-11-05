@@ -1,17 +1,35 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchRecommendations } from '../services/api'
+import { fetchRecommendations, getConsentStatus } from '../services/api'
+import ConsentBanner from './ConsentBanner'
+import React from 'react'
 
 interface RecommendationsSectionProps {
   userId: string
   windowDays?: number
+  readOnly?: boolean  // If true, consent banner will be read-only (for admin views)
 }
 
-export default function RecommendationsSection({ userId, windowDays = 180 }: RecommendationsSectionProps) {
-  const { data: recommendations, isLoading } = useQuery({
+export default function RecommendationsSection({ userId, windowDays = 180, readOnly = false }: RecommendationsSectionProps) {
+  const { data: recommendations, isLoading, error, refetch } = useQuery({
     queryKey: ['recommendations', userId, windowDays],
     queryFn: () => fetchRecommendations(userId, windowDays),
     enabled: !!userId,
+    retry: false,
   })
+
+  // Listen for consent changes and refetch recommendations
+  const { data: consent } = useQuery({
+    queryKey: ['consent', userId],
+    queryFn: () => getConsentStatus(userId),
+    enabled: !!userId,
+  })
+
+  // Refetch recommendations when consent changes
+  React.useEffect(() => {
+    if (consent?.consented === true) {
+      refetch()
+    }
+  }, [consent?.consented, refetch])
 
   if (isLoading) {
     return (
@@ -21,15 +39,43 @@ export default function RecommendationsSection({ userId, windowDays = 180 }: Rec
     )
   }
 
+  // Check if error is due to consent
+  const errorObj = error as any
+  const isConsentError = error && (
+    (errorObj?.message?.includes('consent')) || 
+    (errorObj?.response?.status === 403)
+  )
+
+  if (isConsentError || (!recommendations && error)) {
+    return (
+      <div className="space-y-4">
+        <ConsentBanner userId={userId} readOnly={readOnly} />
+        {isConsentError && (
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="text-center">
+              <p className="text-red-600 font-medium">Consent Required</p>
+              <p className="text-sm text-gray-600 mt-2">
+                {readOnly ? 'User must grant consent to view personalized recommendations.' : 'Please grant consent above to view personalized recommendations.'}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   if (!recommendations) {
     return null
   }
 
-  const educationItems = recommendations.education_items || []
-  const partnerOffers = recommendations.partner_offers || []
+  const educationItems = (recommendations as any).education_items || []
+  const partnerOffers = (recommendations as any).partner_offers || []
 
   return (
     <div className="space-y-6">
+      {/* Consent Banner */}
+      <ConsentBanner userId={userId} readOnly={readOnly} />
+
       {/* Education Recommendations */}
       {educationItems.length > 0 && (
         <div className="bg-white shadow rounded-lg p-6">
@@ -41,11 +87,16 @@ export default function RecommendationsSection({ userId, windowDays = 180 }: Rec
               <div key={item.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
+                    <div className="flex items-center space-x-2 mb-2 flex-wrap gap-2">
                       <h3 className="text-lg font-medium text-gray-900">{item.title}</h3>
                       <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
                         {item.type}
                       </span>
+                      {item.persona_names && item.persona_names.length > 0 && (
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                          Persona: {item.persona_names.join(', ')}
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 mb-2">{item.description}</p>
                     <div className="flex items-center space-x-4 text-xs text-gray-500 mb-3">
@@ -71,6 +122,11 @@ export default function RecommendationsSection({ userId, windowDays = 180 }: Rec
                             {tag}
                           </span>
                         ))}
+                      </div>
+                    )}
+                    {item.disclosure && (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 italic">{item.disclosure}</p>
                       </div>
                     )}
                   </div>
@@ -100,11 +156,16 @@ export default function RecommendationsSection({ userId, windowDays = 180 }: Rec
               <div key={offer.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
+                    <div className="flex items-center space-x-2 mb-2 flex-wrap gap-2">
                       <h3 className="text-lg font-medium text-gray-900">{offer.title}</h3>
                       <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
                         {offer.type}
                       </span>
+                      {offer.persona_names && offer.persona_names.length > 0 && (
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                          Persona: {offer.persona_names.join(', ')}
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 mb-2">{offer.description}</p>
                     <p className="text-xs text-gray-500 mb-3">Partner: {offer.partner_name}</p>
@@ -142,6 +203,11 @@ export default function RecommendationsSection({ userId, windowDays = 180 }: Rec
                             {tag}
                           </span>
                         ))}
+                      </div>
+                    )}
+                    {offer.disclosure && (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 italic">{offer.disclosure}</p>
                       </div>
                     )}
                   </div>

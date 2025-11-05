@@ -70,30 +70,71 @@ export default function UserDetail() {
         {user.persona && (
           <div className="mt-4 bg-white shadow rounded-lg p-4">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">Persona & Risk Analysis</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-500">Primary Persona</label>
-                <p className="mt-1 text-base font-semibold text-gray-900">{user.persona.name || 'Not Assigned'}</p>
+            
+            {/* Dual Persona Display with Percentages */}
+            {user.persona.top_personas && user.persona.top_personas.length > 0 ? (
+              <div className="space-y-4">
+                {user.persona.top_personas.map((persona: any, idx: number) => (
+                  <div key={idx} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <h3 className="text-base font-semibold text-gray-900">
+                          {idx === 0 ? 'Primary' : 'Secondary'} Persona: {persona.persona_name}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {persona.matched_criteria}/{persona.total_criteria} criteria matched
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-blue-600">{persona.percentage}%</div>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(persona.risk_level)}`}>
+                          {persona.risk_level}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Progress bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                        style={{ width: `${persona.percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Combined Percentage Display */}
+                {user.persona.top_personas.length === 2 && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm font-medium text-blue-900">
+                      Persona Distribution: {user.persona.top_personas[0].persona_name} ({user.persona.top_personas[0].percentage}%) 
+                      & {user.persona.top_personas[1].persona_name} ({user.persona.top_personas[1].percentage}%)
+                    </p>
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Risk Level</label>
-                <div className="mt-1">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getRiskColor(user.persona.risk_level)}`}>
-                    {user.persona.risk_level || 'UNKNOWN'}
-                  </span>
+            ) : (
+              /* Fallback to legacy format */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Primary Persona</label>
+                  <p className="mt-1 text-base font-semibold text-gray-900">{user.persona.primary_persona_name || user.persona.name || 'Not Assigned'}</p>
                 </div>
-              </div>
-            </div>
-            {user.persona.all_matched_personas && user.persona.all_matched_personas.length > 1 && (
-              <div className="mt-4">
-                <label className="text-sm font-medium text-gray-500">All Matched Personas</label>
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {user.persona.all_matched_personas.map((p: any, idx: number) => (
-                    <span key={idx} className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                      {p.name}
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Risk Level</label>
+                  <div className="mt-1">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getRiskColor(user.persona.primary_persona_risk_level || user.persona.risk_level)}`}>
+                      {user.persona.primary_persona_risk_level || user.persona.risk_level || 'UNKNOWN'}
                     </span>
-                  ))}
+                  </div>
                 </div>
+              </div>
+            )}
+            
+            {/* Rationale */}
+            {user.persona.rationale && (
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <label className="text-sm font-medium text-gray-700">Analysis Rationale</label>
+                <p className="mt-1 text-sm text-gray-600">{user.persona.rationale}</p>
               </div>
             )}
           </div>
@@ -232,7 +273,7 @@ export default function UserDetail() {
 
       {/* Recommendations Section */}
       <div className="mt-8">
-        <RecommendationsSection userId={user.id} windowDays={windowDays} />
+        <RecommendationsSection userId={user.id} windowDays={windowDays} readOnly={true} />
       </div>
     </div>
   )

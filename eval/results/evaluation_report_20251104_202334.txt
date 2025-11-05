@@ -1,0 +1,79 @@
+================================================================================
+SpendSense Evaluation Report
+================================================================================
+Generated: 2025-11-04 20:23:34
+
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+
+Overall Score: 0.796 / 1.000
+
+Targets Met: 4/5
+
+1. COVERAGE METRIC
+--------------------------------------------------------------------------------
+Percentage: 20.00%
+Target: 100%
+Status: ✗ FAIL
+
+  Total Users: 50
+  Users with Persona: 50
+  Users with ≥3 Behaviors: 10
+  Users Meeting Coverage: 10
+
+2. EXPLAINABILITY METRIC
+--------------------------------------------------------------------------------
+Percentage: 100.00%
+Target: 100%
+Status: ✓ PASS
+
+  Total Recommendations: 80
+  With Rationales: 80
+
+3. RELEVANCE METRIC
+--------------------------------------------------------------------------------
+Percentage: 100.00%
+Target: ≥80%
+Status: ✓ PASS
+
+  Total Recommendations: 54
+  Relevant Recommendations: 54
+
+4. LATENCY METRIC
+--------------------------------------------------------------------------------
+Average: 0.000 seconds
+Target: <5 seconds
+Status: ✓ PASS
+
+  Users Tested: 0
+  Min: 0.000s
+  Max: 0.000s
+  P95: 0.000s
+  P99: 0.000s
+
+5. FAIRNESS METRIC
+--------------------------------------------------------------------------------
+Fairness Score: 0.976
+Target: ≥0.7
+Status: ✓ PASS
+Interpretation: Excellent - Very balanced distribution
+
+Persona Distribution:
+  balanced_stable: 13 users (26.0%)
+  subscription_heavy: 25 users (50.0%)
+  high_utilization: 7 users (14.0%)
+  savings_builder: 5 users (10.0%)
+
+TARGET SUMMARY
+--------------------------------------------------------------------------------
+  Coverage 100Pct: ✗ FAIL
+  Explainability 100Pct: ✓ PASS
+  Latency Under 5S: ✓ PASS
+  Relevance High: ✓ PASS
+  Fairness Good: ✓ PASS
+
+RECOMMENDATIONS
+--------------------------------------------------------------------------------
+• Improve coverage: Ensure all users have assigned personas and ≥3 behaviors
+
+================================================================================

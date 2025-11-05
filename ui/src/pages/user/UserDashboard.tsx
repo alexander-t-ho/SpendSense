@@ -168,7 +168,7 @@ export default function UserDashboard() {
       {/* Recommendations */}
       {userId && (
         <div className="mt-8">
-          <RecommendationsSection userId={userId} windowDays={windowDays} />
+          <RecommendationsSection userId={userId} windowDays={windowDays} readOnly={false} />
         </div>
       )}
     </div>

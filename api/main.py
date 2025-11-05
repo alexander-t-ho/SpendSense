@@ -1,13 +1,15 @@
 """FastAPI application for SpendSense."""
 
-from fastapi import FastAPI, HTTPException, Query, Body
+from fastapi import FastAPI, HTTPException, Query, Body, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
 from typing import Optional, Dict, Any
+from datetime import datetime
 
 from ingest.schema import get_session, User, Account, Transaction, Liability
 from features.pipeline import FeaturePipeline
+from api.websocket import manager
 
 app = FastAPI(title="SpendSense API", version="1.0.0")
 
@@ -62,17 +64,24 @@ def get_users():
                 Account.user_id == user.id
             ).scalar()
             
-            # Get persona assignment
-            persona_assignment = assigner.get_user_persona(user.id)
-            if not persona_assignment:
-                # Assign persona if not already assigned
-                persona_assignment_data = assigner.assign_persona(user.id)
-                persona_assignment = {
-                    'primary_persona': persona_assignment_data['primary_persona'],
-                    'primary_persona_name': persona_assignment_data['primary_persona_name'],
-                    'primary_persona_risk': persona_assignment_data.get('primary_persona_risk', 0),
-                    'primary_persona_risk_level': persona_assignment_data.get('primary_persona_risk_level', 'MINIMAL')
-                }
+            # Get persona assignment (always compute fresh to get dual personas)
+            persona_assignment_data = assigner.assign_persona(user.id)
+            
+            # Build persona object with dual persona support
+            persona_obj = {
+                "id": persona_assignment_data.get('primary_persona'),
+                "name": persona_assignment_data.get('primary_persona_name'),
+                "risk": persona_assignment_data.get('primary_persona_risk', 0),
+                "risk_level": persona_assignment_data.get('primary_persona_risk_level', 'MINIMAL'),
+                "top_personas": persona_assignment_data.get('top_personas', []),
+                "primary_persona": persona_assignment_data.get('primary_persona'),
+                "primary_persona_name": persona_assignment_data.get('primary_persona_name'),
+                "primary_persona_percentage": persona_assignment_data.get('primary_persona_percentage', 100),
+                "secondary_persona": persona_assignment_data.get('secondary_persona'),
+                "secondary_persona_name": persona_assignment_data.get('secondary_persona_name'),
+                "secondary_persona_percentage": persona_assignment_data.get('secondary_persona_percentage', 0),
+                "rationale": persona_assignment_data.get('rationale')
+            }
             
             result.append({
                 "id": user.id,
@@ -80,12 +89,7 @@ def get_users():
                 "email": user.email,
                 "created_at": user.created_at.isoformat() if user.created_at else None,
                 "account_count": account_count or 0,
-                "persona": {
-                    "id": persona_assignment.get('primary_persona'),
-                    "name": persona_assignment.get('primary_persona_name'),
-                    "risk": persona_assignment.get('primary_persona_risk', 0),
-                    "risk_level": persona_assignment.get('primary_persona_risk_level', 'MINIMAL')
-                }
+                "persona": persona_obj
             })
         
         assigner.close()
@@ -258,7 +262,7 @@ def get_user_profile(
         # Get persona/risk analysis
         from personas.assigner import PersonaAssigner
         assigner = PersonaAssigner(session)
-        persona_data = assigner.assign_persona(user_id)
+        persona_data = assigner.assign_persona(user_id, 180)
         assigner.close()
         
         # Calculate income from payroll transactions over 180 days, scaled to yearly
@@ -282,6 +286,24 @@ def get_user_profile(
             # Scale to yearly: (180-day income / 180) * 365
             yearly_income = (income_180d / 180.0) * 365.0
         
+        # Build persona object with dual persona support
+        persona_obj = {
+            "id": persona_data.get("primary_persona"),
+            "name": persona_data.get("primary_persona_name"),
+            "risk": persona_data.get("primary_persona_risk", 0),
+            "risk_level": persona_data.get("primary_persona_risk_level", "MINIMAL"),
+            "top_personas": persona_data.get("top_personas", []),
+            "primary_persona": persona_data.get("primary_persona"),
+            "primary_persona_name": persona_data.get("primary_persona_name"),
+            "primary_persona_percentage": persona_data.get("primary_persona_percentage", 100),
+            "secondary_persona": persona_data.get("secondary_persona"),
+            "secondary_persona_name": persona_data.get("secondary_persona_name"),
+            "secondary_persona_percentage": persona_data.get("secondary_persona_percentage", 0),
+            "rationale": persona_data.get("rationale"),
+            "all_matched_personas": persona_data.get("assigned_personas", []),
+            "decision_trace": persona_data.get("decision_trace", {})
+        }
+        
         return {
             "id": user.id,
             "name": user.name,
@@ -291,14 +313,7 @@ def get_user_profile(
             "transactions": transactions_data,
             "features_30d": features_30d,
             "features_180d": features_180d,
-            "persona": {
-                "id": persona_data.get("primary_persona"),
-                "name": persona_data.get("primary_persona_name"),
-                "risk": persona_data.get("primary_persona_risk", 0),
-                "risk_level": persona_data.get("primary_persona_risk_level", "MINIMAL"),
-                "all_matched_personas": persona_data.get("matched_personas", []),
-                "decision_trace": persona_data.get("decision_trace", {})
-            },
+            "persona": persona_obj,
             "income": {
                 "180_day_total": round(income_180d, 2),
                 "yearly_estimated": round(yearly_income, 2),
@@ -763,6 +778,125 @@ def get_recommendations(
         generator.close()
         
         return recommendations
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    finally:
+        session.close()
+
+
+@app.post("/api/consent")
+async def grant_consent(
+    request: Dict[str, Any] = Body(...)
+):
+    """Grant consent for a user.
+    
+    Args:
+        request: Request body with user_id
+    
+    Returns:
+        Consent record
+    """
+    from guardrails.consent import ConsentManager
+    
+    user_id = request.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id is required")
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        consent_manager = ConsentManager(session)
+        consent = consent_manager.grant_consent(user_id)
+        
+        consent_data = {
+            "user_id": consent.user_id,
+            "consented": consent.consented,
+            "consented_at": consent.consented_at.isoformat() if consent.consented_at else None,
+            "revoked_at": consent.revoked_at.isoformat() if consent.revoked_at else None
+        }
+        
+        # Broadcast real-time update via WebSocket
+        await manager.broadcast_consent_update(user_id, consent.consented, consent_data)
+        
+        return consent_data
+    finally:
+        session.close()
+
+
+@app.delete("/api/consent/{user_id}")
+async def revoke_consent(user_id: str):
+    """Revoke consent for a user.
+    
+    Args:
+        user_id: User ID
+    
+    Returns:
+        Updated consent record
+    """
+    from guardrails.consent import ConsentManager
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        consent_manager = ConsentManager(session)
+        consent = consent_manager.revoke_consent(user_id)
+        
+        consent_data = {
+            "user_id": consent.user_id,
+            "consented": consent.consented,
+            "consented_at": consent.consented_at.isoformat() if consent.consented_at else None,
+            "revoked_at": consent.revoked_at.isoformat() if consent.revoked_at else None
+        }
+        
+        # Broadcast real-time update via WebSocket
+        await manager.broadcast_consent_update(user_id, consent.consented, consent_data)
+        
+        return consent_data
+    finally:
+        session.close()
+
+
+@app.get("/api/consent/{user_id}")
+def get_consent_status(user_id: str):
+    """Get consent status for a user.
+    
+    Args:
+        user_id: User ID
+    
+    Returns:
+        Consent status
+    """
+    from guardrails.consent import ConsentManager
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        consent_manager = ConsentManager(session)
+        consent = consent_manager.get_consent(user_id)
+        
+        if consent:
+            return {
+                "user_id": consent.user_id,
+                "consented": consent.consented,
+                "consented_at": consent.consented_at.isoformat() if consent.consented_at else None,
+                "revoked_at": consent.revoked_at.isoformat() if consent.revoked_at else None
+            }
+        else:
+            return {
+                "user_id": user_id,
+                "consented": False,
+                "consented_at": None,
+                "revoked_at": None
+            }
     finally:
         session.close()
 
@@ -855,6 +989,311 @@ def submit_feedback(
         }
     finally:
         session.close()
+
+
+# ============================================================================
+# Operator Endpoints
+# ============================================================================
+
+@app.get("/api/operator/recommendations")
+def get_recommendation_queue(
+    status: str = Query("pending", description="Filter by status: pending, approved, flagged, all"),
+    limit: int = Query(50, description="Maximum number of recommendations to return")
+):
+    """Get recommendation approval queue for operators.
+    
+    Args:
+        status: Filter by approval status (pending, approved, flagged, all)
+        limit: Maximum number of recommendations to return
+    
+    Returns:
+        List of recommendations with user and persona information
+    """
+    from ingest.schema import Recommendation
+    from datetime import datetime
+    
+    session = get_session()
+    try:
+        query = session.query(Recommendation).join(User)
+        
+        if status == "pending":
+            query = query.filter(Recommendation.approved == False, Recommendation.flagged == False)
+        elif status == "approved":
+            query = query.filter(Recommendation.approved == True)
+        elif status == "flagged":
+            query = query.filter(Recommendation.flagged == True)
+        # "all" doesn't filter
+        
+        query = query.order_by(Recommendation.created_at.desc()).limit(limit)
+        recommendations = query.all()
+        
+        result = []
+        for rec in recommendations:
+            # Get persona info for the user
+            persona_data = None
+            try:
+                from personas.assigner import PersonaAssigner
+                assigner = PersonaAssigner(session)
+                persona_result = assigner.assign_persona(rec.user_id, window_days=180)
+                persona_data = {
+                    "primary_persona": persona_result.get("primary_persona"),
+                    "risk": persona_result.get("risk"),
+                    "risk_level": persona_result.get("risk_level")
+                }
+            except Exception as e:
+                # If persona assignment fails, continue without it
+                pass
+            
+            # Map persona_id to persona name for display
+            persona_name = None
+            if rec.persona_id:
+                try:
+                    from personas.definitions import get_persona_by_id
+                    persona = get_persona_by_id(rec.persona_id)
+                    if persona:
+                        persona_name = persona.name
+                except Exception:
+                    pass
+            
+            result.append({
+                "id": rec.id,
+                "user_id": rec.user_id,
+                "user_name": rec.user.name,
+                "user_email": rec.user.email,
+                "recommendation_type": rec.recommendation_type,
+                "title": rec.title,
+                "description": rec.description,
+                "rationale": rec.rationale,
+                "content_id": rec.content_id,
+                "persona_id": rec.persona_id,
+                "persona_name": persona_name,  # Human-readable persona name
+                "persona_info": persona_data,
+                "approved": rec.approved,
+                "approved_at": rec.approved_at.isoformat() if rec.approved_at else None,
+                "flagged": rec.flagged,
+                "created_at": rec.created_at.isoformat() if rec.created_at else None,
+                "updated_at": rec.updated_at.isoformat() if rec.updated_at else None
+            })
+        
+        return {
+            "recommendations": result,
+            "total": len(result),
+            "status": status
+        }
+    finally:
+        session.close()
+
+
+@app.put("/api/operator/recommendations/{recommendation_id}/approve")
+def approve_recommendation(recommendation_id: str):
+    """Approve a recommendation.
+    
+    Args:
+        recommendation_id: Recommendation ID
+    
+    Returns:
+        Updated recommendation
+    """
+    from ingest.schema import Recommendation
+    from datetime import datetime
+    
+    session = get_session()
+    try:
+        recommendation = session.query(Recommendation).filter(Recommendation.id == recommendation_id).first()
+        if not recommendation:
+            raise HTTPException(status_code=404, detail="Recommendation not found")
+        
+        recommendation.approved = True
+        recommendation.approved_at = datetime.utcnow()
+        recommendation.flagged = False
+        recommendation.updated_at = datetime.utcnow()
+        
+        session.commit()
+        
+        return {
+            "id": recommendation.id,
+            "approved": recommendation.approved,
+            "approved_at": recommendation.approved_at.isoformat(),
+            "message": "Recommendation approved"
+        }
+    finally:
+        session.close()
+
+
+@app.put("/api/operator/recommendations/{recommendation_id}/flag")
+def flag_recommendation(recommendation_id: str):
+    """Flag a recommendation for review.
+    
+    Args:
+        recommendation_id: Recommendation ID
+    
+    Returns:
+        Updated recommendation
+    """
+    from ingest.schema import Recommendation
+    from datetime import datetime
+    
+    session = get_session()
+    try:
+        recommendation = session.query(Recommendation).filter(Recommendation.id == recommendation_id).first()
+        if not recommendation:
+            raise HTTPException(status_code=404, detail="Recommendation not found")
+        
+        recommendation.flagged = True
+        recommendation.approved = False
+        recommendation.updated_at = datetime.utcnow()
+        
+        session.commit()
+        
+        return {
+            "id": recommendation.id,
+            "flagged": recommendation.flagged,
+            "message": "Recommendation flagged for review"
+        }
+    finally:
+        session.close()
+
+
+@app.get("/api/operator/signals/{user_id}")
+def get_user_signals(
+    user_id: str,
+    window_days: int = Query(180, description="Time window in days (30 or 180)")
+):
+    """Get all behavioral signals for a user.
+    
+    Args:
+        user_id: User ID
+        window_days: Time window (30 or 180)
+    
+    Returns:
+        All computed signals for the user
+    """
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if window_days not in [30, 180]:
+            raise HTTPException(status_code=400, detail="window_days must be 30 or 180")
+        
+        # Get features for the user
+        feature_pipeline = FeaturePipeline()
+        try:
+            features = feature_pipeline.compute_features_for_user(user_id, window_days)
+            
+            return {
+                "user_id": user_id,
+                "window_days": window_days,
+                "signals": features,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error computing signals: {str(e)}")
+        finally:
+            feature_pipeline.close()
+    finally:
+        session.close()
+
+
+@app.get("/api/operator/traces/{user_id}")
+def get_decision_traces(user_id: str):
+    """Get decision traces for a user.
+    
+    Args:
+        user_id: User ID
+    
+    Returns:
+        List of decision traces for persona assignment
+    """
+    from personas.traces import DecisionTraceLogger
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        trace_logger = DecisionTraceLogger()
+        traces = trace_logger.get_traces_for_user(user_id)
+        
+        return {
+            "user_id": user_id,
+            "traces": [trace.to_dict() for trace in traces],
+            "total": len(traces)
+        }
+    finally:
+        session.close()
+
+
+@app.get("/api/evaluation/metrics")
+def get_evaluation_metrics(
+    latency_sample_size: Optional[int] = Query(None, description="Number of users to test for latency (default: all users with consent)")
+):
+    """Get evaluation metrics for the system.
+    
+    This endpoint runs the Phase 8 evaluation harness and returns metrics including:
+    - Coverage: % of users with assigned persona + ≥3 detected behaviors
+    - Explainability: % of recommendations with plain-language rationales
+    - Relevance: Education-persona fit scoring
+    - Latency: Time to generate recommendations per user
+    - Fairness: Demographic parity in persona distribution
+    
+    Args:
+        latency_sample_size: Number of users to test for latency (None = all users with consent)
+    
+    Returns:
+        Complete evaluation metrics with all details
+    """
+    from eval.harness import EvaluationHarness
+    
+    harness = EvaluationHarness()
+    try:
+        # Suppress print statements for API call
+        import sys
+        from io import StringIO
+        
+        # Capture stdout to suppress print statements
+        old_stdout = sys.stdout
+        sys.stdout = StringIO()
+        
+        try:
+            metrics = harness.run_evaluation(
+                output_dir=None,  # Don't save files for API call
+                latency_sample_size=latency_sample_size,
+                generate_csv=False,
+                generate_json=False,
+                generate_report=False
+            )
+        finally:
+            # Restore stdout
+            sys.stdout = old_stdout
+        
+        return metrics
+    finally:
+        harness.close()
+
+
+@app.websocket("/ws/consent/{user_id}")
+async def websocket_consent_endpoint(websocket: WebSocket, user_id: str):
+    """WebSocket endpoint for real-time consent updates.
+    
+    Args:
+        websocket: WebSocket connection
+        user_id: User ID to receive updates for
+    """
+    await manager.connect(websocket, user_id)
+    try:
+        while True:
+            # Keep connection alive and listen for messages
+            data = await websocket.receive_text()
+            # Echo back or handle client messages if needed
+            await websocket.send_json({"type": "ack", "message": "Connection active"})
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
+    except Exception as e:
+        print(f"WebSocket error for user {user_id}: {e}")
+        manager.disconnect(websocket, user_id)
 
 
 if __name__ == "__main__":

@@ -1,14 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Users, DollarSign, CreditCard, TrendingUp } from 'lucide-react'
+import { Users, DollarSign, CreditCard, TrendingUp, CheckCircle, FileText, BarChart3, Target } from 'lucide-react'
 import { fetchUsers, fetchStats } from '../../services/api'
+import { useState } from 'react'
+import RecommendationQueue from '../../components/operator/RecommendationQueue'
+import SignalReview from '../../components/operator/SignalReview'
+import DecisionTraceViewer from '../../components/operator/DecisionTraceViewer'
+import EvaluationMetrics from '../../components/EvaluationMetrics'
 
 /**
  * Operator Dashboard - Admin view
  * Operator can see all users and their data
- * Same interface as user dashboard, but with access to all users
+ * Includes recommendation approval queue, signal review, and decision trace viewer
  */
 export default function OperatorDashboard() {
+  const [activeTab, setActiveTab] = useState<'overview' | 'recommendations' | 'signals' | 'traces' | 'evaluation'>('overview')
   const { data: users, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ['users'],
     queryFn: fetchUsers,
@@ -45,6 +51,71 @@ export default function OperatorDashboard() {
         <h1 className="text-3xl font-bold text-gray-900">Operator Dashboard</h1>
         <p className="mt-2 text-gray-600">System overview and user management</p>
       </div>
+
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`${
+              activeTab === 'overview'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+          >
+            <Users className="h-4 w-4" />
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab('recommendations')}
+            className={`${
+              activeTab === 'recommendations'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+          >
+            <CheckCircle className="h-4 w-4" />
+            Recommendations
+          </button>
+          <button
+            onClick={() => setActiveTab('signals')}
+            className={`${
+              activeTab === 'signals'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+          >
+            <BarChart3 className="h-4 w-4" />
+            Signals
+          </button>
+          <button
+            onClick={() => setActiveTab('traces')}
+            className={`${
+              activeTab === 'traces'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+          >
+            <FileText className="h-4 w-4" />
+            Decision Traces
+          </button>
+          <button
+            onClick={() => setActiveTab('evaluation')}
+            className={`${
+              activeTab === 'evaluation'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
+          >
+            <Target className="h-4 w-4" />
+            Evaluation Metrics
+          </button>
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'overview' && (
+        <div className="space-y-6">
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -140,17 +211,38 @@ export default function OperatorDashboard() {
         )}
       </div>
 
-      {/* TODO: Add operator-specific features */}
-      {/* - Signal summary view */}
-      {/* - Recommendation approval queue */}
-      {/* - Decision trace viewer */}
-      {/* - System health metrics */}
+        </div>
+      )}
+
+      {activeTab === 'recommendations' && (
+        <div>
+          <RecommendationQueue />
+        </div>
+      )}
+
+      {activeTab === 'signals' && (
+        <div>
+          <SignalReview />
+        </div>
+      )}
+
+      {activeTab === 'traces' && (
+        <div>
+          <DecisionTraceViewer />
+        </div>
+      )}
+
+      {activeTab === 'evaluation' && (
+        <div>
+          <EvaluationMetrics latencySampleSize={5} />
+        </div>
+      )}
     </div>
   )
 }
 
-function StatCard({ title, value, icon, color }: any) {
-  const colorClasses = {
+function StatCard({ title, value, icon, color }: { title: string; value: number; icon: React.ReactNode; color: 'blue' | 'green' | 'purple' | 'orange' }) {
+  const colorClasses: Record<string, string> = {
     blue: 'bg-blue-100 text-blue-600',
     green: 'bg-green-100 text-green-600',
     purple: 'bg-purple-100 text-purple-600',
@@ -160,7 +252,7 @@ function StatCard({ title, value, icon, color }: any) {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center">
-        <div className={`${colorClasses[color]} p-3 rounded-lg`}>{icon}</div>
+        <div className={`${colorClasses[color] || colorClasses.blue} p-3 rounded-lg`}>{icon}</div>
         <div className="ml-4">
           <p className="text-sm font-medium text-gray-600">{title}</p>
           <p className="text-2xl font-semibold text-gray-900">{value.toLocaleString()}</p>

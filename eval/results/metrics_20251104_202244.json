@@ -1,0 +1,431 @@
+{
+  "timestamp": "2025-11-04T20:22:44.833036",
+  "coverage": {
+    "total_users": 50,
+    "users_with_persona": 50,
+    "users_with_3plus_behaviors": 10,
+    "users_with_persona_and_3plus_behaviors": 10,
+    "coverage_percentage": 20.0,
+    "user_details": [
+      {
+        "user_id": "eb1b2791-4a2a-4c87-bb07-cb6ba9f370a2",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "e5e0d5d3-ce45-4ef7-be59-3f7d3d848e72",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "7d32b8bf-9342-48d1-a166-4fa8a3b05ea9",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "9b89fb28-beca-4b9a-ac8b-234eb617cd3b",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "e79a3346-e572-4426-9389-6a943a1b9505",
+        "has_persona": true,
+        "behavior_count": 3,
+        "meets_coverage": true
+      },
+      {
+        "user_id": "cbe3f341-a27a-4239-a824-dae5e7fc6f8a",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "5a8ae94f-b9be-407c-871b-df2206733b5e",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "d486282c-9fee-4de2-a6cf-d247e5009489",
+        "has_persona": true,
+        "behavior_count": 3,
+        "meets_coverage": true
+      },
+      {
+        "user_id": "7405c580-1850-412a-bbbe-dd09e56aeacc",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "679f5543-ab19-44ff-a3e9-28249efb39b9",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "d4331f2f-0b17-4a2d-b769-4af20fd7b3f0",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "d6bbf111-e41f-43ed-9ad1-4fc58b6bcad2",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "e61ce82a-6482-41b7-9444-1bd7f79a6d3b",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "811ba1ea-31dc-4832-8c30-8a31dea7c66a",
+        "has_persona": true,
+        "behavior_count": 3,
+        "meets_coverage": true
+      },
+      {
+        "user_id": "67492dec-3ce2-4a1a-8cb9-d1e0c0b33e9a",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "3f03c3c0-1e3f-4712-a279-13ed4f0f59ab",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "a923d790-482b-4309-8bba-b309f54710e5",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "8939df34-6f95-46fe-a851-109727bc299b",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "7eac4a67-6f83-455c-a0c8-cdc75310ddb1",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "305f66f6-5c35-467e-9405-b20a1eabf26a",
+        "has_persona": true,
+        "behavior_count": 3,
+        "meets_coverage": true
+      },
+      {
+        "user_id": "12f3baa5-03ea-40d7-940e-783268db81fb",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "da4e69b1-e7bc-4081-9f5d-4322fd72a4c3",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "0b50083e-b60e-423c-ac1e-7eadfe49a97b",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "844a9f41-159a-4d06-8e7b-3d031007620a",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "4d6c0af5-84f6-48e9-9949-f0f8bf8a645c",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "5da60452-e1c0-4149-a84b-c897fe4a1856",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "49ab3e30-1e27-480f-a2f5-c496779a818b",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "205f60c6-fc65-4868-8853-624b043c6396",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "217558f8-754d-42f9-bffd-12f2843157fa",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "bb705221-3cf8-4b09-baa8-8c7b92a51ef1",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "d46d112b-ec2d-4522-a885-e37d339a1f60",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "87eaa612-a74e-4748-a979-38b9609c8cba",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "3d4a51d4-57ed-425b-839e-8cbe82591dfb",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "2d00976d-0a2f-4170-9c1e-903727e96aae",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "b5141c58-438b-4808-82d3-6ecd04c2cd8e",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "821b4a59-2c9f-42e0-945a-4d9ec402d327",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "7023697f-d6a3-49f4-a82a-16d393b2437c",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "11af9312-82cf-412d-a106-225f03ae173f",
+        "has_persona": true,
+        "behavior_count": 3,
+        "meets_coverage": true
+      },
+      {
+        "user_id": "299e0d0c-e5f6-406e-9c75-830c9b9c59db",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "433f8b87-b737-48e3-a0d1-89ad5879505b",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "7c30582e-6151-402e-8e21-bb5db9de29d5",
+        "has_persona": true,
+        "behavior_count": 3,
+        "meets_coverage": true
+      },
+      {
+        "user_id": "49b2e1ae-d20f-437d-8a7d-27014e1b4edb",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "956b6da1-9d51-41c1-804b-6d88825a2b0f",
+        "has_persona": true,
+        "behavior_count": 3,
+        "meets_coverage": true
+      },
+      {
+        "user_id": "1d8e571c-0118-44f3-b1ce-3e5bddf6b670",
+        "has_persona": true,
+        "behavior_count": 3,
+        "meets_coverage": true
+      },
+      {
+        "user_id": "40608b9b-9c75-4d7a-a376-1e6998348885",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "6d328d30-3732-4a98-b679-c0fa1b8eced1",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "aac4e960-7e55-40b3-8de6-dd0102f7d2a5",
+        "has_persona": true,
+        "behavior_count": 1,
+        "meets_coverage": false
+      },
+      {
+        "user_id": "6da47bcf-f169-4181-a9ca-de1b1638d463",
+        "has_persona": true,
+        "behavior_count": 3,
+        "meets_coverage": true
+      },
+      {
+        "user_id": "efe2d154-8d29-45d6-8d20-2c03009a995d",
+        "has_persona": true,
+        "behavior_count": 3,
+        "meets_coverage": true
+      },
+      {
+        "user_id": "6c91ebd1-18e0-45a8-922b-368803fa2ac5",
+        "has_persona": true,
+        "behavior_count": 0,
+        "meets_coverage": false
+      }
+    ]
+  },
+  "explainability": {
+    "total_recommendations": 80,
+    "recommendations_with_rationales": 80,
+    "explainability_percentage": 100.0,
+    "user_details": [
+      {
+        "user_id": "eb1b2791-4a2a-4c87-bb07-cb6ba9f370a2",
+        "total_recommendations": 7,
+        "with_rationales": 7,
+        "all_have_rationales": true
+      },
+      {
+        "user_id": "e5e0d5d3-ce45-4ef7-be59-3f7d3d848e72",
+        "total_recommendations": 6,
+        "with_rationales": 6,
+        "all_have_rationales": true
+      },
+      {
+        "user_id": "9b89fb28-beca-4b9a-ac8b-234eb617cd3b",
+        "total_recommendations": 6,
+        "with_rationales": 6,
+        "all_have_rationales": true
+      },
+      {
+        "user_id": "e79a3346-e572-4426-9389-6a943a1b9505",
+        "total_recommendations": 8,
+        "with_rationales": 8,
+        "all_have_rationales": true
+      },
+      {
+        "user_id": "e61ce82a-6482-41b7-9444-1bd7f79a6d3b",
+        "total_recommendations": 6,
+        "with_rationales": 6,
+        "all_have_rationales": true
+      },
+      {
+        "user_id": "a923d790-482b-4309-8bba-b309f54710e5",
+        "total_recommendations": 6,
+        "with_rationales": 6,
+        "all_have_rationales": true
+      },
+      {
+        "user_id": "7eac4a67-6f83-455c-a0c8-cdc75310ddb1",
+        "total_recommendations": 7,
+        "with_rationales": 7,
+        "all_have_rationales": true
+      },
+      {
+        "user_id": "da4e69b1-e7bc-4081-9f5d-4322fd72a4c3",
+        "total_recommendations": 6,
+        "with_rationales": 6,
+        "all_have_rationales": true
+      },
+      {
+        "user_id": "844a9f41-159a-4d06-8e7b-3d031007620a",
+        "total_recommendations": 8,
+        "with_rationales": 8,
+        "all_have_rationales": true
+      },
+      {
+        "user_id": "bb705221-3cf8-4b09-baa8-8c7b92a51ef1",
+        "total_recommendations": 6,
+        "with_rationales": 6,
+        "all_have_rationales": true
+      },
+      {
+        "user_id": "b5141c58-438b-4808-82d3-6ecd04c2cd8e",
+        "total_recommendations": 7,
+        "with_rationales": 7,
+        "all_have_rationales": true
+      },
+      {
+        "user_id": "6c91ebd1-18e0-45a8-922b-368803fa2ac5",
+        "total_recommendations": 7,
+        "with_rationales": 7,
+        "all_have_rationales": true
+      }
+    ]
+  },
+  "relevance": {
+    "total_recommendations": 0,
+    "relevant_recommendations": 0,
+    "relevance_percentage": 0.0,
+    "user_details": []
+  },
+  "latency": {
+    "total_users_tested": 0,
+    "average_latency_seconds": 0.0,
+    "min_latency_seconds": 0.0,
+    "max_latency_seconds": 0.0,
+    "p95_latency_seconds": 0.0,
+    "p99_latency_seconds": 0.0,
+    "user_details": []
+  },
+  "fairness": {
+    "total_users": 50,
+    "persona_distribution": {
+      "balanced_stable": 13,
+      "subscription_heavy": 25,
+      "high_utilization": 7,
+      "savings_builder": 5
+    },
+    "persona_percentages": {
+      "balanced_stable": 26.0,
+      "subscription_heavy": 50.0,
+      "high_utilization": 14.0,
+      "savings_builder": 10.0
+    },
+    "fairness_score": 0.976,
+    "fairness_interpretation": "Excellent - Very balanced distribution"
+  },
+  "overall_score": 0.596,
+  "targets_met": {
+    "coverage_100pct": false,
+    "explainability_100pct": true,
+    "latency_under_5s": true,
+    "relevance_high": false,
+    "fairness_good": true
+  }
+}
