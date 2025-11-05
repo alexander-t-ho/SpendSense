@@ -216,10 +216,18 @@ class IncomeAnalyzer:
         else:
             avg_income = 0.0
         
+        # Calculate minimum monthly income
+        minimum_monthly_income = self.calculate_minimum_monthly_income(payroll_transactions, frequency_info)
+        
+        # Count distinct income sources in last 90 days
+        distinct_income_sources = self.count_income_sources(user_id, end_date - timedelta(days=90), end_date)
+        
         return {
             "has_payroll_detected": len(payroll_transactions) > 0,
             "total_payroll_transactions": len(payroll_transactions),
             "average_income_per_pay": avg_income,
+            "minimum_monthly_income": minimum_monthly_income,
+            "distinct_income_sources_90d": distinct_income_sources,
             "payment_frequency": frequency_info,
             "median_pay_gap_days": median_pay_gap,
             "cash_flow_buffer_months": cash_flow_buffer["cash_flow_buffer_months"],
@@ -228,4 +236,94 @@ class IncomeAnalyzer:
             "has_sufficient_buffer": cash_flow_buffer["has_sufficient_buffer"],
             "is_variable_income": median_pay_gap > 45 and cash_flow_buffer["cash_flow_buffer_months"] < 1.0
         }
+    
+    def calculate_minimum_monthly_income(
+        self,
+        payroll_transactions: List[Dict[str, Any]],
+        frequency_info: Dict[str, Any]
+    ) -> float:
+        """Calculate minimum monthly income from payroll transactions.
+        
+        Args:
+            payroll_transactions: List of payroll transactions
+            frequency_info: Payment frequency information
+            
+        Returns:
+            Minimum monthly income estimate
+        """
+        if not payroll_transactions:
+            return 0.0
+        
+        # Find minimum payroll transaction amount
+        min_pay_amount = min(tx["amount"] for tx in payroll_transactions)
+        
+        # Get frequency multiplier
+        frequency = frequency_info.get("frequency", "unknown")
+        median_days = frequency_info.get("median_days_between", 30.0)
+        
+        # Calculate multiplier based on frequency
+        if frequency == "weekly":
+            multiplier = 4.33  # ~4.33 weeks per month
+        elif frequency == "biweekly":
+            multiplier = 2.17  # ~2.17 biweekly periods per month
+        elif frequency == "monthly":
+            multiplier = 1.0
+        else:
+            # For irregular, estimate based on median days between
+            if median_days > 0:
+                multiplier = 30.0 / median_days  # Approximate months per pay period
+            else:
+                multiplier = 1.0  # Default to monthly
+        
+        return min_pay_amount * multiplier
+    
+    def count_income_sources(
+        self,
+        user_id: str,
+        start_date: datetime,
+        end_date: datetime
+    ) -> int:
+        """Count distinct income sources in date range.
+        
+        Args:
+            user_id: User ID
+            start_date: Start date for analysis
+            end_date: End date for analysis
+            
+        Returns:
+            Count of distinct income sources
+        """
+        # Get all checking accounts
+        checking_accounts = self.db.query(Account).filter(
+            and_(
+                Account.user_id == user_id,
+                Account.subtype == "checking"
+            )
+        ).all()
+        
+        # Get all positive transactions (income)
+        income_merchants = set()
+        generic_terms = {"PAYROLL", "DEPOSIT", "TRANSFER", "DEPOSIT ACH"}
+        
+        for account in checking_accounts:
+            transactions = self.db.query(Transaction).filter(
+                and_(
+                    Transaction.account_id == account.id,
+                    Transaction.date >= start_date,
+                    Transaction.date <= end_date,
+                    Transaction.amount > 0  # Income transactions are positive
+                )
+            ).all()
+            
+            for tx in transactions:
+                if tx.merchant_name:
+                    merchant_upper = tx.merchant_name.upper()
+                    # Skip generic terms, but include specific merchant names
+                    if not any(term in merchant_upper for term in generic_terms):
+                        income_merchants.add(tx.merchant_name)
+                    # Also consider merchant_entity_id if available
+                    if tx.merchant_entity_id:
+                        income_merchants.add(tx.merchant_entity_id)
+        
+        return len(income_merchants)
 

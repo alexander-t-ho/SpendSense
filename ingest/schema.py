@@ -297,6 +297,27 @@ class UserFeedback(Base):
         return f"<UserFeedback(user_id={self.user_id}, insight_type={self.insight_type}, feedback={self.feedback_type})>"
 
 
+class CancelledSubscription(Base):
+    """Track cancelled subscriptions for users."""
+    __tablename__ = "cancelled_subscriptions"
+    
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    merchant_name = Column(String, nullable=False)
+    cancelled_at = Column(DateTime, default=func.now(), nullable=False)
+    cancelled_by = Column(String)  # Optional: track if cancelled via recommendation
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    # Unique constraint: user can only cancel each merchant once
+    __table_args__ = (
+        {'sqlite_autoincrement': True},
+    )
+    
+    def __repr__(self):
+        return f"<CancelledSubscription(user_id={self.user_id}, merchant_name={self.merchant_name}, cancelled_at={self.cancelled_at})>"
+
+
 # Database setup
 def get_engine(db_path: str = "data/spendsense.db"):
     """Get SQLAlchemy engine."""

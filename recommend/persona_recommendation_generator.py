@@ -51,6 +51,14 @@ class PersonaRecommendationGenerator:
         primary_percentage = persona_assignment.get('primary_persona_percentage', 100)
         secondary_percentage = persona_assignment.get('secondary_persona_percentage', 0)
         
+        # Get matched criteria for each persona
+        all_matching_personas = persona_assignment.get('all_matching_personas', [])
+        persona_matched_criteria = {}
+        for persona_data in all_matching_personas:
+            persona_id = persona_data.get('persona_id')
+            matched_reasons = persona_data.get('matched_reasons', [])
+            persona_matched_criteria[persona_id] = matched_reasons
+        
         # Get user features
         features = self.feature_pipeline.compute_features_for_user(user_id, window_days)
         
@@ -89,22 +97,26 @@ class PersonaRecommendationGenerator:
         
         # Primary persona recommendations
         if primary_count > 0:
+            matched_criteria = persona_matched_criteria.get(primary_persona_id, [])
             primary_recs = self._generate_persona_recommendations(
-                user_id, primary_persona_id, features, primary_count, window_days
+                user_id, primary_persona_id, features, primary_count, window_days, matched_criteria
             )
             stored_recommendations.extend(primary_recs)
         
         # Secondary persona recommendations
         if secondary_count > 0 and secondary_persona_id:
+            matched_criteria = persona_matched_criteria.get(secondary_persona_id, [])
             secondary_recs = self._generate_persona_recommendations(
-                user_id, secondary_persona_id, features, secondary_count, window_days
+                user_id, secondary_persona_id, features, secondary_count, window_days, matched_criteria
             )
             stored_recommendations.extend(secondary_recs)
         
         # Store in database (approved=False by default, awaiting admin approval)
+        stored_recommendations_with_ids = []
         for rec_data in stored_recommendations:
+            rec_id = str(uuid.uuid4())
             rec = Recommendation(
-                id=str(uuid.uuid4()),
+                id=rec_id,
                 user_id=user_id,
                 recommendation_type="education",
                 title=rec_data['title'],
@@ -122,10 +134,20 @@ class PersonaRecommendationGenerator:
                 updated_at=datetime.now()
             )
             self.db.add(rec)
+            # Add the database ID to the returned data
+            rec_data_with_id = {
+                **rec_data,
+                'id': rec_id,  # Database ID for API operations
+                'approved': False,
+                'rejected': False,
+                'flagged': False,
+                'status': 'pending'
+            }
+            stored_recommendations_with_ids.append(rec_data_with_id)
         
         self.db.commit()
         
-        return stored_recommendations
+        return stored_recommendations_with_ids
     
     def _generate_persona_recommendations(
         self,
@@ -133,7 +155,8 @@ class PersonaRecommendationGenerator:
         persona_id: str,
         features: Dict[str, Any],
         num_recommendations: int,
-        window_days: int
+        window_days: int,
+        matched_criteria: List[str] = None
     ) -> List[Dict[str, Any]]:
         """Generate recommendations for a specific persona.
         
@@ -153,22 +176,53 @@ class PersonaRecommendationGenerator:
             if rec.persona_id == persona_id
         ]
         
-        # Sort by priority (HIGH first)
-        priority_order = {'high': 0, 'medium': 1, 'low': 2}
-        persona_recommendations.sort(key=lambda x: priority_order.get(x.priority.value, 3))
-        
         # Extract user data for personalization
         data_points = self._extract_data_for_persona(user_id, persona_id, features, window_days)
         
-        # Filter recommendations based on available data
+        # Filter recommendations based on matched criteria and available data
         applicable_recommendations = []
+        matched_criteria_set = set(matched_criteria or [])
+        
         for rec_template in persona_recommendations:
+            # Check if recommendation matches any of the matched criteria
+            # Match by checking if target_signals or recommendation keywords appear in matched criteria
+            matches_criteria = False
+            if matched_criteria:
+                # Check if any target signal or keyword from recommendation matches criteria
+                for criteria_text in matched_criteria:
+                    criteria_lower = criteria_text.lower()
+                    # Check target signals
+                    for signal in rec_template.target_signals:
+                        if signal.lower() in criteria_lower:
+                            matches_criteria = True
+                            break
+                    # Check if recommendation title/keywords match criteria
+                    if not matches_criteria:
+                        title_lower = rec_template.title.lower()
+                        if any(keyword in criteria_lower for keyword in title_lower.split() if len(keyword) > 3):
+                            matches_criteria = True
+                            break
+            else:
+                # If no matched criteria, accept all recommendations for the persona
+                matches_criteria = True
+            
+            # Also check data availability
             required_data = set(rec_template.data_points_needed)
             available_data = set(data_points.keys())
+            has_data = len(required_data.intersection(available_data)) >= len(required_data) * 0.5
             
-            # If we have at least 50% of required data points, include it
-            if len(required_data.intersection(available_data)) >= len(required_data) * 0.5:
+            # Include if it matches criteria OR if we have good data coverage
+            if matches_criteria or (has_data and not matched_criteria):
                 applicable_recommendations.append(rec_template)
+        
+        # Sort by priority (HIGH first), then by criteria match
+        priority_order = {'high': 0, 'medium': 1, 'low': 2}
+        applicable_recommendations.sort(key=lambda x: (
+            priority_order.get(x.priority.value, 3),
+            # Prefer recommendations that match criteria
+            not any(signal.lower() in ' '.join(matched_criteria or []).lower() 
+                   for signal in x.target_signals)
+        ))
         
         # Select top recommendations (prioritize by priority and data availability)
         selected_recommendations = applicable_recommendations[:num_recommendations]
@@ -269,6 +323,27 @@ class PersonaRecommendationGenerator:
             elif persona_id == 'variable_income_budgeter':
                 income_data = self.data_extractor.extract_income_data(user_id, window_days)
                 data_points.update(income_data)
+                
+                # Map savings plan options to individual fields for template
+                if 'savings_plan_options' in income_data and income_data['savings_plan_options']:
+                    plans = income_data['savings_plan_options']
+                    if len(plans) >= 4:
+                        # Option 1: Fast Track
+                        data_points['plan1_monthly'] = plans[0]['monthly_savings']
+                        data_points['plan1_months'] = plans[0]['target_months']
+                        data_points['plan1_timeline'] = plans[0]['months_to_target']
+                        # Option 2: Steady Progress
+                        data_points['plan2_monthly'] = plans[1]['monthly_savings']
+                        data_points['plan2_months'] = plans[1]['target_months']
+                        data_points['plan2_timeline'] = plans[1]['months_to_target']
+                        # Option 3: Recommended
+                        data_points['plan3_monthly'] = plans[2]['monthly_savings']
+                        data_points['plan3_months'] = plans[2]['target_months']
+                        data_points['plan3_timeline'] = plans[2]['months_to_target']
+                        # Option 4: Slow & Steady
+                        data_points['plan4_monthly'] = plans[3]['monthly_savings']
+                        data_points['plan4_months'] = plans[3]['target_months']
+                        data_points['plan4_timeline'] = plans[3]['months_to_target']
             
             elif persona_id == 'savings_builder':
                 savings_data = self.data_extractor.extract_savings_data(user_id, window_days)

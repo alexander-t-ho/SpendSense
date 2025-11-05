@@ -93,6 +93,17 @@ class ConnectionManager:
             "timestamp": datetime.now().isoformat()
         }
         await self.broadcast_to_operators(message)
+    
+    async def broadcast_subscription_cancellation(self, user_id: str, merchant_name: str, cancelled: bool):
+        """Broadcast subscription cancellation/uncancellation to user's connections."""
+        message = {
+            "type": "subscription_cancellation",
+            "user_id": user_id,
+            "merchant_name": merchant_name,
+            "cancelled": cancelled,
+            "timestamp": datetime.now().isoformat()
+        }
+        await self.send_personal_message(message, user_id)
 
 
 # Global connection manager instance

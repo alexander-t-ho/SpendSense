@@ -36,16 +36,18 @@ ACTIONABLE_RECOMMENDATIONS = [
         persona_id="high_utilization",
         priority=RecommendationPriority.HIGH,
         title="Reduce Credit Card Utilization",
-        template="We noticed your {card_type} ending in {card_last_4} is at {utilization_percent}% utilization (${balance:,.0f} of ${limit:,.0f} limit). Bringing this below 30% could improve your credit score and reduce interest charges of ${monthly_interest:,.2f}/month.",
+        template="We noticed your {card_type} ending in {card_last_4} is at {utilization_percent:.1f}% utilization (${balance:,.0f} of ${limit:,.0f} limit). Bringing this below 30% over 6 months could improve your credit score and reduce interest charges of ${monthly_interest:,.2f}/month.",
         action_items=[
-            "Make a payment of at least ${target_payment:,.0f} to bring utilization below 30%",
-            "Set up automatic payments to avoid interest charges",
-            "Consider a balance transfer to a card with 0% APR if eligible",
-            "Create a payment plan to pay down the balance over {months_to_30pct} months"
+            "Month 1-2: Pay ${monthly_payment_months_1_2:,.0f}/month to bring utilization below {utilization_after_2mo:.0f}% (current: {utilization_percent:.0f}%)",
+            "Month 3-4: Increase payment to ${monthly_payment_months_3_4:,.0f}/month to reach below 50% utilization",
+            "Month 5-6: Maintain ${monthly_payment_months_5_6:,.0f}/month to get below 30% utilization and improve credit score",
+            "Set up automatic payments of ${automatic_payment_amount:,.0f}/month to stay on track",
+            "Stop using this card for new purchases until utilization is below 30%",
+            "Consider a balance transfer to a card with 0% APR if eligible (could save ${potential_balance_transfer_savings:,.0f} in interest)"
         ],
-        expected_impact="Improve credit score by 15-30 points, save ${annual_interest:,.0f}/year in interest charges",
+        expected_impact="Improve credit score by 15-30 points over 6 months, save ${total_interest_savings_6mo:,.0f} in interest charges by following the plan",
         target_signals=["high_utilization", "credit_card_utilization_above_50"],
-        data_points_needed=["card_type", "card_last_4", "utilization_percent", "balance", "limit", "monthly_interest", "annual_interest", "target_payment", "months_to_30pct"]
+        data_points_needed=["card_type", "card_last_4", "utilization_percent", "balance", "limit", "monthly_interest", "annual_interest", "monthly_payment_months_1_2", "monthly_payment_months_3_4", "monthly_payment_months_5_6", "utilization_after_2mo", "automatic_payment_amount", "potential_balance_transfer_savings", "total_interest_savings_6mo"]
     ),
     ActionableRecommendation(
         id="reduce_interest_charges",
@@ -68,16 +70,17 @@ ACTIONABLE_RECOMMENDATIONS = [
         persona_id="high_utilization",
         priority=RecommendationPriority.HIGH,
         title="Stop Making Only Minimum Payments",
-        template="We noticed you're only making minimum payments of ${minimum_payment:,.0f} on your {card_type} ending in {card_last_4} (balance: ${balance:,.0f}). At this rate, it will take {months_to_payoff} months to pay off and cost ${total_interest:,.0f} in interest. Increasing your payment to ${recommended_payment:,.0f}/month would pay it off in {months_with_extra} months and save ${interest_savings:,.0f}.",
+        template="We noticed you're only making minimum payments of ${minimum_payment:,.0f} on your {card_type} ending in {card_last_4} (balance: ${balance:,.0f}). At this rate, it will take {months_to_payoff_min} months to pay off and cost ${total_interest_min:,.0f} in interest. Increasing your payment to ${payment_12mo:,.0f}/month would pay it off in 12 months and save ${interest_savings_12mo:,.0f} in interest.",
         action_items=[
-            "Increase monthly payment from ${minimum_payment:,.0f} to ${recommended_payment:,.0f}",
+            "Increase monthly payment from ${minimum_payment:,.0f} to ${payment_12mo:,.0f} to pay off in 12 months",
             "Set up automatic payments for the higher amount",
             "Use any extra income (tax refunds, bonuses) to make extra payments",
-            "Track your progress monthly to stay motivated"
+            "Track your progress monthly to stay motivated",
+            "If ${payment_12mo:,.0f}/month isn't feasible, start with ${minimum_payment:,.0f} and increase by $50/month each month"
         ],
-        expected_impact="Pay off debt {months_faster} months faster, save ${interest_savings:,.0f} in interest",
+        expected_impact="Pay off debt {months_faster_12mo} months faster (in 12 months instead of {months_to_payoff_min}), save ${interest_savings_12mo:,.0f} in interest",
         target_signals=["minimum_payment_only", "high_utilization"],
-        data_points_needed=["card_type", "card_last_4", "minimum_payment", "balance", "months_to_payoff", "total_interest", "recommended_payment", "months_with_extra", "interest_savings", "months_faster"]
+        data_points_needed=["card_type", "card_last_4", "minimum_payment", "balance", "months_to_payoff_min", "total_interest_min", "payment_12mo", "interest_savings_12mo", "months_faster_12mo"]
     ),
     ActionableRecommendation(
         id="address_overdue_status",
@@ -102,16 +105,18 @@ ACTIONABLE_RECOMMENDATIONS = [
         persona_id="variable_income_budgeter",
         priority=RecommendationPriority.HIGH,
         title="Build Emergency Fund with Variable Income",
-        template="We noticed your cash buffer is {cash_buffer_months:.1f} months, which is below the recommended 3-6 months for variable income earners. With {median_pay_gap:.0f} days between paychecks, building a buffer is especially important. Saving ${monthly_savings_target:,.0f} per month would give you a {target_months}-month buffer in {months_to_target} months.",
+        template="We noticed your cash buffer is {cash_buffer_months:.1f} months, which is below the recommended 2-3 months for variable income earners. With {median_pay_gap:.0f} days between paychecks, building a buffer is especially important. Choose a savings plan that fits your budget:",
         action_items=[
-            "Set aside ${monthly_savings_target:,.0f} from each paycheck (aim for 10-20% of income)",
+            "Option 1 (Fast Track): Save ${plan1_monthly:,.0f}/month to build a {plan1_months}-month buffer in {plan1_timeline} months",
+            "Option 2 (Steady Progress): Save ${plan2_monthly:,.0f}/month to build a {plan2_months}-month buffer in {plan2_timeline} months",
+            "Option 3 (Recommended): Save ${plan3_monthly:,.0f}/month to build a {plan3_months}-month buffer in {plan3_timeline} months",
+            "Option 4 (Slow & Steady): Save ${plan4_monthly:,.0f}/month to build a {plan4_months}-month buffer in {plan4_timeline} months",
             "Use a separate high-yield savings account for your emergency fund",
-            "Start with a goal of 1 month's expenses (${one_month_expenses:,.0f}), then build to 3 months",
-            "Use the 50/30/20 rule: 50% needs, 30% wants, 20% savings"
+            "Automate transfers to savings account on payday to build the habit"
         ],
-        expected_impact="Build a {target_months}-month emergency fund, reduce financial stress during income gaps",
+        expected_impact="Build a 1-2 month emergency fund based on your chosen plan, reduce financial stress during income gaps",
         target_signals=["variable_income", "low_cash_buffer", "irregular_pay"],
-        data_points_needed=["cash_buffer_months", "median_pay_gap", "monthly_savings_target", "target_months", "months_to_target", "one_month_expenses"]
+        data_points_needed=["cash_buffer_months", "median_pay_gap", "one_month_expenses", "plan1_monthly", "plan1_months", "plan1_timeline", "plan2_monthly", "plan2_months", "plan2_timeline", "plan3_monthly", "plan3_months", "plan3_timeline", "plan4_monthly", "plan4_months", "plan4_timeline"]
     ),
     ActionableRecommendation(
         id="create_variable_income_budget",

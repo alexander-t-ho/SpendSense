@@ -90,11 +90,14 @@ class Persona:
         
         # Persona 2: Variable Income Budgeter - 5 Criteria
         elif self.id == 'variable_income_budgeter':
-            median_pay_gap = income.get('median_days_between', 0.0)
+            median_pay_gap = income.get('median_pay_gap_days', 0.0)
             cash_flow_buffer = income.get('cash_flow_buffer_months', 0.0)
             income_std = income.get('income_std', 0.0)
             income_mean = income.get('income_mean', 0.0)
             income_cv = (income_std / income_mean * 100) if income_mean > 0 else 0.0
+            minimum_monthly_income = income.get('minimum_monthly_income', 0.0)
+            average_monthly_expenses = income.get('average_monthly_expenses', 0.0)
+            distinct_income_sources = income.get('distinct_income_sources_90d', 0)
             
             # Criterion 1: Median pay gap > 45 days
             if median_pay_gap > 45.0:
@@ -111,36 +114,44 @@ class Persona:
                 matched_count += 1
                 reasons.append(f"Criterion 3: Income variability {income_cv:.1f}% (CV >30%)")
             
-            # Criterion 4: Pay gap > 30 days
-            if median_pay_gap > 30.0:
+            # Criterion 4: Spending >70% of minimum monthly income
+            if minimum_monthly_income > 0 and average_monthly_expenses > (minimum_monthly_income * 0.70):
                 matched_count += 1
-                reasons.append(f"Criterion 4: Median pay gap {median_pay_gap:.0f} days (>30)")
+                spending_ratio = (average_monthly_expenses / minimum_monthly_income) * 100
+                reasons.append(f"Criterion 4: Spending ${average_monthly_expenses:.2f}/month ({spending_ratio:.1f}% of minimum income ${minimum_monthly_income:.2f})")
             
-            # Criterion 5: Cash-flow buffer < 2 months
-            if cash_flow_buffer < 2.0:
+            # Criterion 5: 3+ different income sources in last 90 days
+            if distinct_income_sources >= 3:
                 matched_count += 1
-                reasons.append(f"Criterion 5: Cash-flow buffer {cash_flow_buffer:.1f} months (<2)")
+                reasons.append(f"Criterion 5: {distinct_income_sources} different income sources (≥3)")
         
         # Persona 3: Subscription-Heavy - 5 Criteria
         elif self.id == 'subscription_heavy':
             num_recurring = subscriptions.get('recurring_merchants', 0)
             monthly_recurring = subscriptions.get('monthly_recurring_spend', 0.0)
             subscription_share = subscriptions.get('subscription_share_of_total', 0.0)
+            has_category_duplicates = subscriptions.get('has_category_duplicates', False)
+            category_duplicates = subscriptions.get('category_duplicates', {})
+            subscription_to_income_ratio = subscriptions.get('subscription_to_income_ratio', 0.0)
             
-            # Criterion 1: ≥3 recurring merchants
-            if num_recurring >= 3:
+            # Criterion 1: Has at least 2 subscriptions from the same category
+            if has_category_duplicates:
+                # Build list of duplicate categories and their merchants
+                duplicate_categories = []
+                for category, merchants in category_duplicates.items():
+                    duplicate_categories.append(f"{category} ({', '.join(merchants[:3])}{'...' if len(merchants) > 3 else ''})")
                 matched_count += 1
-                reasons.append(f"Criterion 1: {num_recurring} recurring subscriptions (≥3)")
+                reasons.append(f"Criterion 1: Has 2+ subscriptions in same category: {', '.join(duplicate_categories[:2])}")
             
             # Criterion 2: ≥5 recurring merchants
             if num_recurring >= 5:
                 matched_count += 1
                 reasons.append(f"Criterion 2: {num_recurring} recurring subscriptions (≥5)")
             
-            # Criterion 3: Monthly subscription spend ≥$50
-            if monthly_recurring >= 50.0:
+            # Criterion 3: Subscription spend ≥10% of monthly income
+            if subscription_to_income_ratio >= 10.0:
                 matched_count += 1
-                reasons.append(f"Criterion 3: Monthly subscription spend ${monthly_recurring:.2f} (≥$50)")
+                reasons.append(f"Criterion 3: Subscription spend {subscription_to_income_ratio:.1f}% of monthly income (≥10%)")
             
             # Criterion 4: Subscription share ≥10% of total spend
             if subscription_share >= 10.0:
@@ -191,46 +202,40 @@ class Persona:
                 matched_count += 1
                 reasons.append(f"Criterion 5: Savings balance ${savings_balance:.2f} (≥$5,000)")
         
-        # Persona 5: Balanced/Stable - 5 Criteria
-        elif self.id == 'balanced_stable':
-            card_details = credit.get('card_details', [])
-            max_utilization = 0.0
-            for card in card_details:
-                util = card.get('utilization', {})
-                util_percent = util.get('utilization_percent', 0.0)
-                if util_percent > max_utilization:
-                    max_utilization = util_percent
+        # Persona 5: Fee Accumulator - 5 Criteria
+        elif self.id == 'fee_accumulator':
+            fees = features.get('fees', {})
             
-            has_interest = credit.get('any_interest_charges', False)
-            is_overdue = credit.get('any_overdue', False)
-            cash_flow_buffer = income.get('cash_flow_buffer_months', 0.0)
-            num_recurring = subscriptions.get('recurring_merchants', 0)
-            median_pay_gap = income.get('median_days_between', 0.0)
+            overdraft_nsf_fees = fees.get('overdraft_nsf_fees_90d', 0)
+            total_fees_last_month = fees.get('total_fees_last_month', 0.0)
+            atm_fees_90d = fees.get('atm_fees_90d', 0)
+            accounts_with_late_fees = fees.get('accounts_with_late_fees', 0)
+            has_maintenance_fees = fees.get('has_maintenance_fees', False)
             
-            # Criterion 1: Utilization < 50% and no interest charges
-            if max_utilization < 50.0 and not has_interest:
+            # Criterion 1: ≥3 overdraft/NSF fees in last 90 days
+            if overdraft_nsf_fees >= 3:
                 matched_count += 1
-                reasons.append(f"Criterion 1: Utilization {max_utilization:.1f}% (<50%) and no interest")
+                reasons.append(f"Criterion 1: {overdraft_nsf_fees} overdraft/NSF fees in last 90 days (≥3)")
             
-            # Criterion 2: No overdue payments
-            if not is_overdue:
+            # Criterion 2: Total fees ≥$50 in last month
+            if total_fees_last_month >= 50.0:
                 matched_count += 1
-                reasons.append("Criterion 2: No overdue payments")
+                reasons.append(f"Criterion 2: Total fees ${total_fees_last_month:.2f} in last month (≥$50)")
             
-            # Criterion 3: Cash-flow buffer ≥1 month
-            if cash_flow_buffer >= 1.0:
+            # Criterion 3: ≥5 out-of-network ATM fees in last 90 days
+            if atm_fees_90d >= 5:
                 matched_count += 1
-                reasons.append(f"Criterion 3: Cash-flow buffer {cash_flow_buffer:.1f} months (≥1)")
+                reasons.append(f"Criterion 3: {atm_fees_90d} ATM fees in last 90 days (≥5)")
             
-            # Criterion 4: Moderate subscriptions (<5)
-            if num_recurring < 5:
+            # Criterion 4: Late payment fees on ≥2 accounts
+            if accounts_with_late_fees >= 2:
                 matched_count += 1
-                reasons.append(f"Criterion 4: {num_recurring} subscriptions (<5)")
+                reasons.append(f"Criterion 4: Late payment fees on {accounts_with_late_fees} accounts (≥2)")
             
-            # Criterion 5: Regular pay schedule (pay gap ≤30 days)
-            if median_pay_gap <= 30.0:
+            # Criterion 5: Monthly maintenance fees on checking/savings
+            if has_maintenance_fees:
                 matched_count += 1
-                reasons.append(f"Criterion 5: Regular pay schedule (gap {median_pay_gap:.0f} days ≤30)")
+                reasons.append("Criterion 5: Monthly maintenance fees on checking/savings accounts")
         
         return matched_count, total_criteria, reasons
 
@@ -290,17 +295,18 @@ PERSONA_DEFINITIONS = [
         rationale_template='We identified strong savings behavior because {reasons}. Focus on optimizing savings goals and returns.'
     ),
     Persona(
-        id='balanced_stable',
-        name='Balanced & Stable',
-        description='Users with stable financial patterns, low risk indicators',
-        risk=PersonaRisk.MINIMAL,
-        focus_area='Maintenance, optimization, long-term planning',
+        id='fee_accumulator',
+        name='Fee Accumulator',
+        description='Users frequently incurring avoidable banking fees (overdraft, NSF, late fees, out-of-network ATM)',
+        risk=PersonaRisk.MEDIUM,
+        focus_area='Fee avoidance strategies, account optimization, alert setup, better account selection',
         criteria={
-            'max_utilization': 50.0,
-            'min_cash_flow_buffer': 1.0,
-            'max_subscriptions': 5
+            'min_overdraft_nsf_fees': 3,
+            'min_total_fees_monthly': 50.0,
+            'min_atm_fees': 5,
+            'min_late_fee_accounts': 2
         },
-        rationale_template='We identified a stable financial profile because {reasons}. Focus on maintaining good habits and optimization.'
+        rationale_template='We identified frequent fee accumulation because {reasons}. Focus on fee avoidance strategies and account optimization.'
     ),
 ]
 

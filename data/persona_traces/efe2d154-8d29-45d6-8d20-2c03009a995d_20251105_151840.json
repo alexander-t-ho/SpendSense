@@ -1,0 +1,228 @@
+{
+  "user_id": "efe2d154-8d29-45d6-8d20-2c03009a995d",
+  "timestamp": "2025-11-05T15:18:40.773531",
+  "assigned_personas": [
+    "subscription_heavy",
+    "high_utilization"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "matched_criteria": 4,
+      "total_criteria": 5,
+      "score": 4,
+      "reasons": [
+        "Criterion 1: Credit utilization 58.3% (\u226550%)",
+        "Criterion 3: Interest charges detected",
+        "Criterion 4: Making only minimum payments",
+        "Criterion 5: Credit card payment overdue"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 5.0
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 0.0
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 5,
+      "total_criteria": 5,
+      "score": 5,
+      "reasons": [
+        "Criterion 1: 5 recurring subscriptions (\u22653)",
+        "Criterion 2: 5 recurring subscriptions (\u22655)",
+        "Criterion 3: Monthly subscription spend $1408.92 (\u2265$50)",
+        "Criterion 4: Subscriptions 54.7% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $1408.92 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 3.75
+    },
+    "savings_builder": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 0.0
+    },
+    "balanced_stable": {
+      "matched": true,
+      "matched_criteria": 2,
+      "total_criteria": 5,
+      "score": 2,
+      "reasons": [
+        "Criterion 3: Cash-flow buffer 11.4 months (\u22651)",
+        "Criterion 5: Regular pay schedule (gap 0 days \u226430)"
+      ],
+      "risk": 1,
+      "risk_level": "MINIMAL",
+      "points_per_criterion": 0.5,
+      "total_points": 1.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "efe2d154-8d29-45d6-8d20-2c03009a995d",
+    "window_days": 180,
+    "start_date": "2025-05-09T15:18:40.736973",
+    "end_date": "2025-11-05T15:18:40.736973",
+    "subscriptions": {
+      "recurring_merchants": 5,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Electric Company",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 34.2,
+          "total_amount": 283.58277342564156,
+          "average_amount": 47.26379557094026,
+          "first_transaction": "2025-05-10 13:50:10.907721",
+          "last_transaction": "2025-11-01 03:28:21.693452"
+        },
+        {
+          "merchant_name": "Mobil",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 34.0,
+          "total_amount": 78.81344731368934,
+          "average_amount": 26.27114910456311,
+          "first_transaction": "2025-07-07 07:49:46.550963",
+          "last_transaction": "2025-09-14 20:49:11.786001"
+        },
+        {
+          "merchant_name": "Pizza Hut",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 34.5,
+          "total_amount": 188.3267315246084,
+          "average_amount": 62.77557717486946,
+          "first_transaction": "2025-08-15 17:34:52.916138",
+          "last_transaction": "2025-10-24 12:43:41.588142"
+        },
+        {
+          "merchant_name": "Trader Joe's",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 27.333333333333332,
+          "total_amount": 72.93164951839954,
+          "average_amount": 18.232912379599885,
+          "first_transaction": "2025-06-02 11:19:09.096328",
+          "last_transaction": "2025-08-25 05:47:39.623399"
+        },
+        {
+          "merchant_name": "MORTGAGE PAYMENT",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 7526.284300538465,
+          "average_amount": 1254.3807167564107,
+          "first_transaction": "2025-06-07 16:08:58.465132",
+          "last_transaction": "2025-11-04 16:08:58.465132"
+        }
+      ],
+      "monthly_recurring_spend": 1408.9241509863834,
+      "total_subscription_spend": 8149.938902320804,
+      "subscription_share_of_total": 54.66541787594844,
+      "total_spend": 14908.765393169333
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 0.0,
+      "total_savings_balance": 0,
+      "average_monthly_expenses": 387.72287070041074,
+      "has_emergency_fund": false
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 2,
+      "any_high_utilization_50": true,
+      "any_high_utilization_80": false,
+      "any_interest_charges": true,
+      "any_minimum_payment_only": true,
+      "any_overdue": true,
+      "card_details": [
+        {
+          "account_id": "161901933359",
+          "name": "Mastercard Credit Card #1",
+          "utilization": {
+            "account_id": "161901933359",
+            "utilization_percent": 58.32259488705597,
+            "balance": 2916.1297443527983,
+            "limit": 5000.0,
+            "available": 2083.8702556472017,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": true,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 350.7650316332711,
+            "monthly_interest_estimate": 58.460838605545185,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": true,
+          "is_overdue": true
+        },
+        {
+          "account_id": "129561622564",
+          "name": "Discover Credit Card #2",
+          "utilization": {
+            "account_id": "129561622564",
+            "utilization_percent": 50.09277494710733,
+            "balance": 2504.638747355367,
+            "limit": 5000.0,
+            "available": 2495.361252644633,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": true,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 284.3604039547955,
+            "monthly_interest_estimate": 47.39340065913259,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": true,
+          "is_overdue": true
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 11.426913156104167,
+      "checking_balance": 4120.940087366731,
+      "average_monthly_expenses": 360.6345853048999,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    }
+  },
+  "rationale": "Assigned to Subscription-Heavy (5/5 criteria, 56%) and High Utilization (4/5 criteria, 44%) personas based on financial behavior patterns."
+}
