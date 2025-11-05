@@ -67,6 +67,12 @@ lambda:
       name: "alexho-spendsense-insights-budget-tracking-dev"
       handler: "handler.lambda_handler"
       description: "Track budget vs actual spending"
+    main_api:
+      name: "alexho-spendsense-api-dev"
+      handler: "handler.lambda_handler"
+      description: "Main SpendSense FastAPI application"
+      timeout: 300  # 5 minutes for full API
+      memory: 2048  # 2GB for full application
 
 # API Gateway Configuration
 api_gateway:

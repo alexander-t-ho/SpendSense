@@ -1,0 +1,32 @@
+# Lambda-specific requirements for FastAPI application
+# Note: These should match requirements.txt but with Lambda-compatible versions
+
+# FastAPI and ASGI adapter
+fastapi==0.104.1
+mangum==0.17.0
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# Data processing
+pandas==2.1.3
+numpy==1.26.2
+polars==0.19.19
+
+# Validation
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Utilities
+python-dateutil==2.8.2
+python-dotenv==1.0.0
+faker==20.1.0
+
+# AWS
+boto3==1.34.0
+pyyaml==6.0.1
+
+

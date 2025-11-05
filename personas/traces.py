@@ -102,3 +102,4 @@ class DecisionTraceLogger:
         traces.sort(key=lambda x: x.timestamp, reverse=True)
         return traces
 
+

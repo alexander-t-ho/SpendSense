@@ -217,15 +217,24 @@ class Recommendation(Base):
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
     recommendation_type = Column(String, nullable=False)  # education, partner_offer
     title = Column(String, nullable=False)
-    description = Column(Text)
+    description = Column(Text)  # Personalized recommendation text
     rationale = Column(Text, nullable=False)  # Plain-language explanation
-    content_id = Column(String)  # Reference to content catalog
+    content_id = Column(String)  # Reference to content catalog / recommendation template ID
     persona_id = Column(String)  # Which persona triggered this
+    
+    # Additional fields for persona-based recommendations
+    action_items = Column(JSON)  # List of action items
+    expected_impact = Column(Text)  # Expected impact/benefit
+    priority = Column(String)  # high, medium, low
     
     # Status
     approved = Column(Boolean, default=False)
     approved_at = Column(DateTime)
+    approved_by = Column(String)  # Admin user who approved (optional)
     flagged = Column(Boolean, default=False)
+    rejected = Column(Boolean, default=False)
+    rejected_at = Column(DateTime)
+    rejected_by = Column(String)  # Admin user who rejected (optional)
     
     # Metadata
     created_at = Column(DateTime, default=func.now())
@@ -235,7 +244,7 @@ class Recommendation(Base):
     user = relationship("User", back_populates="recommendations")
     
     def __repr__(self):
-        return f"<Recommendation(id={self.id}, type={self.recommendation_type}, user_id={self.user_id})>"
+        return f"<Recommendation(id={self.id}, type={self.recommendation_type}, user_id={self.user_id}, approved={self.approved})>"
 
 
 class Budget(Base):

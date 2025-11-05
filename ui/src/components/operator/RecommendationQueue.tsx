@@ -5,11 +5,12 @@ import {
   fetchRecommendationQueue,
   approveRecommendation,
   flagRecommendation,
+  rejectRecommendation,
   OperatorRecommendation,
 } from '../../services/operatorApi'
 
 export default function RecommendationQueue() {
-  const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'flagged' | 'all'>('pending')
+  const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'flagged' | 'rejected' | 'all'>('pending')
   const queryClient = useQueryClient()
 
   const { data, isLoading, error } = useQuery({
@@ -26,6 +27,13 @@ export default function RecommendationQueue() {
 
   const flagMutation = useMutation({
     mutationFn: flagRecommendation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+    },
+  })
+
+  const rejectMutation = useMutation({
+    mutationFn: rejectRecommendation,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
     },
@@ -91,6 +99,16 @@ export default function RecommendationQueue() {
               Flagged
             </button>
             <button
+              onClick={() => setStatusFilter('rejected')}
+              className={`px-4 py-2 text-sm rounded-md ${
+                statusFilter === 'rejected'
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Rejected
+            </button>
+            <button
               onClick={() => setStatusFilter('all')}
               className={`px-4 py-2 text-sm rounded-md ${
                 statusFilter === 'all'
@@ -120,8 +138,10 @@ export default function RecommendationQueue() {
               recommendation={rec}
               onApprove={() => approveMutation.mutate(rec.id)}
               onFlag={() => flagMutation.mutate(rec.id)}
+              onReject={() => rejectMutation.mutate(rec.id)}
               isApproving={approveMutation.isPending}
               isFlagging={flagMutation.isPending}
+              isRejecting={rejectMutation.isPending}
             />
           ))}
         </div>
@@ -134,14 +154,18 @@ function RecommendationCard({
   recommendation,
   onApprove,
   onFlag,
+  onReject,
   isApproving,
   isFlagging,
+  isRejecting,
 }: {
   recommendation: OperatorRecommendation
   onApprove: () => void
   onFlag: () => void
+  onReject: () => void
   isApproving: boolean
   isFlagging: boolean
+  isRejecting: boolean
 }) {
   const getRiskColor = (risk: string | undefined) => {
     if (!risk) return 'bg-gray-100 text-gray-800'
@@ -194,6 +218,21 @@ function RecommendationCard({
                 Flagged
               </span>
             )}
+            {recommendation.rejected && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                Rejected
+              </span>
+            )}
+            {recommendation.priority && (
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                recommendation.priority === 'high' ? 'bg-red-100 text-red-800' :
+                recommendation.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {recommendation.priority.toUpperCase()} Priority
+              </span>
+            )}
           </div>
           <div className="mt-2 text-sm text-gray-600">
             <p>
@@ -208,7 +247,26 @@ function RecommendationCard({
               </p>
             )}
             {recommendation.description && (
-              <p className="mt-1">{recommendation.description}</p>
+              <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                <p className="text-sm font-medium text-gray-900 mb-1">Recommendation:</p>
+                <p className="text-sm text-gray-700">{recommendation.description}</p>
+              </div>
+            )}
+            {recommendation.action_items && recommendation.action_items.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm font-medium text-gray-900 mb-1">Action Items:</p>
+                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                  {recommendation.action_items.slice(0, 3).map((item: string, idx: number) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {recommendation.expected_impact && (
+              <div className="mt-2 p-2 bg-green-50 rounded-md">
+                <p className="text-xs font-medium text-green-900">Expected Impact:</p>
+                <p className="text-xs text-green-800 mt-1">{recommendation.expected_impact}</p>
+              </div>
             )}
           </div>
           <div className="mt-3 p-3 bg-blue-50 rounded-md">
@@ -216,19 +274,27 @@ function RecommendationCard({
             <p className="text-sm text-blue-800 mt-1">{recommendation.rationale}</p>
           </div>
         </div>
-        {!recommendation.approved && !recommendation.flagged && (
+        {!recommendation.approved && !recommendation.flagged && !recommendation.rejected && (
           <div className="ml-4 flex gap-2">
             <button
               onClick={onApprove}
-              disabled={isApproving || isFlagging}
+              disabled={isApproving || isFlagging || isRejecting}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <CheckCircle className="h-4 w-4 mr-2" />
               Approve
             </button>
             <button
+              onClick={onReject}
+              disabled={isApproving || isFlagging || isRejecting}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Reject
+            </button>
+            <button
               onClick={onFlag}
-              disabled={isApproving || isFlagging}
+              disabled={isApproving || isFlagging || isRejecting}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Flag className="h-4 w-4 mr-2" />

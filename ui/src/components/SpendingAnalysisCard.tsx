@@ -155,3 +155,4 @@ export default function SpendingAnalysisCard({ userId, months = 6 }: SpendingAna
   )
 }
 
+

@@ -114,3 +114,4 @@ Once permissions are updated:
 2. Update API Gateway integrations: `python aws/scripts/update_lambda_integrations.py`
 3. Test API endpoints: See `aws/DEPLOYMENT_GUIDE.md`
 
+

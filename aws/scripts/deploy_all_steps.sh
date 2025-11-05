@@ -93,3 +93,4 @@ echo "  2. Verify API Gateway endpoints"
 echo "  3. Test from frontend application"
 echo ""
 
+

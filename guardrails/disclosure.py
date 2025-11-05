@@ -95,3 +95,4 @@ class DisclosureManager:
         insight["disclosure"] = self.get_disclaimer("insight")
         return insight
 
+

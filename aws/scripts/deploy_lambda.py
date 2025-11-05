@@ -19,6 +19,7 @@ import yaml
 import zipfile
 import shutil
 import sys
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -43,7 +44,7 @@ iam_client = session.client('iam')
 lambda_role_arn = resources['iam_roles']['lambda_arn']
 
 
-def create_deployment_package(function_name: str, function_dir: Path) -> Path:
+def create_deployment_package(function_name: str, function_dir: Path, function_key: str = None) -> Path:
     """Create a deployment package (zip file) for a Lambda function.
     
     Args:
@@ -56,7 +57,16 @@ def create_deployment_package(function_name: str, function_dir: Path) -> Path:
     print(f"  Creating deployment package for {function_name}...")
     
     # Create temporary directory for packaging
-    package_dir = Path(__file__).parent.parent / "lambda" / function_name / ".package"
+    # Use function_key if provided, otherwise derive from function_name
+    if function_key:
+        package_dir_name = function_key
+    else:
+        # Derive directory name from function name
+        package_dir_name = function_name.replace('alexho-spendsense-', '').replace('-dev', '')
+        if package_dir_name == 'api':
+            package_dir_name = 'api'
+    
+    package_dir = Path(__file__).parent.parent / "lambda" / package_dir_name / ".package"
     if package_dir.exists():
         shutil.rmtree(package_dir)
     package_dir.mkdir(parents=True, exist_ok=True)
@@ -65,20 +75,37 @@ def create_deployment_package(function_name: str, function_dir: Path) -> Path:
     for file in function_dir.glob("*.py"):
         shutil.copy(file, package_dir)
     
-    # Copy insights module (shared code)
-    insights_dir = Path(__file__).parent.parent.parent / "insights"
-    if insights_dir.exists():
-        shutil.copytree(insights_dir, package_dir / "insights", dirs_exist_ok=True)
-    
-    # Copy ingest module (for database access)
-    ingest_dir = Path(__file__).parent.parent.parent / "ingest"
-    if ingest_dir.exists():
-        shutil.copytree(ingest_dir, package_dir / "ingest", dirs_exist_ok=True)
-    
-    # Copy utils module (for database helper)
-    utils_dir = Path(__file__).parent.parent / "lambda" / "utils"
-    if utils_dir.exists():
-        shutil.copytree(utils_dir, package_dir / "utils", dirs_exist_ok=True)
+    # For main_api, we need to copy ALL modules
+    if function_name == "alexho-spendsense-api-dev":
+        # Copy all application modules
+        project_root = Path(__file__).parent.parent.parent
+        modules_to_copy = [
+            "api", "ingest", "features", "personas", "recommend", 
+            "guardrails", "insights", "eval"
+        ]
+        for module_name in modules_to_copy:
+            module_dir = project_root / module_name
+            if module_dir.exists():
+                shutil.copytree(module_dir, package_dir / module_name, dirs_exist_ok=True)
+                # Remove __pycache__ directories
+                for pycache in (package_dir / module_name).rglob("__pycache__"):
+                    shutil.rmtree(pycache)
+    else:
+        # For individual insight functions, copy only needed modules
+        # Copy insights module (shared code)
+        insights_dir = Path(__file__).parent.parent.parent / "insights"
+        if insights_dir.exists():
+            shutil.copytree(insights_dir, package_dir / "insights", dirs_exist_ok=True)
+        
+        # Copy ingest module (for database access)
+        ingest_dir = Path(__file__).parent.parent.parent / "ingest"
+        if ingest_dir.exists():
+            shutil.copytree(ingest_dir, package_dir / "ingest", dirs_exist_ok=True)
+        
+        # Copy utils module (for database helper)
+        utils_dir = Path(__file__).parent.parent / "lambda" / "utils"
+        if utils_dir.exists():
+            shutil.copytree(utils_dir, package_dir / "utils", dirs_exist_ok=True)
     
     # Install dependencies if requirements.txt exists
     requirements_file = function_dir / "requirements.txt"
@@ -174,7 +201,7 @@ def lambda_handler(event, context):
         return
     
     # Create deployment package
-    zip_path = create_deployment_package(function_key, function_dir)
+    zip_path = create_deployment_package(function_name, function_dir, function_key)
     zip_size = zip_path.stat().st_size
     print(f"  ✅ Created deployment package: {zip_path.name} ({zip_size / 1024 / 1024:.2f} MB)")
     
@@ -209,8 +236,8 @@ def lambda_handler(event, context):
                     lambda_client.update_function_configuration(
                         FunctionName=function_name,
                         Runtime=lambda_config['runtime'],
-                        Timeout=lambda_config['timeout'],
-                        MemorySize=lambda_config['memory'],
+                        Timeout=function_config.get('timeout', lambda_config['timeout']),
+                        MemorySize=function_config.get('memory', lambda_config['memory']),
                         Handler=function_config['handler'],
                         Description=function_config['description'],
                         Environment={
@@ -222,7 +249,8 @@ def lambda_handler(event, context):
                                 'S3_BUCKET_HISTORICAL': resources.get('s3_buckets', {}).get('historical', ''),
                                 'DB_S3_KEY': 'database/spendsense.db',
                                 'DYNAMODB_TABLE_METADATA': resources.get('dynamodb_tables', {}).get('insights_metadata', ''),
-                                'DYNAMODB_TABLE_USER_PREFS': resources.get('dynamodb_tables', {}).get('user_preferences', '')
+                                'DYNAMODB_TABLE_USER_PREFS': resources.get('dynamodb_tables', {}).get('user_preferences', ''),
+                                'CORS_ORIGINS': os.environ.get('CORS_ORIGINS', '*')  # Allow all origins for Lambda, or specify
                                 # Note: AWS_REGION is automatically available in Lambda runtime, don't set it
                             }
                         }
@@ -250,8 +278,8 @@ def lambda_handler(event, context):
                 Handler=function_config['handler'],
                 Code={'ZipFile': zip_content},
                 Description=function_config['description'],
-                Timeout=lambda_config['timeout'],
-                MemorySize=lambda_config['memory'],
+                Timeout=function_config.get('timeout', lambda_config['timeout']),
+                MemorySize=function_config.get('memory', lambda_config['memory']),
                 Environment={
                     'Variables': {
                         'DB_PATH': '/tmp/spendsense.db',  # Lambda temp directory

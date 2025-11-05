@@ -135,3 +135,4 @@ class ConsentManager:
             )
         return True
 
+

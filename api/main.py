@@ -1,5 +1,6 @@
 """FastAPI application for SpendSense."""
 
+import os
 from fastapi import FastAPI, HTTPException, Query, Body, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -14,9 +15,11 @@ from api.websocket import manager
 app = FastAPI(title="SpendSense API", version="1.0.0")
 
 # CORS middleware
+# Allow origins from environment variable for Lambda, fallback to localhost for local dev
+allowed_origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -123,6 +126,68 @@ def get_correlation_analysis(
             user_id=user_id,
             method=method,
             min_correlation=min_correlation
+        )
+        return results
+    finally:
+        session.close()
+
+
+@app.get("/api/spending-patterns/{user_id}/day-of-week")
+def get_day_of_week_spending(
+    user_id: str,
+    window_days: int = Query(180, description="Analysis window in days")
+):
+    """Get spending patterns by day of week using correlation analysis.
+    
+    Args:
+        user_id: User ID
+        window_days: Number of days to analyze
+    
+    Returns:
+        Day-of-week spending patterns and insights
+    """
+    from features.spending_patterns import SpendingPatternAnalyzer
+    from datetime import datetime, timedelta
+    
+    session = get_session()
+    try:
+        analyzer = SpendingPatternAnalyzer(session)
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=window_days)
+        results = analyzer.analyze_day_of_week_spending(user_id, start_date, end_date)
+        return results
+    finally:
+        session.close()
+
+
+@app.get("/api/spending-patterns/{user_id}/frequent-locations")
+def get_frequent_locations(
+    user_id: str,
+    window_days: int = Query(180, description="Analysis window in days"),
+    min_occurrences: int = Query(3, description="Minimum visits to be considered frequent"),
+    min_total_spend: float = Query(50.0, description="Minimum total spending at location")
+):
+    """Get frequent purchase locations (merchants) beyond subscriptions.
+    
+    Args:
+        user_id: User ID
+        window_days: Number of days to analyze
+        min_occurrences: Minimum number of visits
+        min_total_spend: Minimum total spending
+    
+    Returns:
+        Frequent merchant patterns and insights
+    """
+    from features.spending_patterns import SpendingPatternAnalyzer
+    from datetime import datetime, timedelta
+    
+    session = get_session()
+    try:
+        analyzer = SpendingPatternAnalyzer(session)
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=window_days)
+        results = analyzer.detect_frequent_purchase_locations(
+            user_id, start_date, end_date, window_days, min_occurrences, min_total_spend
         )
         return results
     finally:
@@ -727,6 +792,105 @@ def get_all_personas(
         session.close()
 
 
+# More specific routes must come BEFORE the general route to avoid route conflicts
+@app.post("/api/recommendations/generate/{user_id}")
+def generate_persona_recommendations(
+    user_id: str,
+    window_days: int = Query(180, description="Time window for feature computation (default 180)"),
+    num_recommendations: int = Query(8, description="Number of recommendations to generate (default 8)")
+):
+    """Generate persona-based recommendations for a user and store them in the database.
+    
+    Args:
+        user_id: User ID
+        window_days: Time window for feature computation (30 or 180)
+        num_recommendations: Number of recommendations to generate
+    
+    Returns:
+        Dictionary with generated recommendations count
+    """
+    from recommend.persona_recommendation_generator import PersonaRecommendationGenerator
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if window_days not in [30, 180]:
+            raise HTTPException(status_code=400, detail="window_days must be 30 or 180")
+        
+        generator = PersonaRecommendationGenerator(session)
+        try:
+            recommendations = generator.generate_and_store_recommendations(
+                user_id,
+                window_days,
+                num_recommendations
+            )
+            return {
+                "user_id": user_id,
+                "generated_count": len(recommendations),
+                "recommendations": recommendations,
+                "message": f"Generated {len(recommendations)} recommendations (pending admin approval)"
+            }
+        finally:
+            generator.close()
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error generating recommendations: {error_details}")
+        raise HTTPException(status_code=500, detail=f"Error generating recommendations: {str(e)}")
+    finally:
+        session.close()
+
+
+@app.get("/api/recommendations/{user_id}/approved")
+def get_approved_recommendations(user_id: str):
+    """Get approved recommendations for a user.
+    
+    Args:
+        user_id: User ID
+    
+    Returns:
+        List of approved recommendations
+    """
+    from ingest.schema import Recommendation
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        recommendations = session.query(Recommendation).filter(
+            Recommendation.user_id == user_id,
+            Recommendation.approved == True
+        ).order_by(Recommendation.created_at.desc()).all()
+        
+        result = []
+        for rec in recommendations:
+            rec_dict = {
+                "id": rec.id,
+                "title": rec.title,
+                "recommendation_text": rec.description,
+                "action_items": rec.action_items if hasattr(rec, 'action_items') and rec.action_items else [],
+                "expected_impact": rec.expected_impact if hasattr(rec, 'expected_impact') else None,
+                "priority": rec.priority if hasattr(rec, 'priority') else None,
+                "type": "actionable_recommendation",
+                "persona_id": rec.persona_id,
+                "created_at": rec.created_at.isoformat() if rec.created_at else None
+            }
+            result.append(rec_dict)
+        
+        return {
+            "user_id": user_id,
+            "recommendations": result,
+            "total": len(result)
+        }
+    finally:
+        session.close()
+
+
 @app.get("/api/recommendations/{user_id}")
 def get_recommendations(
     user_id: str,
@@ -1017,11 +1181,17 @@ def get_recommendation_queue(
         query = session.query(Recommendation).join(User)
         
         if status == "pending":
-            query = query.filter(Recommendation.approved == False, Recommendation.flagged == False)
+            query = query.filter(
+                Recommendation.approved == False,
+                Recommendation.flagged == False,
+                Recommendation.rejected == False
+            )
         elif status == "approved":
             query = query.filter(Recommendation.approved == True)
         elif status == "flagged":
             query = query.filter(Recommendation.flagged == True)
+        elif status == "rejected":
+            query = query.filter(Recommendation.rejected == True)
         # "all" doesn't filter
         
         query = query.order_by(Recommendation.created_at.desc()).limit(limit)
@@ -1055,66 +1225,37 @@ def get_recommendation_queue(
                 except Exception:
                     pass
             
-            result.append({
+            rec_dict = {
                 "id": rec.id,
                 "user_id": rec.user_id,
                 "user_name": rec.user.name,
                 "user_email": rec.user.email,
-                "recommendation_type": rec.recommendation_type,
                 "title": rec.title,
                 "description": rec.description,
                 "rationale": rec.rationale,
-                "content_id": rec.content_id,
+                "recommendation_type": rec.recommendation_type,
                 "persona_id": rec.persona_id,
-                "persona_name": persona_name,  # Human-readable persona name
-                "persona_info": persona_data,
+                "persona_name": persona_name,
+                "content_id": rec.content_id,
+                "action_items": rec.action_items if hasattr(rec, 'action_items') and rec.action_items else [],
+                "expected_impact": rec.expected_impact if hasattr(rec, 'expected_impact') else None,
+                "priority": rec.priority if hasattr(rec, 'priority') else None,
                 "approved": rec.approved,
                 "approved_at": rec.approved_at.isoformat() if rec.approved_at else None,
                 "flagged": rec.flagged,
+                "rejected": rec.rejected if hasattr(rec, 'rejected') else False,
+                "rejected_at": rec.rejected_at.isoformat() if hasattr(rec, 'rejected_at') and rec.rejected_at else None,
                 "created_at": rec.created_at.isoformat() if rec.created_at else None,
-                "updated_at": rec.updated_at.isoformat() if rec.updated_at else None
-            })
+                "updated_at": rec.updated_at.isoformat() if rec.updated_at else None,
+                "persona_data": persona_data
+            }
+            
+            result.append(rec_dict)
         
         return {
             "recommendations": result,
             "total": len(result),
             "status": status
-        }
-    finally:
-        session.close()
-
-
-@app.put("/api/operator/recommendations/{recommendation_id}/approve")
-def approve_recommendation(recommendation_id: str):
-    """Approve a recommendation.
-    
-    Args:
-        recommendation_id: Recommendation ID
-    
-    Returns:
-        Updated recommendation
-    """
-    from ingest.schema import Recommendation
-    from datetime import datetime
-    
-    session = get_session()
-    try:
-        recommendation = session.query(Recommendation).filter(Recommendation.id == recommendation_id).first()
-        if not recommendation:
-            raise HTTPException(status_code=404, detail="Recommendation not found")
-        
-        recommendation.approved = True
-        recommendation.approved_at = datetime.utcnow()
-        recommendation.flagged = False
-        recommendation.updated_at = datetime.utcnow()
-        
-        session.commit()
-        
-        return {
-            "id": recommendation.id,
-            "approved": recommendation.approved,
-            "approved_at": recommendation.approved_at.isoformat(),
-            "message": "Recommendation approved"
         }
     finally:
         session.close()
@@ -1141,6 +1282,7 @@ def flag_recommendation(recommendation_id: str):
         
         recommendation.flagged = True
         recommendation.approved = False
+        recommendation.rejected = False
         recommendation.updated_at = datetime.utcnow()
         
         session.commit()
@@ -1149,6 +1291,43 @@ def flag_recommendation(recommendation_id: str):
             "id": recommendation.id,
             "flagged": recommendation.flagged,
             "message": "Recommendation flagged for review"
+        }
+    finally:
+        session.close()
+
+
+@app.put("/api/operator/recommendations/{recommendation_id}/reject")
+def reject_recommendation(recommendation_id: str):
+    """Reject a recommendation.
+    
+    Args:
+        recommendation_id: Recommendation ID
+    
+    Returns:
+        Updated recommendation
+    """
+    from ingest.schema import Recommendation
+    from datetime import datetime
+    
+    session = get_session()
+    try:
+        recommendation = session.query(Recommendation).filter(Recommendation.id == recommendation_id).first()
+        if not recommendation:
+            raise HTTPException(status_code=404, detail="Recommendation not found")
+        
+        recommendation.rejected = True
+        recommendation.rejected_at = datetime.utcnow()
+        recommendation.approved = False
+        recommendation.flagged = False
+        recommendation.updated_at = datetime.utcnow()
+        
+        session.commit()
+        
+        return {
+            "id": recommendation.id,
+            "rejected": recommendation.rejected,
+            "rejected_at": recommendation.rejected_at.isoformat(),
+            "message": "Recommendation rejected"
         }
     finally:
         session.close()

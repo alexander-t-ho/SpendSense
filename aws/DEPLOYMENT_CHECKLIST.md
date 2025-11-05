@@ -101,3 +101,4 @@ curl "$API_URL/insights/{user_id}/weekly-recap"
 - Run `update_lambda_integrations.py` after Lambda deployment
 - Check API Gateway stage is deployed
 
+
