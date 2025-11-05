@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Users, DollarSign, CreditCard, TrendingUp, CheckCircle, FileText, BarChart3, Target } from 'lucide-react'
 import { fetchUsers, fetchStats } from '../../services/api'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import RecommendationQueue from '../../components/operator/RecommendationQueue'
 import SignalReview from '../../components/operator/SignalReview'
 import DecisionTraceViewer from '../../components/operator/DecisionTraceViewer'
 import EvaluationMetrics from '../../components/EvaluationMetrics'
+import UserSearch from '../../components/operator/UserSearch'
 
 /**
  * Operator Dashboard - Admin view
@@ -14,11 +15,28 @@ import EvaluationMetrics from '../../components/EvaluationMetrics'
  * Includes recommendation approval queue, signal review, and decision trace viewer
  */
 export default function OperatorDashboard() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<'overview' | 'recommendations' | 'signals' | 'traces' | 'evaluation'>('overview')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedUserId, setSelectedUserId] = useState<string>('')
+  
   const { data: users, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ['users'],
     queryFn: fetchUsers,
   })
+
+  // Filter users for Overview tab
+  const filteredUsers = useMemo(() => {
+    if (!users) return []
+    if (!searchQuery.trim()) return users
+    
+    const query = searchQuery.toLowerCase()
+    return users.filter(
+      (user: any) =>
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
+    )
+  }, [users, searchQuery])
 
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
     queryKey: ['stats'],
@@ -47,9 +65,27 @@ export default function OperatorDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Operator Dashboard</h1>
-        <p className="mt-2 text-gray-600">System overview and user management</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Operator Dashboard</h1>
+          <p className="mt-2 text-gray-600">System overview and user management</p>
+        </div>
+        
+        {/* User Search - Visible on all tabs */}
+        <div className="w-80">
+          <UserSearch
+            users={users || []}
+            selectedUserId={selectedUserId}
+            onSelectUser={(userId) => {
+              setSelectedUserId(userId)
+              // If user is selected, navigate to their detail page
+              if (userId) {
+                navigate(`/user/${userId}`)
+              }
+            }}
+            placeholder="Search users across all tabs..."
+          />
+        </div>
       </div>
 
       {/* Tab Navigation */}
@@ -148,10 +184,24 @@ export default function OperatorDashboard() {
       {/* Users Table */}
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            All Users {users && `(${users.length})`}
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">Click on any user to view their details and manage their account</p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                All Users {users && `(${users.length})`}
+                {searchQuery && filteredUsers && ` - Showing ${filteredUsers.length} results`}
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">Click on any user to view their details and manage their account</p>
+            </div>
+            <div className="w-80">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search users by name or email..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
         </div>
         {!users || users.length === 0 ? (
           <div className="px-6 py-12 text-center text-gray-500">
@@ -181,7 +231,7 @@ export default function OperatorDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user: any) => (
+                {filteredUsers.map((user: any) => (
                   <tr key={user.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {user.name}

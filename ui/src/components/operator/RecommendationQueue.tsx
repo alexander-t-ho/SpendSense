@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle, Flag, AlertCircle } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   fetchRecommendationQueue,
   approveRecommendation,
@@ -8,15 +8,65 @@ import {
   rejectRecommendation,
   OperatorRecommendation,
 } from '../../services/operatorApi'
+import { fetchUsers } from '../../services/api'
+import UserSearch from './UserSearch'
+import { RecommendationWebSocket, RecommendationUpdate } from '../../services/recommendationWebSocket'
 
 export default function RecommendationQueue() {
   const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'flagged' | 'rejected' | 'all'>('pending')
+  const [selectedUserId, setSelectedUserId] = useState<string>('')
   const queryClient = useQueryClient()
+  const wsRef = useRef<RecommendationWebSocket | null>(null)
+
+  const { data: users } = useQuery({
+    queryKey: ['users'],
+    queryFn: fetchUsers,
+  })
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['operator-recommendations', statusFilter],
-    queryFn: () => fetchRecommendationQueue(statusFilter),
+    queryKey: ['operator-recommendations', statusFilter, selectedUserId],
+    queryFn: () => fetchRecommendationQueue(statusFilter, selectedUserId || undefined),
   })
+
+  // Set up WebSocket for real-time updates
+  useEffect(() => {
+    const handleUpdate = (update: RecommendationUpdate) => {
+      console.log('Real-time recommendation update received:', update)
+      
+      // Remove the recommendation from the current query cache if it's in pending status
+      // and the action would move it out of pending
+      if (statusFilter === 'pending' && 
+          (update.action === 'approved' || update.action === 'rejected' || update.action === 'flagged')) {
+        queryClient.setQueryData(
+          ['operator-recommendations', statusFilter, selectedUserId],
+          (oldData: any) => {
+            if (!oldData) return oldData
+            return {
+              ...oldData,
+              recommendations: oldData.recommendations.filter(
+                (rec: OperatorRecommendation) => rec.id !== update.recommendation_id
+              ),
+              total: oldData.recommendations.filter(
+                (rec: OperatorRecommendation) => rec.id !== update.recommendation_id
+              ).length,
+            }
+          }
+        )
+      } else {
+        // For other statuses, invalidate the query to refetch
+        queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+      }
+    }
+
+    wsRef.current = new RecommendationWebSocket(handleUpdate)
+    wsRef.current.connect()
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.disconnect()
+      }
+    }
+  }, [statusFilter, selectedUserId, queryClient])
 
   const approveMutation = useMutation({
     mutationFn: approveRecommendation,
@@ -60,14 +110,31 @@ export default function RecommendationQueue() {
   return (
     <div className="bg-white shadow rounded-lg">
       <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Recommendation Queue</h2>
             <p className="text-sm text-gray-600 mt-1">
               Review and approve or flag recommendations before they're shown to users
             </p>
           </div>
-          <div className="flex gap-2">
+        </div>
+        
+        {/* User Search */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Filter by User (Optional)
+          </label>
+          <UserSearch
+            users={users || []}
+            selectedUserId={selectedUserId}
+            onSelectUser={setSelectedUserId}
+            placeholder="Search for a user to filter recommendations..."
+            className="max-w-md"
+          />
+        </div>
+
+        {/* Status Filters */}
+        <div className="flex gap-2">
             <button
               onClick={() => setStatusFilter('pending')}
               className={`px-4 py-2 text-sm rounded-md ${
@@ -120,7 +187,6 @@ export default function RecommendationQueue() {
             </button>
           </div>
         </div>
-      </div>
 
       {recommendations.length === 0 ? (
         <div className="px-6 py-12 text-center text-gray-500">
