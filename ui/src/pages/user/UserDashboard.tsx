@@ -10,7 +10,7 @@ import SuggestedBudgetCard from '../../components/SuggestedBudgetCard'
 import BudgetTrackingCard from '../../components/BudgetTrackingCard'
 import NetWorthRecapCard from '../../components/NetWorthRecapCard'
 import RecommendationsSection from '../../components/RecommendationsSection'
-import PersonaPieChart from '../../components/PersonaPieChart'
+// PersonaPieChart hidden from user view
 import { useState } from 'react'
 
 /**
@@ -119,6 +119,13 @@ export default function UserDashboard() {
         )}
       </div>
 
+      {/* Suggested Budget - Right below transactions */}
+      {userId && (
+        <div className="mt-6">
+          <SuggestedBudgetCard userId={userId} lookbackMonths={6} />
+        </div>
+      )}
+
       {/* Features Section - HIDDEN */}
       {false && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -152,11 +159,6 @@ export default function UserDashboard() {
           <SpendingAnalysisCard userId={userId} months={6} />
         )}
 
-        {/* Suggested Budget */}
-        {userId && (
-          <SuggestedBudgetCard userId={userId} lookbackMonths={6} />
-        )}
-
         {/* Budget Tracking */}
         {userId && (
           <BudgetTrackingCard userId={userId} />
@@ -168,112 +170,11 @@ export default function UserDashboard() {
         )}
       </div>
 
-      {/* Persona & Risk Analysis */}
-      {user.persona && user.persona.all_matching_personas && user.persona.all_matching_personas.length > 0 && (
+      {/* Persona & Risk Analysis - HIDDEN FROM USER VIEW */}
+      {false && user.persona && user.persona.all_matching_personas && user.persona.all_matching_personas.length > 0 && (
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Financial Profile</h2>
-          
-          {/* Risk Summary */}
-          {user.persona.risk_level && (
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Overall Risk Level</p>
-                  <p className={`text-2xl font-bold mt-1 ${
-                    user.persona.risk_level === 'CRITICAL' || user.persona.risk_level === 'HIGH'
-                      ? 'text-red-600'
-                      : user.persona.risk_level === 'MEDIUM'
-                      ? 'text-yellow-600'
-                      : 'text-green-600'
-                  }`}>
-                    {user.persona.risk_level}
-                  </p>
-                </div>
-                {user.persona.total_risk_points !== undefined && (
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">Risk Points</p>
-                    <p className="text-2xl font-bold mt-1 text-gray-900">
-                      {user.persona.total_risk_points.toFixed(2)}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Persona Pie Chart */}
-          <div className="mb-6">
-            <PersonaPieChart 
-              personas={user.persona.all_matching_personas} 
-              totalRiskPoints={user.persona.total_risk_points || 0}
-            />
-          </div>
-
-          {/* Persona Breakdown Table */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Persona Breakdown</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Persona
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Matched Criteria
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Points/Criterion
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Points
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contribution
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {user.persona.all_matching_personas.map((persona: any, idx: number) => (
-                    <tr key={idx} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{persona.persona_name}</div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {persona.matched_criteria}/{persona.total_criteria}
-                        </div>
-                        {persona.matched_reasons && persona.matched_reasons.length > 0 && (
-                          <details className="mt-1">
-                            <summary className="text-xs text-blue-600 cursor-pointer hover:text-blue-800">
-                              View criteria
-                            </summary>
-                            <ul className="mt-2 ml-4 space-y-1 text-xs text-gray-600">
-                              {persona.matched_reasons.map((reason: string, reasonIdx: number) => (
-                                <li key={reasonIdx} className="flex items-start">
-                                  <span className="text-green-500 mr-1 mt-0.5">✓</span>
-                                  <span>{reason}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </details>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {persona.points_per_criterion}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {persona.total_points?.toFixed(2) || '0.00'}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {persona.percentage || 0}%
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {/* ... persona analysis content hidden ... */}
         </div>
       )}
 

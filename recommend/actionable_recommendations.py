@@ -327,6 +327,40 @@ ACTIONABLE_RECOMMENDATIONS = [
         target_signals=["balanced_stable", "good_utilization", "consistent_savings"],
         data_points_needed=["utilization_below_30", "monthly_savings"]
     ),
+    
+    # Spending Pattern Recommendations (Universal - applies to all personas)
+    ActionableRecommendation(
+        id="reduce_frequent_merchant_spending",
+        persona_id="universal",  # Applies to all personas
+        priority=RecommendationPriority.MEDIUM,
+        title="Reduce Spending at {merchant_name}",
+        template="We noticed you spend ${total_spending:,.0f} at {merchant_name}, visiting {visits_per_week:.1f} times per week (average ${avg_spending_per_visit:,.2f} per visit). This adds up to ${monthly_spending:,.0f}/month and ${annual_spending:,.0f}/year.",
+        action_items=[
+            "Option 1: Reduce frequency to {reduced_frequency:.1f} times per week - Save ${monthly_savings_reduce:,.0f}/month (${annual_savings_reduce:,.0f}/year)",
+            "Option 2: Switch to {alternative_merchant} - Save ${savings_per_visit:,.2f} per visit (${monthly_savings_switch:,.0f}/month, ${annual_savings_switch:,.0f}/year)",
+            "Option 3: Make at home - Save ${monthly_savings_home:,.0f}/month (${annual_savings_home:,.0f}/year)",
+            "Choose the option that fits your lifestyle and approve your plan"
+        ],
+        expected_impact="Save ${max_annual_savings:,.0f}/year by choosing the best option for you",
+        target_signals=["frequent_merchant_spending", "high_category_spending"],
+        data_points_needed=["merchant_name", "total_spending", "visits_per_week", "avg_spending_per_visit", "monthly_spending", "annual_spending", "reduced_frequency", "monthly_savings_reduce", "annual_savings_reduce", "alternative_merchant", "savings_per_visit", "monthly_savings_switch", "annual_savings_switch", "monthly_savings_home", "annual_savings_home", "max_annual_savings"]
+    ),
+    ActionableRecommendation(
+        id="reduce_category_spending",
+        persona_id="universal",  # Applies to all personas
+        priority=RecommendationPriority.MEDIUM,
+        title="Reduce Spending in {category} Category",
+        template="We noticed you spend ${category_monthly_spending:,.0f}/month (${category_annual_spending:,.0f}/year) on {category}. This is {percentage_of_income:.1f}% of your monthly income. Here are ways to reduce this spending:",
+        action_items=[
+            "Option 1: Reduce {category} frequency by 25% - Save ${monthly_savings_reduce:,.0f}/month (${annual_savings_reduce:,.0f}/year)",
+            "Option 2: Find cheaper alternatives in {category} - Save ${monthly_savings_alternative:,.0f}/month (${annual_savings_alternative:,.0f}/year)",
+            "Option 3: Set a monthly budget of ${budget_amount:,.0f} for {category} - Save ${monthly_savings_budget:,.0f}/month (${annual_savings_budget:,.0f}/year)",
+            "Choose the option that fits your lifestyle and approve your plan"
+        ],
+        expected_impact="Save ${max_annual_savings:,.0f}/year by choosing the best option for you",
+        target_signals=["high_category_spending", "category_spending_above_threshold"],
+        data_points_needed=["category", "category_monthly_spending", "category_annual_spending", "percentage_of_income", "monthly_savings_reduce", "annual_savings_reduce", "monthly_savings_alternative", "annual_savings_alternative", "budget_amount", "monthly_savings_budget", "annual_savings_budget", "max_annual_savings"]
+    ),
 ]
 
 

@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
-import { X, CheckCircle2 } from 'lucide-react'
+import { X, CheckCircle2, CheckCircle, Calendar } from 'lucide-react'
 import { SubscriptionWebSocket, SubscriptionCancellationUpdate } from '../services/subscriptionWebSocket'
 
 interface Subscription {
@@ -323,6 +323,24 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
         </div>
       )}
 
+      {/* Action Plan Approval Section */}
+      {recommendation.action_items && recommendation.action_items.length > 0 && 
+       (recommendation.content_id === 'reduce_utilization_specific_card' || 
+        recommendation.content_id === 'stop_minimum_payments' ||
+        recommendation.content_id === 'build_emergency_fund' ||
+        recommendation.content_id?.startsWith('reduce_frequent_merchant_spending') ||
+        recommendation.content_id?.startsWith('reduce_category_spending') ||
+        recommendation.title.toLowerCase().includes('payment plan') ||
+        recommendation.title.toLowerCase().includes('savings plan') ||
+        recommendation.title.toLowerCase().includes('reduce spending')) && (
+        <ActionPlanApproval 
+          recommendationId={recommendation.id}
+          userId={userId}
+          actionItems={recommendation.action_items}
+          recommendationTitle={recommendation.title}
+        />
+      )}
+
       {/* Expected Impact */}
       {recommendation.expected_impact && (
         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -336,6 +354,201 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
         <p className="text-xs text-gray-500 italic">
           This is educational content, not financial advice. Consult a licensed advisor for personalized guidance.
         </p>
+      </div>
+    </div>
+  )
+}
+
+// Action Plan Approval Component
+interface ActionPlanApprovalProps {
+  recommendationId: string
+  userId: string
+  actionItems: string[]
+  recommendationTitle: string
+}
+
+function ActionPlanApproval({ recommendationId, userId, actionItems, recommendationTitle }: ActionPlanApprovalProps) {
+  const queryClient = useQueryClient()
+  
+  // Check if plan is already approved
+  const { data: approvedPlan, isLoading: isLoadingPlan } = useQuery({
+    queryKey: ['approved-action-plan', userId, recommendationId],
+    queryFn: async () => {
+      const response = await fetch(`/api/user/${userId}/action-plans/${recommendationId}`)
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null
+        }
+        throw new Error('Failed to fetch approved plan')
+      }
+      return response.json()
+    },
+    enabled: !!userId && !!recommendationId,
+    retry: false,
+  })
+
+  // Approve plan mutation
+  const approveMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/user/${userId}/action-plans/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ recommendation_id: recommendationId }),
+      })
+      if (!response.ok) {
+        throw new Error('Failed to approve action plan')
+      }
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['approved-action-plan', userId, recommendationId] })
+    },
+  })
+
+  // Cancel plan mutation
+  const cancelMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/user/${userId}/action-plans/${recommendationId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      if (!response.ok) {
+        throw new Error('Failed to cancel action plan')
+      }
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['approved-action-plan', userId, recommendationId] })
+    },
+  })
+
+  if (isLoadingPlan) {
+    return (
+      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+        <p className="text-sm text-gray-500">Loading plan status...</p>
+      </div>
+    )
+  }
+
+  if (approvedPlan) {
+    return (
+      <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div className="flex items-start gap-3">
+          <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <h4 className="text-sm font-semibold text-green-900 mb-2">Action Plan Approved ✓</h4>
+            <p className="text-xs text-green-700 mb-3">
+              You've committed to this plan. Track your progress and stay on target!
+            </p>
+            <div className="space-y-2 mb-3">
+              <p className="text-xs font-semibold text-green-900">Your Plan:</p>
+              <ul className="space-y-1">
+                {actionItems.map((item, idx) => (
+                  <li key={idx} className="text-xs text-green-800 flex items-start">
+                    <span className="text-green-600 mr-2 mt-0.5">•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <button
+              onClick={() => cancelMutation.mutate()}
+              disabled={cancelMutation.isPending}
+              className="text-xs text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+            >
+              Cancel Plan
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Check if this is a spending pattern recommendation with multiple options
+  const isSpendingPattern = actionItems.some(item => item.toLowerCase().startsWith('option 1'))
+  
+  return (
+    <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+      <div className="flex items-start gap-3 mb-3">
+        <Calendar className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+        <div className="flex-1">
+          <h4 className="text-sm font-semibold text-gray-900 mb-2">
+            {isSpendingPattern ? 'Choose Your Savings Plan' : 'Action Plan'}
+          </h4>
+          <p className="text-xs text-gray-600 mb-3">
+            {isSpendingPattern 
+              ? 'Review the options below and choose the one that best fits your lifestyle:'
+              : 'Review the plan below and approve it to start tracking your progress:'}
+          </p>
+          <div className="space-y-2 mb-4">
+            {isSpendingPattern ? (
+              // Display options as selectable cards
+              <div className="space-y-3">
+                {actionItems
+                  .filter(item => item.toLowerCase().startsWith('option'))
+                  .map((item, idx) => {
+                    // Extract option number and savings info
+                    const optionMatch = item.match(/Option (\d+):\s*(.+?)(?:\s*-\s*Save\s+\$([\d,]+)\/(year|month))?/i)
+                    const optionNum = optionMatch ? optionMatch[1] : (idx + 1).toString()
+                    const optionText = optionMatch ? optionMatch[2] : item.replace(/^Option \d+:\s*/i, '')
+                    const savingsAmount = optionMatch ? optionMatch[3] : null
+                    const savingsPeriod = optionMatch ? optionMatch[4] : null
+                    
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3 bg-white border-2 border-gray-200 rounded-lg hover:border-blue-400 transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-bold text-blue-600">Option {optionNum}</span>
+                              {savingsAmount && (
+                                <span className="text-xs font-semibold text-green-600">
+                                  Save ${parseFloat(savingsAmount.replace(/,/g, '')).toLocaleString()}/{savingsPeriod}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-700">{optionText}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                {actionItems.find(item => item.toLowerCase().includes('choose the option')) && (
+                  <p className="text-xs text-gray-500 italic mt-2">
+                    {actionItems.find(item => item.toLowerCase().includes('choose the option'))}
+                  </p>
+                )}
+              </div>
+            ) : (
+              // Display regular action items as list
+              <ul className="space-y-2">
+                {actionItems.map((item, idx) => (
+                  <li key={idx} className="text-xs text-gray-700 flex items-start">
+                    <span className="text-blue-600 mr-2 mt-0.5 font-bold">•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <button
+            onClick={() => approveMutation.mutate()}
+            disabled={approveMutation.isPending}
+            className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {approveMutation.isPending 
+              ? 'Approving...' 
+              : isSpendingPattern 
+                ? '✓ Approve & Start This Savings Plan' 
+                : '✓ Approve & Start This Plan'}
+          </button>
+        </div>
       </div>
     </div>
   )

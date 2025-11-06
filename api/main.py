@@ -6,9 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
 from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from ingest.schema import get_session, User, Account, Transaction, Liability, CancelledSubscription
+from ingest.schema import get_session, User, Account, Transaction, Liability, CancelledSubscription, ApprovedActionPlan, Recommendation
 from features.pipeline import FeaturePipeline
 from api.websocket import manager
 
@@ -538,6 +538,67 @@ def get_suggested_budget(
         calculator = BudgetCalculator(session)
         budget = calculator.suggest_budget(user_id, month_date, lookback_months)
         
+        # Calculate budget constraints
+        # Min: Minimum spending over last 3 months
+        # Max: Available funds (income or account balance)
+        from datetime import timedelta
+        from ingest.schema import Account, Transaction
+        from sqlalchemy import and_
+        
+        # Get last 3 months of spending
+        three_months_ago = datetime.now() - timedelta(days=90)
+        accounts = session.query(Account).filter(Account.user_id == user_id).all()
+        account_ids = [acc.id for acc in accounts]
+        
+        min_spending = 0.0
+        max_budget = 0.0
+        
+        if account_ids:
+            # Get monthly spending for last 3 months
+            monthly_spending = []
+            for i in range(3):
+                month_start = (datetime.now() - timedelta(days=30 * (i + 1))).replace(day=1)
+                if month_start.month == 12:
+                    month_end = month_start.replace(year=month_start.year + 1, month=1, day=1) - timedelta(days=1)
+                else:
+                    month_end = month_start.replace(month=month_start.month + 1, day=1) - timedelta(days=1)
+                
+                transactions = session.query(Transaction).filter(
+                    and_(
+                        Transaction.account_id.in_(account_ids),
+                        Transaction.date >= month_start,
+                        Transaction.date <= month_end,
+                        Transaction.amount < 0  # Only expenses
+                    )
+                ).all()
+                
+                month_total = sum(abs(tx.amount) for tx in transactions)
+                monthly_spending.append(month_total)
+            
+            # Minimum spending is the lowest month
+            min_spending = min(monthly_spending) if monthly_spending else 0.0
+            
+            # Calculate max budget: available funds (income or account balance)
+            # Get average monthly income
+            from features.income import IncomeAnalyzer
+            income_analyzer = IncomeAnalyzer(session)
+            income_features = income_analyzer.calculate_income_metrics(
+                user_id, 
+                datetime.now() - timedelta(days=180),
+                datetime.now()
+            )
+            avg_monthly_income = income_features.get('average_monthly_income', 0.0)
+            if avg_monthly_income == 0.0:
+                # Fallback: use minimum monthly income
+                avg_monthly_income = income_features.get('minimum_monthly_income', 0.0)
+            
+            # Max budget is 95% of monthly income (leave some buffer)
+            max_budget = avg_monthly_income * 0.95 if avg_monthly_income > 0 else budget.get('total_budget', 0.0) * 1.5
+        
+        # Add constraints to budget response
+        budget['min_budget'] = min_spending
+        budget['max_budget'] = max_budget
+        
         return budget
     finally:
         session.close()
@@ -609,6 +670,86 @@ def get_budget_history(
         
         history.reverse()  # Oldest first
         return {"history": history}
+    finally:
+        session.close()
+
+
+@app.post("/api/insights/{user_id}/budget")
+def set_user_budget(
+    user_id: str,
+    amount: float = Body(...),
+    month: str = Body(...)
+):
+    """Set a user's monthly budget.
+    
+    Args:
+        user_id: User ID
+        amount: Budget amount
+        month: Month in YYYY-MM format
+    
+    Returns:
+        Confirmation of saved budget
+    """
+    from ingest.schema import Budget
+    from datetime import datetime
+    import uuid
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Parse month
+        try:
+            month_date = datetime.strptime(month, "%Y-%m")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid month format. Use YYYY-MM")
+        
+        # Calculate period start and end
+        period_start = month_date.replace(day=1)
+        if month_date.month == 12:
+            period_end = month_date.replace(year=month_date.year + 1, month=1, day=1) - timedelta(days=1)
+        else:
+            period_end = month_date.replace(month=month_date.month + 1, day=1) - timedelta(days=1)
+        
+        # Check if budget already exists for this month
+        existing_budget = session.query(Budget).filter(
+            and_(
+                Budget.user_id == user_id,
+                Budget.category.is_(None),  # Overall budget
+                Budget.period_start == period_start,
+                Budget.period_end == period_end
+            )
+        ).first()
+        
+        if existing_budget:
+            # Update existing budget
+            existing_budget.amount = amount
+            existing_budget.updated_at = datetime.now()
+        else:
+            # Create new budget
+            budget = Budget(
+                id=str(uuid.uuid4()),
+                user_id=user_id,
+                category=None,  # Overall budget
+                amount=amount,
+                period_start=period_start,
+                period_end=period_end,
+                is_suggested=False,  # User-defined
+                created_at=datetime.now(),
+                updated_at=datetime.now()
+            )
+            session.add(budget)
+        
+        session.commit()
+        
+        return {
+            "user_id": user_id,
+            "month": month,
+            "amount": amount,
+            "message": "Budget saved successfully"
+        }
     finally:
         session.close()
 
@@ -1036,6 +1177,170 @@ async def uncancel_subscription(user_id: str, request: Dict[str, Any] = Body(...
             "merchant_name": merchant_name,
             "cancelled": False,
             "message": "Subscription uncancelled successfully"
+        }
+    finally:
+        session.close()
+
+
+@app.get("/api/user/{user_id}/action-plans/{recommendation_id}")
+def get_approved_action_plan(user_id: str, recommendation_id: str):
+    """Get approved action plan for a recommendation.
+    
+    Args:
+        user_id: User ID
+        recommendation_id: Recommendation ID
+    
+    Returns:
+        Approved action plan data or 404 if not approved
+    """
+    from sqlalchemy import and_
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        approved_plan = session.query(ApprovedActionPlan).filter(
+            and_(
+                ApprovedActionPlan.user_id == user_id,
+                ApprovedActionPlan.recommendation_id == recommendation_id,
+                ApprovedActionPlan.status == 'active'
+            )
+        ).first()
+        
+        if not approved_plan:
+            raise HTTPException(status_code=404, detail="Action plan not approved")
+        
+        return {
+            "id": approved_plan.id,
+            "user_id": approved_plan.user_id,
+            "recommendation_id": approved_plan.recommendation_id,
+            "approved_at": approved_plan.approved_at.isoformat(),
+            "status": approved_plan.status,
+            "created_at": approved_plan.created_at.isoformat()
+        }
+    finally:
+        session.close()
+
+
+@app.post("/api/user/{user_id}/action-plans/approve")
+async def approve_action_plan(user_id: str, request: Dict[str, Any] = Body(...)):
+    """Approve an action plan for a recommendation.
+    
+    Args:
+        user_id: User ID
+        request: Request body containing recommendation_id
+    
+    Returns:
+        Approval confirmation
+    """
+    from datetime import datetime
+    import uuid
+    from sqlalchemy import and_
+    
+    recommendation_id = request.get("recommendation_id")
+    if not recommendation_id:
+        raise HTTPException(status_code=400, detail="recommendation_id is required")
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check if recommendation exists and is approved by admin
+        recommendation = session.query(Recommendation).filter(
+            and_(
+                Recommendation.id == recommendation_id,
+                Recommendation.user_id == user_id,
+                Recommendation.approved == True
+            )
+        ).first()
+        
+        if not recommendation:
+            raise HTTPException(status_code=404, detail="Recommendation not found or not approved")
+        
+        # Check if already approved
+        existing = session.query(ApprovedActionPlan).filter(
+            and_(
+                ApprovedActionPlan.user_id == user_id,
+                ApprovedActionPlan.recommendation_id == recommendation_id,
+                ApprovedActionPlan.status == 'active'
+            )
+        ).first()
+        
+        if existing:
+            return {
+                "user_id": user_id,
+                "recommendation_id": recommendation_id,
+                "approved": True,
+                "approved_at": existing.approved_at.isoformat(),
+                "message": "Action plan already approved"
+            }
+        
+        # Create approval record
+        approved_plan = ApprovedActionPlan(
+            id=str(uuid.uuid4()),
+            user_id=user_id,
+            recommendation_id=recommendation_id,
+            approved_at=datetime.now(),
+            status='active'
+        )
+        session.add(approved_plan)
+        session.commit()
+        
+        return {
+            "user_id": user_id,
+            "recommendation_id": recommendation_id,
+            "approved": True,
+            "approved_at": approved_plan.approved_at.isoformat(),
+            "message": "Action plan approved successfully"
+        }
+    finally:
+        session.close()
+
+
+@app.post("/api/user/{user_id}/action-plans/{recommendation_id}/cancel")
+async def cancel_action_plan(user_id: str, recommendation_id: str):
+    """Cancel an approved action plan.
+    
+    Args:
+        user_id: User ID
+        recommendation_id: Recommendation ID
+    
+    Returns:
+        Cancellation confirmation
+    """
+    from datetime import datetime
+    from sqlalchemy import and_
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        approved_plan = session.query(ApprovedActionPlan).filter(
+            and_(
+                ApprovedActionPlan.user_id == user_id,
+                ApprovedActionPlan.recommendation_id == recommendation_id,
+                ApprovedActionPlan.status == 'active'
+            )
+        ).first()
+        
+        if not approved_plan:
+            raise HTTPException(status_code=404, detail="Active action plan not found")
+        
+        approved_plan.status = 'cancelled'
+        approved_plan.updated_at = datetime.now()
+        session.commit()
+        
+        return {
+            "user_id": user_id,
+            "recommendation_id": recommendation_id,
+            "cancelled": True,
+            "message": "Action plan cancelled successfully"
         }
     finally:
         session.close()

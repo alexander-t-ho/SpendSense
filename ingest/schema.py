@@ -318,6 +318,26 @@ class CancelledSubscription(Base):
         return f"<CancelledSubscription(user_id={self.user_id}, merchant_name={self.merchant_name}, cancelled_at={self.cancelled_at})>"
 
 
+class ApprovedActionPlan(Base):
+    """Track user-approved action plans for recommendations."""
+    __tablename__ = "approved_action_plans"
+    
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    recommendation_id = Column(String, ForeignKey("recommendations.id"), nullable=False, index=True)
+    approved_at = Column(DateTime, default=func.now(), nullable=False)
+    status = Column(String, default='active')  # active, completed, cancelled
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User")
+    recommendation = relationship("Recommendation")
+    
+    def __repr__(self):
+        return f"<ApprovedActionPlan(user_id={self.user_id}, recommendation_id={self.recommendation_id}, status={self.status})>"
+
+
 # Database setup
 def get_engine(db_path: str = "data/spendsense.db"):
     """Get SQLAlchemy engine."""

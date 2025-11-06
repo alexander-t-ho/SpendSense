@@ -156,30 +156,27 @@ class MetricsCalculator:
                 continue
             
             try:
-                from recommend.generator import RecommendationGenerator
-                generator = RecommendationGenerator(self.db, self.db_path)
-                recommendations = generator.generate_recommendations(
-                    user.id,
-                    window_days=180,
-                    num_education=5,
-                    num_offers=3
-                )
-                generator.close()
+                # Get approved recommendations from database
+                from ingest.schema import Recommendation
+                db_recommendations = self.db.query(Recommendation).filter(
+                    Recommendation.user_id == user.id,
+                    Recommendation.approved == True
+                ).all()
                 
-                education_items = recommendations.get('education_items', [])
-                partner_offers = recommendations.get('partner_offers', [])
-                all_recommendations = education_items + partner_offers
+                # Skip users with no approved recommendations for explainability calculation
+                if len(db_recommendations) == 0:
+                    continue
                 
-                for rec in all_recommendations:
+                for rec in db_recommendations:
                     total_recommendations += 1
-                    if rec.get('rationale') and len(rec.get('rationale', '').strip()) > 0:
+                    if rec.rationale and len(rec.rationale.strip()) > 0:
                         recommendations_with_rationales += 1
                 
                 user_details.append({
                     'user_id': user.id,
-                    'total_recommendations': len(all_recommendations),
-                    'with_rationales': sum(1 for r in all_recommendations if r.get('rationale')),
-                    'all_have_rationales': all(r.get('rationale') for r in all_recommendations)
+                    'total_recommendations': len(db_recommendations),
+                    'with_rationales': sum(1 for r in db_recommendations if r.rationale and len(r.rationale.strip()) > 0),
+                    'all_have_rationales': all(r.rationale and len(r.rationale.strip()) > 0 for r in db_recommendations) if db_recommendations else True
                 })
             except Exception as e:
                 # Skip users without consent or with errors
@@ -219,35 +216,42 @@ class MetricsCalculator:
                 persona_assignment = self.persona_assigner.assign_persona(user.id, 180)
                 primary_persona_id = persona_assignment.get('primary_persona')
                 secondary_persona_id = persona_assignment.get('secondary_persona')
+                all_matching_personas = persona_assignment.get('all_matching_personas', [])
                 
-                if not primary_persona_id:
+                # Get all persona IDs that match (including from all_matching_personas)
+                user_persona_ids = set()
+                if primary_persona_id:
+                    user_persona_ids.add(primary_persona_id)
+                if secondary_persona_id:
+                    user_persona_ids.add(secondary_persona_id)
+                for persona_data in all_matching_personas:
+                    persona_id = persona_data.get('persona_id')
+                    if persona_id:
+                        user_persona_ids.add(persona_id)
+                
+                if not user_persona_ids:
                     continue
                 
-                # Get recommendations
-                from recommend.generator import RecommendationGenerator
-                generator = RecommendationGenerator(self.db, self.db_path)
-                recommendations = generator.generate_recommendations(
-                    user.id,
-                    window_days=180,
-                    num_education=5,
-                    num_offers=3
-                )
-                generator.close()
+                # Get approved recommendations from database
+                from ingest.schema import Recommendation
+                db_recommendations = self.db.query(Recommendation).filter(
+                    Recommendation.user_id == user.id,
+                    Recommendation.approved == True
+                ).all()
                 
-                education_items = recommendations.get('education_items', [])
+                # Skip users with no approved recommendations for relevance calculation
+                if len(db_recommendations) == 0:
+                    continue
                 
                 user_relevant = 0
-                user_total = len(education_items)
+                user_total = len(db_recommendations)
                 
-                for item in education_items:
+                for rec in db_recommendations:
                     total_recommendations += 1
-                    target_personas = item.get('target_personas', [])
+                    rec_persona_id = rec.persona_id
                     
-                    # Check if recommendation targets user's persona
-                    is_relevant = (
-                        primary_persona_id in target_personas or
-                        (secondary_persona_id and secondary_persona_id in target_personas)
-                    )
+                    # Check if recommendation's persona_id matches user's persona(s)
+                    is_relevant = rec_persona_id in user_persona_ids if rec_persona_id else False
                     
                     if is_relevant:
                         relevant_recommendations += 1

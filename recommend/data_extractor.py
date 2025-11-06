@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from ingest.schema import get_session, User, Account, Transaction, Liability
 from sqlalchemy.orm import sessionmaker
 from features.pipeline import FeaturePipeline
+from features.spending_patterns import SpendingPatternAnalyzer
 
 
 class RecommendationDataExtractor:
@@ -22,6 +23,7 @@ class RecommendationDataExtractor:
         self.db = db_session
         self.db_path = db_path
         self.feature_pipeline = FeaturePipeline(db_path)
+        self.spending_analyzer = SpendingPatternAnalyzer(db_session)
     
     def extract_credit_card_data(self, user_id: str) -> List[Dict[str, Any]]:
         """Extract detailed credit card data for recommendations.
@@ -718,4 +720,239 @@ class RecommendationDataExtractor:
             'potential_balance_transfer_savings': round(potential_balance_transfer_savings, 2),
             'total_interest_savings_6mo': round(total_interest_savings_6mo, 2)
         }
+    
+    def extract_spending_pattern_data(self, user_id: str, window_days: int = 180) -> List[Dict[str, Any]]:
+        """Extract spending pattern data for frequent merchants.
+        
+        Args:
+            user_id: User ID
+            window_days: Time window for analysis
+        
+        Returns:
+            List of dictionaries with spending pattern data for each frequent merchant
+        """
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=window_days)
+        
+        # Get frequent merchants
+        spending_data = self.spending_analyzer.detect_frequent_purchase_locations(
+            user_id, start_date, end_date, window_days, min_occurrences=3, min_total_spend=50.0
+        )
+        
+        frequent_merchants = spending_data.get('frequent_merchants', [])
+        
+        # Get income for percentage calculations
+        income_features = self.feature_pipeline.compute_features_for_user(user_id, window_days).get('income', {})
+        monthly_income = income_features.get('minimum_monthly_income', 0.0)
+        if monthly_income == 0.0:
+            avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
+            frequency = income_features.get('payment_frequency', {}).get('frequency', 'monthly')
+            if frequency == 'weekly':
+                monthly_income = avg_income_per_pay * 4.33
+            elif frequency == 'biweekly':
+                monthly_income = avg_income_per_pay * 2.17
+            elif frequency == 'monthly':
+                monthly_income = avg_income_per_pay
+        
+        results = []
+        
+        for merchant in frequent_merchants[:5]:  # Top 5 frequent merchants
+            merchant_name = merchant['merchant_name']
+            visits_per_week = merchant['visits_per_week']
+            avg_spending_per_visit = merchant['avg_spending_per_visit']
+            total_spending = merchant['total_spending']
+            
+            # Validate we have meaningful data
+            if visits_per_week <= 0 or avg_spending_per_visit <= 0 or total_spending <= 0:
+                continue
+            
+            # Calculate monthly and annual spending
+            monthly_spending = (visits_per_week * avg_spending_per_visit * 4.33)
+            annual_spending = monthly_spending * 12
+            
+            # Skip if spending is too low to be meaningful
+            if monthly_spending < 20:  # Less than $20/month is not worth recommending
+                continue
+            
+            # Option 1: Reduce frequency by 25% (reduce to 75% of current)
+            reduced_frequency = visits_per_week * 0.75
+            monthly_savings_reduce = (visits_per_week - reduced_frequency) * avg_spending_per_visit * 4.33
+            annual_savings_reduce = monthly_savings_reduce * 12
+            
+            # Option 2: Switch to cheaper alternative (assume 30% cheaper)
+            savings_per_visit = avg_spending_per_visit * 0.30  # 30% savings
+            alternative_merchant = self._get_alternative_merchant(merchant_name, merchant.get('category', 'Other'))
+            monthly_savings_switch = visits_per_week * savings_per_visit * 4.33
+            annual_savings_switch = monthly_savings_switch * 12
+            
+            # Option 3: Make at home (assume 70% cheaper, but reduce frequency to 50%)
+            monthly_savings_home = (visits_per_week * 0.50) * (avg_spending_per_visit * 0.70) * 4.33
+            annual_savings_home = monthly_savings_home * 12
+            
+            # Max savings is the highest of the three options
+            max_annual_savings = max(annual_savings_reduce, annual_savings_switch, annual_savings_home)
+            
+            results.append({
+                'merchant_name': merchant_name,
+                'total_spending': total_spending,
+                'visits_per_week': visits_per_week,
+                'avg_spending_per_visit': avg_spending_per_visit,
+                'monthly_spending': monthly_spending,
+                'annual_spending': annual_spending,
+                'reduced_frequency': reduced_frequency,
+                'monthly_savings_reduce': monthly_savings_reduce,
+                'annual_savings_reduce': annual_savings_reduce,
+                'alternative_merchant': alternative_merchant,
+                'savings_per_visit': savings_per_visit,
+                'monthly_savings_switch': monthly_savings_switch,
+                'annual_savings_switch': annual_savings_switch,
+                'monthly_savings_home': monthly_savings_home,
+                'annual_savings_home': annual_savings_home,
+                'max_annual_savings': max_annual_savings,
+                'category': merchant.get('category', 'Other')
+            })
+        
+        return results
+    
+    def extract_category_spending_data(self, user_id: str, window_days: int = 180) -> List[Dict[str, Any]]:
+        """Extract category-based spending data.
+        
+        Args:
+            user_id: User ID
+            window_days: Time window for analysis
+        
+        Returns:
+            List of dictionaries with category spending data
+        """
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=window_days)
+        
+        # Get frequent merchants grouped by category
+        spending_data = self.spending_analyzer.detect_frequent_purchase_locations(
+            user_id, start_date, end_date, window_days, min_occurrences=2, min_total_spend=30.0
+        )
+        
+        frequent_merchants = spending_data.get('frequent_merchants', [])
+        
+        # Get income for percentage calculations
+        income_features = self.feature_pipeline.compute_features_for_user(user_id, window_days).get('income', {})
+        monthly_income = income_features.get('minimum_monthly_income', 0.0)
+        if monthly_income == 0.0:
+            avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
+            frequency = income_features.get('payment_frequency', {}).get('frequency', 'monthly')
+            if frequency == 'weekly':
+                monthly_income = avg_income_per_pay * 4.33
+            elif frequency == 'biweekly':
+                monthly_income = avg_income_per_pay * 2.17
+            elif frequency == 'monthly':
+                monthly_income = avg_income_per_pay
+        
+        # Group by category
+        category_totals = {}
+        for merchant in frequent_merchants:
+            category = merchant.get('category', 'Other')
+            if category not in category_totals:
+                category_totals[category] = {
+                    'merchants': [],
+                    'total_spending': 0,
+                    'visits_per_week': 0
+                }
+            category_totals[category]['merchants'].append(merchant)
+            category_totals[category]['total_spending'] += merchant['total_spending']
+            category_totals[category]['visits_per_week'] += merchant['visits_per_week']
+        
+        results = []
+        
+        for category, data in category_totals.items():
+            if category == 'Subscription':  # Skip subscriptions (handled separately)
+                continue
+            
+            total_spending = data['total_spending']
+            visits_per_week = data['visits_per_week']
+            
+            # Calculate monthly and annual spending
+            avg_visit_cost = total_spending / (visits_per_week * (window_days / 7)) if visits_per_week > 0 else 0
+            category_monthly_spending = visits_per_week * avg_visit_cost * 4.33
+            category_annual_spending = category_monthly_spending * 12
+            
+            # Calculate percentage of income
+            percentage_of_income = (category_monthly_spending / monthly_income * 100) if monthly_income > 0 else 0
+            
+            # Only include categories that are significant (>5% of income or >$100/month)
+            # Also validate that we have real data (not $0)
+            if (percentage_of_income < 5 and category_monthly_spending < 100) or category_monthly_spending <= 0:
+                continue
+            
+            # Validate that we have meaningful data
+            if avg_visit_cost <= 0 or visits_per_week <= 0:
+                continue
+            
+            # Option 1: Reduce frequency by 25%
+            monthly_savings_reduce = category_monthly_spending * 0.25
+            annual_savings_reduce = monthly_savings_reduce * 12
+            
+            # Option 2: Find cheaper alternatives (assume 20% savings)
+            monthly_savings_alternative = category_monthly_spending * 0.20
+            annual_savings_alternative = monthly_savings_alternative * 12
+            
+            # Option 3: Set budget (reduce by 30%)
+            budget_amount = category_monthly_spending * 0.70
+            monthly_savings_budget = category_monthly_spending * 0.30
+            annual_savings_budget = monthly_savings_budget * 12
+            
+            # Max savings
+            max_annual_savings = max(annual_savings_reduce, annual_savings_alternative, annual_savings_budget)
+            
+            results.append({
+                'category': category,
+                'category_monthly_spending': category_monthly_spending,
+                'category_annual_spending': category_annual_spending,
+                'percentage_of_income': percentage_of_income,
+                'monthly_savings_reduce': monthly_savings_reduce,
+                'annual_savings_reduce': annual_savings_reduce,
+                'monthly_savings_alternative': monthly_savings_alternative,
+                'annual_savings_alternative': annual_savings_alternative,
+                'budget_amount': budget_amount,
+                'monthly_savings_budget': monthly_savings_budget,
+                'annual_savings_budget': annual_savings_budget,
+                'max_annual_savings': max_annual_savings
+            })
+        
+        # Sort by annual spending (descending)
+        results.sort(key=lambda x: x['category_annual_spending'], reverse=True)
+        
+        return results[:3]  # Top 3 categories
+    
+    def _get_alternative_merchant(self, merchant_name: str, category: str) -> str:
+        """Get alternative merchant suggestion based on category.
+        
+        Args:
+            merchant_name: Current merchant name
+            category: Merchant category
+        
+        Returns:
+            Alternative merchant suggestion
+        """
+        name_lower = merchant_name.lower()
+        
+        # Coffee/restaurant alternatives
+        if 'starbucks' in name_lower or category == 'Restaurant':
+            if 'coffee' in name_lower or 'starbucks' in name_lower:
+                return 'local coffee shop'
+            return 'local restaurant'
+        
+        # Fast food alternatives
+        if any(word in name_lower for word in ['mcdonalds', 'burger', 'wendys', 'taco bell']):
+            return 'home-cooked meals'
+        
+        # Gas station alternatives
+        if category == 'Gas Station':
+            return 'gas stations with lower prices'
+        
+        # Shopping alternatives
+        if category == 'Shopping':
+            return 'thrift stores or online deals'
+        
+        # Generic alternative
+        return 'cheaper alternatives'
 
