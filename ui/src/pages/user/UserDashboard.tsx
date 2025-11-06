@@ -4,11 +4,7 @@ import { fetchUserDetail } from '../../services/api'
 import AccountCard from '../../components/AccountCard'
 import FeatureCard from '../../components/FeatureCard'
 import TransactionTable from '../../components/TransactionTable'
-import WeeklyRecapCard from '../../components/WeeklyRecapCard'
-import SpendingAnalysisCard from '../../components/SpendingAnalysisCard'
-import SuggestedBudgetCard from '../../components/SuggestedBudgetCard'
-import BudgetTrackingCard from '../../components/BudgetTrackingCard'
-import NetWorthRecapCard from '../../components/NetWorthRecapCard'
+import FinancialInsightsCarousel from '../../components/FinancialInsightsCarousel'
 import RecommendationsSection from '../../components/RecommendationsSection'
 // PersonaPieChart hidden from user view
 import { useState } from 'react'
@@ -145,30 +141,13 @@ export default function UserDashboard() {
         </div>
       )}
 
-      {/* Origin-like Insight Components */}
-      <div className="space-y-6">
-        <h2 className="text-2xl font-semibold text-gray-900">Financial Insights</h2>
-        
-        {/* Weekly Recap */}
-        {userId && (
-          <WeeklyRecapCard userId={userId} />
-        )}
-
-        {/* Spending Analysis */}
-        {userId && (
-          <SpendingAnalysisCard userId={userId} months={6} />
-        )}
-
-        {/* Budget Tracking */}
-        {userId && (
-          <BudgetTrackingCard userId={userId} />
-        )}
-
-        {/* Net Worth Recap */}
-        {userId && (
-          <NetWorthRecapCard userId={userId} period="month" />
-        )}
-      </div>
+      {/* Financial Insights Carousel */}
+      {userId && (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold text-gray-900">Financial Insights</h2>
+          <FinancialInsightsCarousel userId={userId} />
+        </div>
+      )}
 
       {/* Persona & Risk Analysis - HIDDEN FROM USER VIEW */}
       {false && user.persona && user.persona.all_matching_personas && user.persona.all_matching_personas.length > 0 && (
