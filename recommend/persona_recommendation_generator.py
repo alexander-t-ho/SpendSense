@@ -8,6 +8,7 @@ import uuid
 from personas.assigner import PersonaAssigner
 from recommend.actionable_recommendations import ACTIONABLE_RECOMMENDATIONS, ActionableRecommendation
 from recommend.data_extractor import RecommendationDataExtractor
+from recommend.rag_enhancer import RAGEnhancementEngine
 from features.pipeline import FeaturePipeline
 from ingest.schema import Recommendation, User
 
@@ -27,6 +28,7 @@ class PersonaRecommendationGenerator:
         self.feature_pipeline = FeaturePipeline(db_path)
         self.persona_assigner = PersonaAssigner(db_session, db_path)
         self.data_extractor = RecommendationDataExtractor(db_session, db_path)
+        self.rag_enhancer = RAGEnhancementEngine()  # Optional: requires OPENAI_API_KEY
     
     def generate_and_store_recommendations(
         self,
@@ -111,6 +113,13 @@ class PersonaRecommendationGenerator:
             )
             stored_recommendations.extend(secondary_recs)
         
+        # Add universal spending pattern recommendations (apply to all users)
+        # Add 1-2 spending pattern recommendations if available
+        spending_recs = self._generate_spending_pattern_recommendations(
+            user_id, features, window_days, primary_persona_id, max_recommendations=2
+        )
+        stored_recommendations.extend(spending_recs)
+        
         # Store in database (approved=False by default, awaiting admin approval)
         stored_recommendations_with_ids = []
         for rec_data in stored_recommendations:
@@ -170,10 +179,10 @@ class PersonaRecommendationGenerator:
         Returns:
             List of recommendation dictionaries
         """
-        # Get actionable recommendations for this persona
+        # Get actionable recommendations for this persona (including universal)
         persona_recommendations = [
             rec for rec in ACTIONABLE_RECOMMENDATIONS
-            if rec.persona_id == persona_id
+            if rec.persona_id == persona_id or rec.persona_id == "universal"
         ]
         
         # Extract user data for personalization
@@ -265,6 +274,10 @@ class PersonaRecommendationGenerator:
             except (KeyError, ValueError):
                 expected_impact = rec_template.expected_impact
             
+            # Ensure action_items is always present (even if empty template)
+            if not action_items:
+                action_items = ["Review this recommendation and consider taking action"]
+            
             # Build rationale
             rationale_parts = [personalized_text]
             if action_items:
@@ -275,7 +288,7 @@ class PersonaRecommendationGenerator:
             
             rec = {
                 'id': rec_template.id,
-                'persona_id': persona_id,
+                'persona_id': persona_id if rec_template.persona_id != "universal" else persona_id,  # Use actual persona for universal recommendations
                 'title': rec_template.title,
                 'recommendation_text': personalized_text,
                 'action_items': action_items,
@@ -284,7 +297,19 @@ class PersonaRecommendationGenerator:
                 'rationale': rationale
             }
             
-            recommendations.append(rec)
+            # Option B: Always enhance with RAG (validate and enrich all recommendations)
+            try:
+                enhanced_rec = self.rag_enhancer.enhance_recommendation(
+                    rec,
+                    data_points=template_data,
+                    features=features,
+                    template_info={'template_id': rec_template.id, 'persona_id': persona_id}
+                )
+                recommendations.append(enhanced_rec)
+            except Exception as e:
+                print(f"⚠️  RAG enhancement failed for recommendation {rec_template.id}: {e}")
+                # Fallback to original recommendation if RAG fails
+                recommendations.append(rec)
         
         return recommendations
     
@@ -408,6 +433,168 @@ class PersonaRecommendationGenerator:
             'months_to_goal': 0
         }
         return defaults.get(key, 0)
+    
+    def _generate_spending_pattern_recommendations(
+        self,
+        user_id: str,
+        features: Dict[str, Any],
+        window_days: int,
+        persona_id: str,
+        max_recommendations: int = 2
+    ) -> List[Dict[str, Any]]:
+        """Generate spending pattern recommendations (universal).
+        
+        Args:
+            user_id: User ID
+            features: User features
+            window_days: Time window for analysis
+            max_recommendations: Maximum number of spending pattern recommendations
+        
+        Returns:
+            List of spending pattern recommendation dictionaries
+        """
+        recommendations = []
+        
+        # Get spending pattern data
+        try:
+            spending_patterns = self.data_extractor.extract_spending_pattern_data(user_id, window_days)
+            category_spending = self.data_extractor.extract_category_spending_data(user_id, window_days)
+        except Exception as e:
+            print(f"Error extracting spending pattern data: {e}")
+            return recommendations
+        
+        # Get universal recommendations
+        universal_recs = [
+            rec for rec in ACTIONABLE_RECOMMENDATIONS
+            if rec.persona_id == "universal"
+        ]
+        
+        # Generate merchant-specific recommendations
+        merchant_rec_template = next((r for r in universal_recs if r.id == "reduce_frequent_merchant_spending"), None)
+        if merchant_rec_template and spending_patterns:
+            for merchant_data in spending_patterns[:max_recommendations]:
+                # Prepare template data
+                template_data = merchant_data.copy()
+                
+                # Generate personalized text
+                try:
+                    personalized_text = merchant_rec_template.template.format(**template_data)
+                except (KeyError, ValueError):
+                    personalized_text = merchant_rec_template.template
+                
+                # Format action items
+                action_items = []
+                for action_template in merchant_rec_template.action_items:
+                    try:
+                        formatted_action = action_template.format(**template_data)
+                        action_items.append(formatted_action)
+                    except (KeyError, ValueError):
+                        action_items.append(action_template)
+                
+                # Format expected impact
+                try:
+                    expected_impact = merchant_rec_template.expected_impact.format(**template_data)
+                except (KeyError, ValueError):
+                    expected_impact = merchant_rec_template.expected_impact
+                
+                # Build rationale
+                rationale_parts = [personalized_text]
+                if action_items:
+                    rationale_parts.append(f"Action steps: {', '.join(action_items[:3])}")
+                if expected_impact:
+                    rationale_parts.append(f"Expected impact: {expected_impact}")
+                rationale = " ".join(rationale_parts)
+                
+                # Use provided persona_id
+                
+                rec = {
+                    'id': f"{merchant_rec_template.id}_{merchant_data['merchant_name'].replace(' ', '_').lower()}",
+                    'persona_id': persona_id,
+                    'title': merchant_rec_template.title.format(**{'merchant_name': merchant_data['merchant_name']}),
+                    'recommendation_text': personalized_text,
+                    'action_items': action_items,
+                    'expected_impact': expected_impact,
+                    'priority': merchant_rec_template.priority.value,
+                    'rationale': rationale
+                }
+                
+                # Option B: Always enhance with RAG
+                try:
+                    enhanced_rec = self.rag_enhancer.enhance_recommendation(
+                        rec,
+                        data_points=template_data,
+                        features=features,
+                        template_info={'template_id': merchant_rec_template.id, 'merchant_name': merchant_data['merchant_name']}
+                    )
+                    recommendations.append(enhanced_rec)
+                except Exception as e:
+                    print(f"⚠️  RAG enhancement failed for merchant recommendation: {e}")
+                    recommendations.append(rec)
+        
+        # Generate category-specific recommendations (if we haven't reached max)
+        if len(recommendations) < max_recommendations:
+            category_rec_template = next((r for r in universal_recs if r.id == "reduce_category_spending"), None)
+            if category_rec_template and category_spending:
+                for category_data in category_spending[:max_recommendations - len(recommendations)]:
+                    # Prepare template data
+                    template_data = category_data.copy()
+                    
+                    # Generate personalized text
+                    try:
+                        personalized_text = category_rec_template.template.format(**template_data)
+                    except (KeyError, ValueError):
+                        personalized_text = category_rec_template.template
+                    
+                    # Format action items
+                    action_items = []
+                    for action_template in category_rec_template.action_items:
+                        try:
+                            formatted_action = action_template.format(**template_data)
+                            action_items.append(formatted_action)
+                        except (KeyError, ValueError):
+                            action_items.append(action_template)
+                    
+                    # Format expected impact
+                    try:
+                        expected_impact = category_rec_template.expected_impact.format(**template_data)
+                    except (KeyError, ValueError):
+                        expected_impact = category_rec_template.expected_impact
+                    
+                    # Build rationale
+                    rationale_parts = [personalized_text]
+                    if action_items:
+                        rationale_parts.append(f"Action steps: {', '.join(action_items[:3])}")
+                    if expected_impact:
+                        rationale_parts.append(f"Expected impact: {expected_impact}")
+                    rationale = " ".join(rationale_parts)
+                    
+                    # Use provided persona_id (already set in function scope)
+                    
+                    rec = {
+                        'id': f"{category_rec_template.id}_{category_data['category'].replace(' ', '_').lower()}",
+                        'persona_id': persona_id,
+                        'title': category_rec_template.title.format(**{'category': category_data['category']}),
+                        'recommendation_text': personalized_text,
+                        'action_items': action_items,
+                        'expected_impact': expected_impact,
+                        'priority': category_rec_template.priority.value,
+                        'rationale': rationale
+                    }
+                    
+                    # Option B: Always enhance with RAG
+                    try:
+                        enhanced_rec = self.rag_enhancer.enhance_recommendation(
+                            rec,
+                            data_points=template_data,
+                            features=features,
+                            template_info={'template_id': category_rec_template.id, 'category': category_data['category']}
+                        )
+                        recommendations.append(enhanced_rec)
+                    except Exception as e:
+                        print(f"⚠️  RAG enhancement failed for category recommendation: {e}")
+                        recommendations.append(rec)
+        
+        return recommendations
     
     def close(self):
         """Close database connections."""

@@ -28,29 +28,41 @@ class WeeklyRecapAnalyzer:
     ) -> Dict[str, Any]:
         """Compute weekly spending recap for a user.
         
+        Uses a 7-day rolling window ending on the current day (not calendar week).
+        
         Args:
             user_id: User ID
-            week_start_date: Start date of the week (defaults to current week's Monday)
+            week_start_date: Start date (optional, defaults to 7 days ago from today)
         
         Returns:
             Dictionary with weekly recap data including:
-            - week_start: Start date of the week
-            - week_end: End date of the week
-            - total_spending: Total spending for the week
-            - daily_spending: List of daily spending amounts (7 days)
+            - week_start: Start date of the 7-day window
+            - week_end: End date (current day)
+            - total_spending: Total spending for the 7 days
+            - daily_spending: List of daily spending amounts (7 days, Day 1-7)
             - top_category: Category with highest spending
             - category_breakdown: Spending by category
-            - previous_week_total: Total spending for previous week
+            - previous_week_total: Total spending for previous 7-day window
             - week_over_week_change: Percentage change from previous week
+            - summary_text: Detailed narrative summary
             - insights: List of plain-language insights
         """
-        # Default to current week
-        if week_start_date is None:
-            week_start_date = get_week_start(datetime.now())
+        # Default to 7-day rolling window ending on current day
+        now = datetime.now()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         
-        week_end_date = get_week_end(week_start_date)
-        previous_week_start = week_start_date - timedelta(days=7)
-        previous_week_end = week_end_date - timedelta(days=7)
+        if week_start_date is None:
+            # 7 days ago from today (inclusive)
+            week_start_date = today_start - timedelta(days=6)
+        else:
+            week_start_date = week_start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # End date is today (end of current day, to include all of today's transactions)
+        week_end_date = now
+        
+        # Previous 7-day window (7-14 days ago)
+        previous_week_end = week_start_date - timedelta(days=1)
+        previous_week_start = previous_week_end - timedelta(days=6)
         
         # Get all user accounts
         accounts = self.db.query(Account).filter(Account.user_id == user_id).all()
@@ -79,8 +91,8 @@ class WeeklyRecapAnalyzer:
             )
         ).all()
         
-        # Calculate daily spending (7 days)
-        daily_spending = self._calculate_daily_spending(current_week_txs, week_start_date)
+        # Calculate daily spending (7 days, ending on current day)
+        daily_spending = self._calculate_daily_spending(current_week_txs, week_start_date, week_end_date)
         
         # Calculate category breakdown
         category_breakdown = self._calculate_category_breakdown(current_week_txs)
@@ -95,8 +107,18 @@ class WeeklyRecapAnalyzer:
         # Calculate week-over-week change
         week_over_week_change = calculate_percentage_change(previous_week_total, total_spending)
         
-        # Generate insights
+        # Generate insights and summary text
         insights = self._generate_insights(
+            total_spending,
+            previous_week_total,
+            week_over_week_change,
+            top_category,
+            category_breakdown,
+            previous_week_txs
+        )
+        
+        # Generate detailed summary text (narrative style)
+        summary_text = self._generate_summary_text(
             total_spending,
             previous_week_total,
             week_over_week_change,
@@ -115,38 +137,46 @@ class WeeklyRecapAnalyzer:
             "category_breakdown": category_breakdown,
             "previous_week_total": previous_week_total,
             "week_over_week_change": week_over_week_change,
+            "summary_text": summary_text,
             "insights": insights
         }
     
     def _calculate_daily_spending(
         self,
         transactions: List[Transaction],
-        week_start: datetime
+        week_start: datetime,
+        week_end: datetime
     ) -> List[Dict[str, Any]]:
-        """Calculate spending for each day of the week.
+        """Calculate spending for each day of the 7-day window.
+        
+        Day 1 is the oldest day, Day 7 is the current day (week_end).
         
         Args:
             transactions: List of transactions
-            week_start: Start date of the week
+            week_start: Start date of the 7-day window
+            week_end: End date (current day)
         
         Returns:
-            List of daily spending data with day number and amount
+            List of daily spending data with day number (1-7) and amount
         """
         daily_totals = defaultdict(float)
         
         for tx in transactions:
-            # Get day of week (0 = Monday, 6 = Sunday)
+            # Get day offset (0 = oldest day, 6 = current day)
             day_offset = (tx.date.date() - week_start.date()).days
             if 0 <= day_offset < 7:
                 daily_totals[day_offset] += abs(tx.amount)
         
-        # Create list for all 7 days
+        # Create list for all 7 days (Day 1 = oldest, Day 7 = current day)
         daily_spending = []
         for day in range(7):
+            date = (week_start + timedelta(days=day)).date()
+            amount = daily_totals.get(day, 0)
             daily_spending.append({
-                "day": day + 1,  # 1-7
-                "date": (week_start + timedelta(days=day)).date().isoformat(),
-                "amount": daily_totals.get(day, 0)
+                "day": day + 1,  # Day 1-7 (Day 7 is current day)
+                "date": date.isoformat(),
+                "amount": amount,
+                "is_current_day": (day == 6)  # Day 7 is current day
             })
         
         return daily_spending
@@ -250,6 +280,94 @@ class WeeklyRecapAnalyzer:
         
         return insights
     
+    def _generate_summary_text(
+        self,
+        total_spending: float,
+        previous_week_total: float,
+        week_over_week_change: float,
+        top_category: Optional[tuple],
+        category_breakdown: Dict[str, float],
+        previous_week_txs: List[Transaction]
+    ) -> str:
+        """Generate detailed narrative summary text matching the image style.
+        
+        Args:
+            total_spending: Current week total
+            previous_week_total: Previous week total
+            week_over_week_change: Percentage change
+            top_category: (category_name, amount) tuple
+            category_breakdown: Current week category breakdown
+            previous_week_txs: Previous week transactions
+        
+        Returns:
+            Detailed narrative summary string
+        """
+        parts = []
+        
+        # Overall trend
+        if abs(week_over_week_change) < 1:
+            parts.append("Spending was relatively stable this week")
+        elif week_over_week_change > 0:
+            parts.append(f"Spending was up slightly this week")
+        else:
+            parts.append(f"Spending was down this week")
+        
+        # Top category with details
+        if top_category:
+            category_name, category_amount = top_category
+            category_name_lower = category_name.lower() if category_name else "uncategorized"
+            
+            # Sort categories first
+            sorted_categories = sorted(category_breakdown.items(), key=lambda x: x[1], reverse=True)
+            second_category_name = sorted_categories[1][0].lower() if len(sorted_categories) > 1 else "other expenses"
+            
+            # Calculate previous week for this category
+            prev_category_total = sum(
+                abs(tx.amount)
+                for tx in previous_week_txs
+                if (tx.primary_category or "Uncategorized") == category_name
+            )
+            
+            if prev_category_total > 0:
+                category_change = calculate_percentage_change(prev_category_total, category_amount)
+                if category_change > 0:
+                    parts.append(f"driven mostly by {category_name_lower} and {second_category_name}. "
+                               f"You spent ${category_amount:,.0f} on {category_name_lower} — "
+                               f"a {category_change:.0f}% increase from the week prior — "
+                               f"making it your top category.")
+                else:
+                    parts.append(f"driven mostly by {category_name_lower} and {second_category_name}. "
+                               f"You spent ${category_amount:,.0f} on {category_name_lower}, "
+                               f"making it your top category.")
+            else:
+                parts.append(f"driven mostly by {category_name_lower} and {second_category_name}. "
+                           f"You spent ${category_amount:,.0f} on {category_name_lower}, "
+                           f"making it your top category.")
+            
+            # Second category detail
+            if len(sorted_categories) > 1:
+                second_category = sorted_categories[1]
+                parts.append(f"{second_category[0]} came in second at ${second_category[1]:,.0f},")
+            
+            # Third category or balance note
+            if len(sorted_categories) > 2:
+                third_category = sorted_categories[2]
+                third_change = 0
+                if previous_week_txs:
+                    prev_third = sum(
+                        abs(tx.amount)
+                        for tx in previous_week_txs
+                        if (tx.primary_category or "Uncategorized") == third_category[0]
+                    )
+                    if prev_third > 0:
+                        third_change = calculate_percentage_change(prev_third, third_category[1])
+                
+                if third_change < 0:
+                    parts.append(f"while {third_category[0].lower()} dropped {abs(third_change):.0f}%, "
+                               f"helping balance the total.")
+        
+        return " ".join(parts) if parts else "No spending data available for this period."
+    
     def _empty_recap(self, week_start: datetime, week_end: datetime) -> Dict[str, Any]:
         """Return empty recap structure.
         
@@ -273,6 +391,7 @@ class WeeklyRecapAnalyzer:
             "category_breakdown": {},
             "previous_week_total": 0,
             "week_over_week_change": 0,
+            "summary_text": "No spending data available for this period.",
             "insights": ["No spending data available for this week."]
         }
 

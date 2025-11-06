@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { fetchWeeklyRecap } from '../services/api'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react'
+import { X } from 'lucide-react'
 
 interface WeeklyRecapCardProps {
   userId: string
@@ -9,134 +9,142 @@ interface WeeklyRecapCardProps {
 }
 
 export default function WeeklyRecapCard({ userId, weekStart }: WeeklyRecapCardProps) {
+  const [isClosed, setIsClosed] = useState(false)
+  
   const { data: recap, isLoading, error } = useQuery({
     queryKey: ['weeklyRecap', userId, weekStart],
     queryFn: () => fetchWeeklyRecap(userId, weekStart),
-    enabled: !!userId,
+    enabled: !!userId && !isClosed,
   })
+
+  if (isClosed) {
+    return null
+  }
 
   if (isLoading) {
     return (
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-        </div>
+      <div className="relative bg-gradient-to-b from-purple-900 via-blue-900 to-blue-950 rounded-2xl overflow-hidden p-8">
+        <div className="text-white">Loading your weekly recap...</div>
       </div>
     )
   }
 
   if (error || !recap) {
     return (
-      <div className="bg-white shadow rounded-lg p-6">
-        <p className="text-red-500">Failed to load weekly recap</p>
+      <div className="relative bg-gradient-to-b from-purple-900 via-blue-900 to-blue-950 rounded-2xl overflow-hidden p-8">
+        <div className="text-red-300">Failed to load weekly recap</div>
       </div>
     )
   }
 
-  const chartData = recap.daily_spending?.map((day: any) => ({
-    day: `Day ${day.day}`,
-    date: new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    amount: Math.abs(day.amount),
-  })) || []
+  const formatAmount = (amount: number): string => {
+    if (amount === 0) return '-'
+    if (amount >= 1000) {
+      const thousands = amount / 1000
+      // Format like "$1.3k" for amounts like 1300
+      if (thousands < 10) {
+        return `$${thousands.toFixed(1)}k`
+      }
+      return `$${Math.round(thousands)}k`
+    }
+    return `$${Math.round(amount)}`
+  }
 
-  const weekOverWeekChange = recap.week_over_week_change || 0
-  const isPositive = weekOverWeekChange >= 0
+  const dailySpending = recap.daily_spending || []
+  const totalSpending = recap.total_spending || 0
+  const topCategory = recap.top_category || 'dining'
+  const summaryText = recap.summary_text || ''
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <Calendar className="h-5 w-5 text-blue-500" />
-          <h3 className="text-lg font-semibold text-gray-900">Weekly Spending Recap</h3>
-        </div>
-        <div className="text-sm text-gray-500">
-          {new Date(recap.week_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} -{' '}
-          {new Date(recap.week_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-        </div>
+    <div className="relative bg-gradient-to-b from-purple-900 via-blue-900 to-blue-950 rounded-2xl overflow-hidden p-8">
+      {/* Header */}
+      <div className="text-center mb-6">
+        <h1 className="text-4xl font-serif text-white mb-2">Weekly recaps</h1>
+        <p className="text-white/80 text-sm">
+          Your financial life, summarized daily—stay in sync with the markets, the news, and your money.
+        </p>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-1">
-            <DollarSign className="h-4 w-4 text-blue-600" />
-            <span className="text-sm text-gray-600">Total Spending</span>
+      {/* Main Card */}
+      <div className="relative bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 shadow-xl">
+          {/* Progress Indicators */}
+          <div className="flex justify-center gap-2 mb-4">
+            <div className="w-2 h-1 bg-white rounded-full" />
+            <div className="w-2 h-1 bg-white/30 rounded-full border border-white/30" />
+            <div className="w-2 h-1 bg-white/30 rounded-full border border-white/30" />
+            <div className="w-2 h-1 bg-white/30 rounded-full border border-white/30" />
+            <div className="w-2 h-1 bg-white/30 rounded-full border border-white/30" />
           </div>
-          <p className="text-2xl font-bold text-blue-900">
-            ${Math.abs(recap.total_spending || 0).toFixed(2)}
+
+          {/* Close Button */}
+          <button
+            onClick={() => setIsClosed(true)}
+            className="absolute top-4 right-4 text-white hover:text-white/70 transition-colors"
+            aria-label="Close"
+          >
+            <X size={20} />
+          </button>
+
+          {/* Main Heading */}
+          <h2 className="text-2xl font-semibold text-white mb-1">
+            You spent the most on {topCategory}.
+          </h2>
+
+          {/* Timeframe Label */}
+          <p className="text-xs uppercase tracking-wider text-white/60 mb-4">
+            SPEND LAST 7 DAYS
           </p>
-        </div>
 
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-1">
-            <span className="text-sm text-gray-600">vs. Last Week</span>
+          {/* Total Spending */}
+          <div className="text-4xl font-bold text-white mb-6">
+            ${totalSpending.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </div>
-          <div className="flex items-center space-x-1">
-            {isPositive ? (
-              <TrendingUp className="h-4 w-4 text-red-500" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-green-500" />
-            )}
-            <p className={`text-2xl font-bold ${isPositive ? 'text-red-600' : 'text-green-600'}`}>
-              {Math.abs(weekOverWeekChange).toFixed(1)}%
-            </p>
-          </div>
-        </div>
 
-        <div className="bg-purple-50 rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-1">
-            <span className="text-sm text-gray-600">Top Category</span>
-          </div>
-          <p className="text-lg font-semibold text-purple-900">
-            {recap.top_category || 'N/A'}
-          </p>
-        </div>
-      </div>
-
-      {/* Daily Spending Chart */}
-      {chartData.length > 0 && (
-        <div className="mb-6">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Daily Spending</h4>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={60}
-              />
-              <YAxis 
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `$${value.toFixed(0)}`}
-              />
-              <Tooltip 
-                formatter={(value: number) => [`$${value.toFixed(2)}`, 'Spending']}
-                labelStyle={{ color: '#374151' }}
-              />
-              <Bar dataKey="amount" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* Insights */}
-      {recap.insights && recap.insights.length > 0 && (
-        <div className="border-t pt-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Insights</h4>
-          <ul className="space-y-2">
-            {recap.insights.map((insight: string, index: number) => (
-              <li key={index} className="text-sm text-gray-600 flex items-start">
-                <span className="text-blue-500 mr-2">•</span>
-                {insight}
-              </li>
+          {/* 7-Day Breakdown */}
+          <div className="flex gap-2 mb-8">
+            {dailySpending.map((day: any, index: number) => {
+              const isCurrentDay = day.is_current_day || index === dailySpending.length - 1
+              const amount = day.amount || 0
+              
+              return (
+                <div
+                  key={day.day || index}
+                  className={`flex-1 rounded-lg p-3 transition-all ${
+                    isCurrentDay
+                      ? 'bg-white text-gray-900'
+                      : 'bg-gray-900/50 text-white border border-white/10'
+                  }`}
+                >
+                  <div className="text-xs font-medium mb-1 opacity-70">
+                    {day.day || index + 1}
+                  </div>
+                  <div className={`text-sm font-semibold ${
+                    isCurrentDay ? 'text-gray-900' : 'text-white'
+                  }`}>
+                    {formatAmount(amount)}
+                  </div>
+                </div>
+              )
+            })}
+            {/* Fill remaining days if we have less than 7 */}
+            {dailySpending.length < 7 && Array.from({ length: 7 - dailySpending.length }).map((_, index) => (
+              <div
+                key={`empty-${index}`}
+                className="flex-1 rounded-lg p-3 bg-gray-900/50 text-white border border-white/10"
+              >
+                <div className="text-xs font-medium mb-1 opacity-70">
+                  {dailySpending.length + index + 1}
+                </div>
+                <div className="text-sm font-semibold text-white">-</div>
+              </div>
             ))}
-          </ul>
+          </div>
+
+          {/* Summary Text */}
+          <p className="text-white/90 text-sm leading-relaxed">
+            {summaryText || 'No spending data available for this period.'}
+          </p>
         </div>
-      )}
     </div>
   )
 }
-
