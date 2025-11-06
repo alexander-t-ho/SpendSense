@@ -116,7 +116,7 @@ export async function fetchBudgetHistory(userId: string, months: number = 6) {
 // Net Worth API
 export async function fetchNetWorthHistory(userId: string, period: string = 'month') {
   const params = new URLSearchParams({ period })
-  const response = await fetch(`${API_BASE_URL}/insights/${userId}/net-worth-history?${params}`)
+  const response = await fetch(`${INSIGHTS_API_BASE}/${userId}/net-worth-history?${params}`)
   if (!response.ok) {
     throw new Error('Failed to fetch net worth history')
   }
