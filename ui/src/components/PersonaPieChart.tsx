@@ -13,7 +13,6 @@ interface PersonaData {
 
 interface PersonaPieChartProps {
   personas: PersonaData[]
-  totalRiskPoints: number
 }
 
 // Color palette for personas
@@ -29,7 +28,7 @@ const getPersonaColor = (personaId: string): string => {
   return PERSONA_COLORS[personaId] || '#6b7280' // Default gray
 }
 
-export default function PersonaPieChart({ personas, totalRiskPoints }: PersonaPieChartProps) {
+export default function PersonaPieChart({ personas }: PersonaPieChartProps) {
   // Calculate criteria ratio for each persona (matched_criteria / total_criteria)
   const totalCriteriaRatio = personas.reduce((sum, p) => {
     const ratio = p.total_criteria > 0 ? p.matched_criteria / p.total_criteria : 0
@@ -57,15 +56,15 @@ export default function PersonaPieChart({ personas, totalRiskPoints }: PersonaPi
     if (active && payload && payload.length) {
       const data = payload[0]
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-900">{data.payload.name}</p>
-          <p className="text-sm text-gray-600">
+        <div className="bg-white p-3 border border-[#D4C4B0] rounded-lg shadow-lg">
+          <p className="font-semibold text-[#5D4037]">{data.payload.name}</p>
+          <p className="text-sm text-[#556B2F]">
             Criteria Ratio: {data.payload.matchedCriteria} ({data.payload.percentage}%)
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[#556B2F]">
             Criteria Match: {(data.payload.criteriaRatio * 100).toFixed(1)}%
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[#556B2F]">
             Points: {data.payload.totalPoints.toFixed(2)} (per criterion: {data.payload.pointsPerCriterion})
           </p>
         </div>
@@ -83,7 +82,7 @@ export default function PersonaPieChart({ personas, totalRiskPoints }: PersonaPi
               className="w-4 h-4 rounded"
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-[#556B2F]">
               {entry.value} ({entry.payload.percentage}%)
             </span>
           </li>
@@ -94,7 +93,7 @@ export default function PersonaPieChart({ personas, totalRiskPoints }: PersonaPi
 
   if (personas.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-[#8B6F47]">
         <p>No matching personas found</p>
       </div>
     )

@@ -102,3 +102,5 @@ curl "$API_URL/insights/{user_id}/weekly-recap"
 - Check API Gateway stage is deployed
 
 
+
+

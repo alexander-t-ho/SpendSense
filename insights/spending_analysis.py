@@ -54,13 +54,16 @@ class SpendingAnalysisAnalyzer:
         """
         # Calculate date range
         end_date = datetime.now()
-        start_date = end_date - timedelta(days=months * 30)  # Approximate months
+        # Use exactly 180 days for 6 months (or months * 30 for other periods)
+        if months == 6:
+            start_date = end_date - timedelta(days=180)
+        else:
+            start_date = end_date - timedelta(days=months * 30)  # Approximate months
         
         # Fetch all accounts for the user
         user_accounts = self.db.query(Account).filter(Account.user_id == user_id).all()
-        account_ids = [acc.id for acc in user_accounts]
         
-        if not account_ids:
+        if not user_accounts:
             return {
                 "user_id": user_id,
                 "period_start": start_date.isoformat(),
@@ -90,18 +93,38 @@ class SpendingAnalysisAnalyzer:
                 "insights": ["No transaction data found for this period."]
             }
         
-        # Get all transactions in the period
-        transactions = self.db.query(Transaction).filter(
-            and_(
-                Transaction.account_id.in_(account_ids),
-                Transaction.date >= start_date,
-                Transaction.date <= end_date
-            )
-        ).all()
+        # Get all accounts for spending (including mortgages and student loans)
+        # Income only from depository accounts (checking/savings)
+        all_account_ids = [acc.id for acc in user_accounts]
+        depository_accounts = [acc for acc in user_accounts if acc.type == 'depository']
+        depository_account_ids = [acc.id for acc in depository_accounts]
         
-        # Separate income and expenses
-        expenses = [tx for tx in transactions if tx.amount < 0]
-        income = [tx for tx in transactions if tx.amount > 0]
+        # Get all transactions for spending (from all accounts including mortgages/student loans)
+        all_transactions = []
+        if all_account_ids:
+            all_transactions = self.db.query(Transaction).filter(
+                and_(
+                    Transaction.account_id.in_(all_account_ids),
+                    Transaction.date >= start_date,
+                    Transaction.date <= end_date
+                )
+            ).all()
+        
+        # Get income transactions (only from depository accounts - positive amounts)
+        income_transactions = []
+        if depository_account_ids:
+            income_transactions = self.db.query(Transaction).filter(
+                and_(
+                    Transaction.account_id.in_(depository_account_ids),
+                    Transaction.date >= start_date,
+                    Transaction.date <= end_date,
+                    Transaction.amount > 0  # Income is positive
+                )
+            ).all()
+        
+        # Separate spending (all negative transactions from all accounts) and income
+        expenses = [tx for tx in all_transactions if tx.amount < 0]
+        income = income_transactions  # Only positive amounts from depository accounts
         
         # Monthly breakdown
         monthly_expenses = defaultdict(float)

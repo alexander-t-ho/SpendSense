@@ -1,0 +1,163 @@
+{
+  "user_id": "b5141c58-438b-4808-82d3-6ecd04c2cd8e",
+  "timestamp": "2025-11-06T16:08:03.849630",
+  "assigned_personas": [
+    "savings_builder"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 0.0
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 0.0
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 3: Max credit utilization 0.0% (<30%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 0.25
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "b5141c58-438b-4808-82d3-6ecd04c2cd8e",
+    "window_days": 180,
+    "start_date": "2025-05-10T16:08:03.812672",
+    "end_date": "2025-11-06T16:08:03.812672",
+    "subscriptions": {
+      "recurring_merchants": 2,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Delta Airlines",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 34.5,
+          "total_amount": 39.620385049793,
+          "average_amount": 13.206795016597667,
+          "first_transaction": "2025-08-16 04:53:54.595955",
+          "last_transaction": "2025-10-25 05:59:32.677135"
+        },
+        {
+          "merchant_name": "Walmart",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 27.5,
+          "total_amount": 111.88362850314967,
+          "average_amount": 37.29454283438322,
+          "first_transaction": "2025-09-09 12:36:43.119980",
+          "last_transaction": "2025-11-03 23:40:31.045679"
+        }
+      ],
+      "monthly_recurring_spend": 50.50133785098089,
+      "average_subscription_cost": 25.250668925490444,
+      "total_subscription_spend": 151.50401355294267,
+      "subscription_share_of_total": 4.8464713874769005,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {},
+      "category_duplicates": {},
+      "has_category_duplicates": false,
+      "total_spend": 3126.0684617766096
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 0.0,
+      "total_savings_balance": 0,
+      "average_monthly_expenses": 521.0114102961016,
+      "has_emergency_fund": false
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 2,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 1.5239623429814497,
+      "checking_balance": 704.8803154854525,
+      "average_monthly_expenses": 462.5313208897528,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Savings Builder persona (1/5 criteria matched, 100% match)."
+}

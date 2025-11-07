@@ -120,7 +120,7 @@ class SubscriptionDetector:
             start_date: Analysis start date
             end_date: Analysis end date
             monthly_income: Monthly income (optional, for income-relative calculations)
-            
+        
         Returns:
             Dictionary with subscription metrics
         """

@@ -105,8 +105,17 @@ CRITICAL TONE REQUIREMENTS - MUST FOLLOW:
             enhanced_recommendation = self._merge_enhancement(
                 recommendation,
                 enhanced_data,
-                validation
+                validation,
+                data_points
             )
+            
+            # Final check: Replace any remaining $0 values
+            enhanced_recommendation = self._replace_zero_values(enhanced_recommendation, data_points)
+            
+            # Validate again after zero replacement
+            if self._has_zero_values(enhanced_recommendation):
+                # If still has $0 values, try aggressive replacement
+                enhanced_recommendation = self._aggressive_zero_replacement(enhanced_recommendation, data_points, features)
             
             return enhanced_recommendation
             
@@ -176,6 +185,12 @@ CRITICAL REQUIREMENTS:
 - Each action item should be specific and actionable with clear savings amounts
 - If category is missing or generic, infer from merchant name or use "this category"
 
+CRITICAL: For debt, overdue payments, or high credit card balances:
+- NEVER suggest paying the full amount immediately or in one lump sum
+- ALWAYS provide payment plan options (e.g., "Pay $X/month to pay off in Y months")
+- Provide multiple payment plan options with different timelines (e.g., 6, 12, 24 months)
+- If the recommendation is about overdue payments or debt, ensure action items include structured payment plans, not "pay immediately" or "pay the full amount"
+
 Return your response as a JSON object with this exact structure:
 {{
   "recommendation_text": "Enhanced recommendation text (2-3 sentences, personalized with user data)",
@@ -184,11 +199,20 @@ Return your response as a JSON object with this exact structure:
   "rationale": "Brief explanation of why this recommendation is valuable (1-2 sentences)"
 }}
 
+CRITICAL FORMATTING REQUIREMENTS FOR ACTION ITEMS:
+- Each action item MUST start with "Option 1:", "Option 2:", "Option 3:", etc.
+- Each action item MUST be a complete sentence with specific details (minimum 20 characters)
+- Each action item MUST include specific savings amounts or percentages (e.g., "Save $50/month" or "Reduce by 25%")
+- NEVER return single letters, numbers, or abbreviations (e.g., "R", "F", "S" are INVALID)
+- Each action item should be descriptive and actionable (e.g., "Option 1: Reduce frequency to 2 times per week - Save $75/month ($900/year)")
+- Use the data points provided to calculate realistic savings amounts
+
 IMPORTANT: 
-- If the original recommendation has $0 values, you MUST calculate realistic estimates
+- If the original recommendation has $0 values, you MUST calculate realistic estimates based on user data
 - If category is missing, infer it from context or use "this spending category"
 - Always provide at least 3 options, even if you need to create general ones based on financial best practices
 - Use the knowledge base tips and strategies to create realistic options
+- Each action item must be a full descriptive sentence, NOT a single letter or abbreviation
 
 Return ONLY the JSON object, no other text or markdown formatting."""
         
@@ -239,6 +263,24 @@ Return ONLY the JSON object, no other text or markdown formatting."""
                 content = json_match.group(0)
             
             enhanced_data = json.loads(content)
+            
+            # Validate action items are not single letters or too short
+            if 'action_items' in enhanced_data:
+                validated_items = []
+                for item in enhanced_data['action_items']:
+                    if isinstance(item, str) and len(item.strip()) > 5:  # Must be at least 5 characters
+                        # Check if it's not just a single letter or number
+                        if not re.match(r'^[A-Z0-9]$', item.strip()):
+                            validated_items.append(item)
+                    elif isinstance(item, str) and len(item.strip()) <= 5:
+                        print(f"⚠️  Rejecting action item that's too short: '{item}'")
+                
+                if len(validated_items) >= 3:
+                    enhanced_data['action_items'] = validated_items
+                else:
+                    print(f"⚠️  Not enough valid action items after validation. Rejecting enhancement.")
+                    return {}
+            
             return enhanced_data
         except json.JSONDecodeError as e:
             print(f"⚠️  Failed to parse JSON from o1-mini response: {e}")
@@ -246,11 +288,36 @@ Return ONLY the JSON object, no other text or markdown formatting."""
             # Return empty enhancement to fall back to original
             return {}
     
+    def _has_zero_values(self, recommendation: Dict[str, Any]) -> bool:
+        """Check if recommendation contains $0 values."""
+        zero_patterns = [
+            r'\$0(?:\.00)?',
+            r'\$\s*0(?:\.00)?',
+            r'0(?:\.00)?\s*dollars',
+            r'0(?:\.0+)?\s*months?\s*$',
+        ]
+        
+        text = recommendation.get('recommendation_text', '') or recommendation.get('description', '')
+        action_items = recommendation.get('action_items', [])
+        expected_impact = recommendation.get('expected_impact', '')
+        
+        all_text = f"{text} {' '.join(action_items)} {expected_impact}"
+        
+        for pattern in zero_patterns:
+            if re.search(pattern, all_text, re.IGNORECASE):
+                return True
+        
+        if '0/month' in all_text.lower() or '0/year' in all_text.lower() or 'save $0' in all_text.lower():
+            return True
+        
+        return False
+    
     def _merge_enhancement(
         self,
         original: Dict[str, Any],
         enhanced_data: Dict[str, Any],
-        validation: Dict[str, Any]
+        validation: Dict[str, Any],
+        data_points: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Merge enhanced data with original recommendation.
         
@@ -268,20 +335,37 @@ Return ONLY the JSON object, no other text or markdown formatting."""
         if enhanced_data.get('recommendation_text'):
             merged['recommendation_text'] = enhanced_data['recommendation_text']
         
-        # Always use enhanced action items if they have 3-5 items
+        # Always use enhanced action items if they have 3-5 items and are valid
         if enhanced_data.get('action_items'):
-            if 3 <= len(enhanced_data['action_items']) <= 5:
-                merged['action_items'] = enhanced_data['action_items']
-            elif len(enhanced_data['action_items']) > 5:
+            # Validate action items are not single letters or too short
+            validated_items = []
+            for item in enhanced_data['action_items']:
+                if isinstance(item, str):
+                    item_stripped = item.strip()
+                    # Must be at least 10 characters and not just a single letter/number
+                    if len(item_stripped) >= 10 and not re.match(r'^[A-Z0-9]$', item_stripped):
+                        # Must start with "Option" or be a meaningful description (at least 20 chars)
+                        if item_stripped.lower().startswith('option') or len(item_stripped) >= 20:
+                            validated_items.append(item)
+                        else:
+                            print(f"⚠️  Rejecting action item (too short or doesn't start with 'Option'): '{item_stripped[:50]}...'")
+                    else:
+                        print(f"⚠️  Rejecting invalid action item: '{item_stripped}' (too short or single character)")
+            
+            if 3 <= len(validated_items) <= 5:
+                merged['action_items'] = validated_items
+            elif len(validated_items) > 5:
                 # Take first 5 if too many
-                merged['action_items'] = enhanced_data['action_items'][:5]
-            elif len(enhanced_data['action_items']) < 3 and len(enhanced_data['action_items']) > 0:
+                merged['action_items'] = validated_items[:5]
+            elif len(validated_items) < 3 and len(validated_items) > 0:
                 # If enhanced has some items but not enough, try to use them plus originals
-                enhanced_items = enhanced_data['action_items']
-                needed = 3 - len(enhanced_items)
+                needed = 3 - len(validated_items)
                 if merged.get('action_items'):
-                    # Add original items if available
-                    merged['action_items'] = enhanced_items + merged['action_items'][:needed]
+                    # Validate original items too
+                    original_valid = [item for item in merged['action_items'] 
+                                    if isinstance(item, str) and len(item.strip()) >= 10 
+                                    and not re.match(r'^[A-Z0-9]$', item.strip())]
+                    merged['action_items'] = validated_items + original_valid[:needed]
                 else:
                     # Create default items to reach 3
                     default_items = [
@@ -289,7 +373,17 @@ Return ONLY the JSON object, no other text or markdown formatting."""
                         "Set a monthly budget target",
                         "Track expenses to identify savings opportunities"
                     ]
-                    merged['action_items'] = enhanced_items + default_items[:needed]
+                    merged['action_items'] = validated_items + default_items[:needed]
+            else:
+                # No valid enhanced items, keep originals if they exist
+                print(f"⚠️  No valid enhanced action items found, keeping originals")
+                if not merged.get('action_items'):
+                    # Create default items
+                    merged['action_items'] = [
+                        "Review your spending patterns in this category",
+                        "Set a monthly budget target",
+                        "Track expenses to identify savings opportunities"
+                    ]
         
         if enhanced_data.get('expected_impact'):
             merged['expected_impact'] = enhanced_data['expected_impact']
@@ -326,6 +420,127 @@ Return ONLY the JSON object, no other text or markdown formatting."""
             merged['action_items'] = merged['action_items'][:5]
         
         return merged
+    
+    def _replace_zero_values(self, recommendation: Dict[str, Any], data_points: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Replace any remaining $0 values with realistic estimates.
+        
+        Args:
+            recommendation: Recommendation dictionary
+            data_points: Original data points
+        
+        Returns:
+            Recommendation with $0 values replaced
+        """
+        zero_patterns = [
+            (r'\$\s*0(?:\.00)?', r'$50'),  # Replace $0 with $50 minimum
+            (r'\$0(?:\.00)?', r'$50'),
+            (r'0(?:\.00)?\s*dollars', r'$50'),
+        ]
+        
+        # Replace in recommendation_text
+        text = recommendation.get('recommendation_text', '') or recommendation.get('description', '')
+        for pattern, replacement in zero_patterns:
+            text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+        recommendation['recommendation_text'] = text
+        if 'description' in recommendation:
+            recommendation['description'] = text
+        
+        # Replace in action_items
+        action_items = recommendation.get('action_items', [])
+        for i, item in enumerate(action_items):
+            for pattern, replacement in zero_patterns:
+                item = re.sub(pattern, replacement, item, flags=re.IGNORECASE)
+                # Also replace "0/month" and "0/year" patterns
+                item = re.sub(r'0(?:\.00)?/month', r'$50/month', item, flags=re.IGNORECASE)
+                item = re.sub(r'0(?:\.00)?/year', r'$600/year', item, flags=re.IGNORECASE)
+                item = re.sub(r'Save \$0', r'Save $50', item, flags=re.IGNORECASE)
+            action_items[i] = item
+        recommendation['action_items'] = action_items
+        
+        # Replace in expected_impact
+        expected_impact = recommendation.get('expected_impact', '')
+        for pattern, replacement in zero_patterns:
+            expected_impact = re.sub(pattern, replacement, expected_impact, flags=re.IGNORECASE)
+        expected_impact = re.sub(r'0(?:\.00)?/month', r'$50/month', expected_impact, flags=re.IGNORECASE)
+        expected_impact = re.sub(r'0(?:\.00)?/year', r'$600/year', expected_impact, flags=re.IGNORECASE)
+        recommendation['expected_impact'] = expected_impact
+        
+        # Replace "0 months" patterns with realistic estimates
+        recommendation['expected_impact'] = re.sub(r'0(?:\.0+)?\s*months?\s*$', r'12 months', recommendation['expected_impact'], flags=re.IGNORECASE)
+        
+        # Replace category placeholders if missing
+        if '{category}' in text or ('0' in text and 'category' in text.lower()):
+            # Try to infer category from data_points
+            category = None
+            if data_points:
+                category = data_points.get('category') or data_points.get('merchant_name') or 'this spending category'
+            else:
+                category = 'this spending category'
+            
+            text = text.replace('{category}', category)
+            # Replace standalone "0" that might be a category placeholder
+            text = re.sub(r'\b0\b(?!\s*(?:month|year|%))', category, text)
+            recommendation['recommendation_text'] = text
+            if 'description' in recommendation:
+                recommendation['description'] = text
+        
+        return recommendation
+    
+    def _aggressive_zero_replacement(
+        self,
+        recommendation: Dict[str, Any],
+        data_points: Optional[Dict[str, Any]] = None,
+        features: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Aggressively replace $0 values with realistic estimates based on user data.
+        
+        Args:
+            recommendation: Recommendation dictionary
+            data_points: Original data points
+            features: User features
+        
+        Returns:
+            Recommendation with all $0 values replaced
+        """
+        # Get user income for context
+        monthly_income = 0
+        if features and 'income' in features:
+            income_features = features['income']
+            monthly_income = income_features.get('average_monthly_income', 0) or income_features.get('minimum_monthly_income', 0)
+        
+        # Default estimates if no income data
+        if monthly_income <= 0:
+            monthly_income = 3000  # Default estimate
+        
+        # Replace $0 with percentage-based estimates
+        text = recommendation.get('recommendation_text', '') or recommendation.get('description', '')
+        action_items = recommendation.get('action_items', [])
+        expected_impact = recommendation.get('expected_impact', '')
+        
+        # Estimate category spending (5-15% of income for most categories)
+        estimated_category_spending = monthly_income * 0.10  # 10% default
+        
+        # Replace $0 patterns with estimates
+        replacements = [
+            (r'\$0(?:\.00)?/month', f'${estimated_category_spending:.0f}/month'),
+            (r'\$0(?:\.00)?/year', f'${estimated_category_spending * 12:.0f}/year'),
+            (r'Save \$0(?:\.00)?', f'Save ${estimated_category_spending * 0.25:.0f}'),
+            (r'\$0(?:\.00)?', f'${estimated_category_spending:.0f}'),
+            (r'0(?:\.00)?\s*months?\s*$', '12 months'),
+        ]
+        
+        for pattern, replacement in replacements:
+            text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+            expected_impact = re.sub(pattern, replacement, expected_impact, flags=re.IGNORECASE)
+            action_items = [re.sub(pattern, replacement, item, flags=re.IGNORECASE) for item in action_items]
+        
+        recommendation['recommendation_text'] = text
+        if 'description' in recommendation:
+            recommendation['description'] = text
+        recommendation['action_items'] = action_items
+        recommendation['expected_impact'] = expected_impact
+        
+        return recommendation
     
     def enhance_batch(
         self,

@@ -154,7 +154,7 @@ export function NetWorthExample() {
         'You have a healthy debt-to-asset ratio of 16.4%'
       ]}
       footer={
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-[#8B6F47]">
           Last updated: {new Date().toLocaleDateString()}
         </p>
       }
@@ -172,8 +172,8 @@ export function CustomContentExample() {
       subtitle="Example with custom content"
     >
       {/* Custom content goes here */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <p className="text-sm text-gray-600">
+      <div className="bg-[#E8F5E9] rounded-lg p-4">
+        <p className="text-sm text-[#556B2F]">
           You can add any custom content here using the children prop.
         </p>
       </div>

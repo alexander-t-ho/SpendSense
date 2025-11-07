@@ -130,6 +130,56 @@ class RecommendationDataExtractor:
                 interest_savings_12mo = total_interest_min - total_interest_12mo
                 months_faster_12mo = months_to_payoff_min - months_to_payoff_12mo
                 
+                # Calculate payment plans for overdue amount (if overdue)
+                # Always calculate these fields, even if not overdue, to provide defaults
+                overdue_payment_plans = {}
+                overdue_amount = account.amount_due if account.amount_due else balance
+                is_overdue = liability.is_overdue if liability else False
+                
+                # Only calculate payment plans if there's an actual overdue amount or if we need defaults
+                if overdue_amount > 0:
+                    # Calculate payment plans for overdue amount: 6, 12, 24 months
+                    overdue_payment_6mo = self._calculate_payment_for_payoff_months(
+                        overdue_amount, apr, 6
+                    )
+                    overdue_payment_12mo = self._calculate_payment_for_payoff_months(
+                        overdue_amount, apr, 12
+                    )
+                    overdue_payment_24mo = self._calculate_payment_for_payoff_months(
+                        overdue_amount, apr, 24
+                    )
+                    
+                    # Calculate interest for each plan
+                    overdue_monthly_interest = overdue_amount * (apr / 12 / 100)
+                    overdue_months_6mo = self._calculate_payoff_months(
+                        overdue_amount, overdue_payment_6mo, overdue_monthly_interest
+                    )
+                    overdue_months_12mo = self._calculate_payoff_months(
+                        overdue_amount, overdue_payment_12mo, overdue_monthly_interest
+                    )
+                    overdue_months_24mo = self._calculate_payoff_months(
+                        overdue_amount, overdue_payment_24mo, overdue_monthly_interest
+                    )
+                    
+                    overdue_payment_plans = {
+                        'overdue_payment_6mo': overdue_payment_6mo,
+                        'overdue_months_6mo': overdue_months_6mo,
+                        'overdue_payment_12mo': overdue_payment_12mo,
+                        'overdue_months_12mo': overdue_months_12mo,
+                        'overdue_payment_24mo': overdue_payment_24mo,
+                        'overdue_months_24mo': overdue_months_24mo
+                    }
+                else:
+                    # Provide default values if no overdue amount
+                    overdue_payment_plans = {
+                        'overdue_payment_6mo': 0,
+                        'overdue_months_6mo': 6,
+                        'overdue_payment_12mo': 0,
+                        'overdue_months_12mo': 12,
+                        'overdue_payment_24mo': 0,
+                        'overdue_months_24mo': 24
+                    }
+                
                 card_data = {
                     'card_type': account.name or "Credit Card",
                     'card_last_4': account.account_id[-4:] if len(account.account_id) >= 4 else account.account_id,
@@ -166,7 +216,9 @@ class RecommendationDataExtractor:
                     'months_with_extra': months_to_payoff_12mo,
                     'total_interest_12mo': total_interest_12mo,
                     'interest_savings_12mo': interest_savings_12mo,
-                    'months_faster_12mo': months_faster_12mo
+                    'months_faster_12mo': months_faster_12mo,
+                    # Overdue payment plan options
+                    **overdue_payment_plans
                 }
                 
                 cards.append(card_data)
@@ -385,7 +437,23 @@ class RecommendationDataExtractor:
         
         # Calculate goal timeline (e.g., $10,000 goal)
         goal_amount = 10000
+        
+        # Ensure monthly_inflow has a minimum value if $0 (use income-based estimate)
+        if monthly_inflow <= 0:
+            income_features = features.get('income', {})
+            estimated_income = income_features.get('average_monthly_income', 0) or income_features.get('minimum_monthly_income', 0)
+            if estimated_income > 0:
+                # Estimate 10% savings rate
+                monthly_inflow = estimated_income * 0.10
+            else:
+                # Default to $200/month if no income data
+                monthly_inflow = 200
+        
         months_to_goal = (goal_amount - total_balance) / monthly_inflow if monthly_inflow > 0 else 0
+        
+        # Ensure months_to_goal is reasonable (not 0 or negative)
+        if months_to_goal <= 0:
+            months_to_goal = 12  # Default to 12 months if calculation fails
         
         return {
             'total_savings_balance': total_balance,
@@ -395,7 +463,7 @@ class RecommendationDataExtractor:
             'high_apy': high_apy,
             'additional_annual_earnings': additional_annual_earnings,
             'goal_amount': goal_amount,
-            'months_to_goal': max(0, months_to_goal)
+            'months_to_goal': max(1, months_to_goal)  # Minimum 1 month
         }
     
     def _calculate_payoff_months(

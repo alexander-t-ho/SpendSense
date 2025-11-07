@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle, Flag, AlertCircle } from 'lucide-react'
+import { CheckCircle, Flag, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import {
   fetchRecommendationQueue,
@@ -92,7 +92,7 @@ export default function RecommendationQueue() {
   if (isLoading) {
     return (
       <div className="bg-white shadow rounded-lg p-6">
-        <div className="text-gray-500">Loading recommendations...</div>
+        <div className="text-[#8B6F47]">Loading recommendations...</div>
       </div>
     )
   }
@@ -109,11 +109,11 @@ export default function RecommendationQueue() {
 
   return (
     <div className="bg-white shadow rounded-lg">
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-6 py-4 border-b border-[#D4C4B0]">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Recommendation Queue</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <h2 className="text-lg font-semibold text-[#5D4037]">Recommendation Queue</h2>
+            <p className="text-sm text-[#556B2F] mt-1">
               Review and approve or flag recommendations before they're shown to users
             </p>
           </div>
@@ -121,7 +121,7 @@ export default function RecommendationQueue() {
         
         {/* User Search */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-[#556B2F] mb-2">
             Filter by User (Optional)
           </label>
           <UserSearch
@@ -140,7 +140,7 @@ export default function RecommendationQueue() {
               className={`px-4 py-2 text-sm rounded-md ${
                 statusFilter === 'pending'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-[#F5E6D3] text-[#556B2F] hover:bg-gray-200'
               }`}
             >
               Pending
@@ -150,7 +150,7 @@ export default function RecommendationQueue() {
               className={`px-4 py-2 text-sm rounded-md ${
                 statusFilter === 'approved'
                   ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-[#F5E6D3] text-[#556B2F] hover:bg-gray-200'
               }`}
             >
               Approved
@@ -160,7 +160,7 @@ export default function RecommendationQueue() {
               className={`px-4 py-2 text-sm rounded-md ${
                 statusFilter === 'flagged'
                   ? 'bg-red-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-[#F5E6D3] text-[#556B2F] hover:bg-gray-200'
               }`}
             >
               Flagged
@@ -170,7 +170,7 @@ export default function RecommendationQueue() {
               className={`px-4 py-2 text-sm rounded-md ${
                 statusFilter === 'rejected'
                   ? 'bg-orange-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-[#F5E6D3] text-[#556B2F] hover:bg-gray-200'
               }`}
             >
               Rejected
@@ -180,7 +180,7 @@ export default function RecommendationQueue() {
               className={`px-4 py-2 text-sm rounded-md ${
                 statusFilter === 'all'
                   ? 'bg-gray-800 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-[#F5E6D3] text-[#556B2F] hover:bg-gray-200'
               }`}
             >
               All
@@ -189,7 +189,7 @@ export default function RecommendationQueue() {
         </div>
 
       {recommendations.length === 0 ? (
-        <div className="px-6 py-12 text-center text-gray-500">
+        <div className="px-6 py-12 text-center text-[#8B6F47]">
           <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
           <p>No recommendations found for status: {statusFilter}</p>
           <p className="text-sm mt-2">
@@ -233,8 +233,10 @@ function RecommendationCard({
   isFlagging: boolean
   isRejecting: boolean
 }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  
   const getRiskColor = (risk: string | undefined) => {
-    if (!risk) return 'bg-gray-100 text-gray-800'
+    if (!risk) return 'bg-[#F5E6D3] text-[#5D4037]'
     switch (risk.toUpperCase()) {
       case 'CRITICAL':
         return 'bg-red-100 text-red-800'
@@ -243,20 +245,30 @@ function RecommendationCard({
       case 'MEDIUM':
         return 'bg-yellow-100 text-yellow-800'
       case 'LOW':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-[#E8F5E9] text-[#5D4037]'
       case 'MINIMAL':
         return 'bg-green-100 text-green-800'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-[#F5E6D3] text-[#5D4037]'
     }
   }
 
   return (
-    <div className="px-6 py-4 hover:bg-gray-50">
+    <div className="px-6 py-4 hover:bg-[#E8F5E9]">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="text-lg font-medium text-gray-900">{recommendation.title}</h3>
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-2 text-left hover:text-[#556B2F] transition-colors"
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4 text-[#556B2F]" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-[#556B2F]" />
+              )}
+              <h3 className="text-lg font-medium text-[#5D4037]">{recommendation.title}</h3>
+            </button>
             {recommendation.persona_name && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                 Persona: {recommendation.persona_name}
@@ -294,13 +306,13 @@ function RecommendationCard({
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                 recommendation.priority === 'high' ? 'bg-red-100 text-red-800' :
                 recommendation.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-gray-100 text-gray-800'
+                'bg-[#F5E6D3] text-[#5D4037]'
               }`}>
                 {recommendation.priority.toUpperCase()} Priority
               </span>
             )}
           </div>
-          <div className="mt-2 text-sm text-gray-600">
+          <div className="mt-2 text-sm text-[#556B2F]">
             <p>
               <span className="font-medium">User:</span> {recommendation.user_name} ({recommendation.user_email})
             </p>
@@ -312,33 +324,41 @@ function RecommendationCard({
                 <span className="font-medium">Target Persona:</span> {recommendation.persona_name || recommendation.persona_id}
               </p>
             )}
-            {recommendation.description && (
-              <div className="mt-2 p-3 bg-gray-50 rounded-md">
-                <p className="text-sm font-medium text-gray-900 mb-1">Recommendation:</p>
-                <p className="text-sm text-gray-700">{recommendation.description}</p>
-              </div>
-            )}
-            {recommendation.action_items && recommendation.action_items.length > 0 && (
-              <div className="mt-2">
-                <p className="text-sm font-medium text-gray-900 mb-1">Action Items:</p>
-                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                  {recommendation.action_items.slice(0, 3).map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {recommendation.expected_impact && (
-              <div className="mt-2 p-2 bg-green-50 rounded-md">
-                <p className="text-xs font-medium text-green-900">Expected Impact:</p>
-                <p className="text-xs text-green-800 mt-1">{recommendation.expected_impact}</p>
-              </div>
-            )}
           </div>
-          <div className="mt-3 p-3 bg-blue-50 rounded-md">
-            <p className="text-sm font-medium text-blue-900">Rationale:</p>
-            <p className="text-sm text-blue-800 mt-1">{recommendation.rationale}</p>
-          </div>
+          
+          {/* Expanded content */}
+          {isExpanded && (
+            <div className="mt-4 space-y-3">
+              {recommendation.description && (
+                <div className="p-3 bg-[#E8F5E9] rounded-md">
+                  <p className="text-sm font-medium text-[#5D4037] mb-1">Recommendation:</p>
+                  <p className="text-sm text-[#556B2F]">{recommendation.description}</p>
+                </div>
+              )}
+              {recommendation.action_items && recommendation.action_items.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-[#5D4037] mb-1">Action Items:</p>
+                  <ul className="list-disc list-inside text-sm text-[#556B2F] space-y-1">
+                    {recommendation.action_items.map((item: string, idx: number) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {recommendation.expected_impact && (
+                <div className="p-2 bg-green-50 rounded-md">
+                  <p className="text-xs font-medium text-green-900">Expected Impact:</p>
+                  <p className="text-xs text-green-800 mt-1">{recommendation.expected_impact}</p>
+                </div>
+              )}
+              {recommendation.rationale && (
+                <div className="p-3 bg-blue-50 rounded-md">
+                  <p className="text-sm font-medium text-blue-900">Rationale:</p>
+                  <p className="text-sm text-[#5D4037] mt-1">{recommendation.rationale}</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         {!recommendation.approved && !recommendation.flagged && !recommendation.rejected && (
           <div className="ml-4 flex gap-2">

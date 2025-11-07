@@ -87,16 +87,17 @@ ACTIONABLE_RECOMMENDATIONS = [
         persona_id="high_utilization",
         priority=RecommendationPriority.HIGH,
         title="Address Overdue Payment",
-        template="We noticed your {card_type} ending in {card_last_4} has an overdue payment of ${amount_due:,.0f}. This is negatively impacting your credit score. Making a payment immediately can prevent further damage.",
+        template="We noticed your {card_type} ending in {card_last_4} has an overdue payment of ${amount_due:,.0f}. This is negatively impacting your credit score. We've calculated payment plan options to help you catch up:",
         action_items=[
-            "Pay the overdue amount of ${amount_due:,.0f} immediately",
+            "Option 1: Pay ${overdue_payment_6mo:,.0f}/month to pay off the overdue amount in {overdue_months_6mo} months",
+            "Option 2: Pay ${overdue_payment_12mo:,.0f}/month to pay off the overdue amount in {overdue_months_12mo} months",
+            "Option 3: Pay ${overdue_payment_24mo:,.0f}/month to pay off the overdue amount in {overdue_months_24mo} months",
             "Set up automatic payments to prevent future overdue payments",
-            "Contact the credit card company to discuss payment options if needed",
-            "Consider a payment plan if you're struggling to catch up"
+            "Contact the credit card company to discuss payment options if needed"
         ],
-        expected_impact="Prevent further credit score damage, avoid late fees, maintain good payment history",
+        expected_impact="Prevent further credit score damage, avoid late fees, maintain good payment history by following a structured payment plan",
         target_signals=["is_overdue", "overdue_payment"],
-        data_points_needed=["card_type", "card_last_4", "amount_due"]
+        data_points_needed=["card_type", "card_last_4", "amount_due", "overdue_payment_6mo", "overdue_months_6mo", "overdue_payment_12mo", "overdue_months_12mo", "overdue_payment_24mo", "overdue_months_24mo"]
     ),
     
     # Variable Income Budgeter Recommendations

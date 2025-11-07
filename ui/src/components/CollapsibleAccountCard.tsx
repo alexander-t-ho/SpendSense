@@ -34,27 +34,27 @@ export default function CollapsibleAccountCard({
       {/* Header - always visible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+        className="w-full flex items-center justify-between p-4 bg-[#E8F5E9] hover:bg-[#F5E6D3] transition-colors text-left"
       >
         <div className="flex items-center space-x-3 flex-1">
           {isExpanded ? (
-            <ChevronUp className="h-5 w-5 text-gray-500 flex-shrink-0" />
+            <ChevronUp className="h-5 w-5 text-[#8B6F47] flex-shrink-0" />
           ) : (
-            <ChevronDown className="h-5 w-5 text-gray-500 flex-shrink-0" />
+            <ChevronDown className="h-5 w-5 text-[#8B6F47] flex-shrink-0" />
           )}
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900">{account.name}</h3>
+            <h3 className="font-semibold text-[#5D4037]">{account.name}</h3>
             <div className="flex items-center space-x-4 mt-1">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-[#556B2F]">
                 {accountTransactions.length} transactions ({windowDays} days)
               </p>
               {account.type === 'depository' && account.current && (
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-[#5D4037]">
                   Balance: {formatCurrency(account.current)}
                 </p>
               )}
               {account.type === 'credit' && account.current && account.limit && (
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-[#5D4037]">
                   {formatCurrency(account.current)} / {formatCurrency(account.limit)}
                 </p>
               )}
@@ -69,7 +69,7 @@ export default function CollapsibleAccountCard({
           <AccountCard account={account} />
           {accountTransactions.length > 0 && (
             <div className="mt-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">
+              <h4 className="text-sm font-semibold text-[#556B2F] mb-2">
                 Transactions for this account
               </h4>
               <TransactionTable transactions={accountTransactions} />

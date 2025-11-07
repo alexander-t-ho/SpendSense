@@ -578,26 +578,63 @@ def get_suggested_budget(
             # Minimum spending is the lowest month
             min_spending = min(monthly_spending) if monthly_spending else 0.0
             
-            # Calculate max budget: available funds (income or account balance)
-            # Get average monthly income
-            from features.income import IncomeAnalyzer
-            income_analyzer = IncomeAnalyzer(session)
-            income_features = income_analyzer.calculate_income_metrics(
-                user_id, 
-                datetime.now() - timedelta(days=180),
-                datetime.now()
-            )
-            avg_monthly_income = income_features.get('average_monthly_income', 0.0)
-            if avg_monthly_income == 0.0:
-                # Fallback: use minimum monthly income
-                avg_monthly_income = income_features.get('minimum_monthly_income', 0.0)
+        # CRITICAL: Budget is based on 100% of average monthly income from income analysis
+        # Calculate average monthly income from transactions (same as budget calculator)
+        from collections import defaultdict
+        depository_accounts = [acc for acc in accounts if acc.type == 'depository']
+        depository_account_ids = [acc.id for acc in depository_accounts]
+        
+        monthly_income = 0.0
+        if depository_account_ids:
+            # Get income transactions from last 6 months
+            six_months_ago = datetime.now() - timedelta(days=180)
+            income_transactions = session.query(Transaction).filter(
+                and_(
+                    Transaction.account_id.in_(depository_account_ids),
+                    Transaction.date >= six_months_ago,
+                    Transaction.amount > 0  # Income is positive
+                )
+            ).all()
             
-            # Max budget is 95% of monthly income (leave some buffer)
-            max_budget = avg_monthly_income * 0.95 if avg_monthly_income > 0 else budget.get('total_budget', 0.0) * 1.5
+            # Calculate average monthly income
+            monthly_income_dict = defaultdict(float)
+            for tx in income_transactions:
+                month_key = tx.date.strftime("%Y-%m")
+                monthly_income_dict[month_key] += abs(tx.amount)
+            
+            if monthly_income_dict:
+                monthly_income = sum(monthly_income_dict.values()) / len(monthly_income_dict)
+        
+        # Fallback to FeaturePipeline if no transaction-based income found
+        if monthly_income <= 0:
+            from features.pipeline import FeaturePipeline
+            import os
+            db_path = os.environ.get('DATABASE_PATH', 'data/spendsense.db')
+            feature_pipeline = FeaturePipeline(db_path)
+            features = feature_pipeline.compute_features_for_user(user_id, 90)
+            income_features = features.get('income', {})
+            avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
+            frequency = income_features.get('payment_frequency', {}).get('frequency', 'monthly')
+            if avg_income_per_pay > 0:
+                if frequency == 'weekly':
+                    monthly_income = avg_income_per_pay * 4.33
+                elif frequency == 'biweekly':
+                    monthly_income = avg_income_per_pay * 2.17
+                elif frequency == 'monthly':
+                    monthly_income = avg_income_per_pay
+                else:
+                    monthly_income = income_features.get('minimum_monthly_income', 0.0)
+            else:
+                monthly_income = income_features.get('minimum_monthly_income', 0.0)
+        
+        # Max budget is 100% of monthly income (not capped by available funds)
+        # This allows users to save more money and still live their lives
+        max_budget = monthly_income if monthly_income > 0 else 0.0
         
         # Add constraints to budget response
         budget['min_budget'] = min_spending
         budget['max_budget'] = max_budget
+        budget['monthly_income'] = monthly_income  # Include for frontend display
         
         return budget
     finally:
@@ -713,6 +750,70 @@ def set_user_budget(
         else:
             period_end = month_date.replace(month=month_date.month + 1, day=1) - timedelta(days=1)
         
+        # CRITICAL: Budget is based ONLY on average monthly income from income analysis (100% max)
+        # Credit card balances do NOT factor into the budget calculation
+        # Credit card debt should only be addressed through recommendations (debt payoff plans)
+        # Calculate average monthly income from transactions (same as budget calculator)
+        from collections import defaultdict
+        accounts = session.query(Account).filter(Account.user_id == user_id).all()
+        depository_accounts = [acc for acc in accounts if acc.type == 'depository']
+        depository_account_ids = [acc.id for acc in depository_accounts]
+        
+        monthly_income = 0.0
+        if depository_account_ids:
+            # Get income transactions from last 6 months
+            six_months_ago = datetime.now() - timedelta(days=180)
+            income_transactions = session.query(Transaction).filter(
+                and_(
+                    Transaction.account_id.in_(depository_account_ids),
+                    Transaction.date >= six_months_ago,
+                    Transaction.amount > 0  # Income is positive
+                )
+            ).all()
+            
+            # Calculate average monthly income
+            monthly_income_dict = defaultdict(float)
+            for tx in income_transactions:
+                month_key = tx.date.strftime("%Y-%m")
+                monthly_income_dict[month_key] += abs(tx.amount)
+            
+            if monthly_income_dict:
+                monthly_income = sum(monthly_income_dict.values()) / len(monthly_income_dict)
+        
+        # Fallback to FeaturePipeline if no transaction-based income found
+        if monthly_income <= 0:
+            from features.pipeline import FeaturePipeline
+            import os
+            db_path = os.environ.get('DATABASE_PATH', 'data/spendsense.db')
+            feature_pipeline = FeaturePipeline(db_path)
+            features = feature_pipeline.compute_features_for_user(user_id, 90)
+            income_features = features.get('income', {})
+            avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
+            frequency = income_features.get('payment_frequency', {}).get('frequency', 'monthly')
+            if avg_income_per_pay > 0:
+                if frequency == 'weekly':
+                    monthly_income = avg_income_per_pay * 4.33
+                elif frequency == 'biweekly':
+                    monthly_income = avg_income_per_pay * 2.17
+                elif frequency == 'monthly':
+                    monthly_income = avg_income_per_pay
+                else:
+                    monthly_income = income_features.get('minimum_monthly_income', 0.0)
+            else:
+                monthly_income = income_features.get('minimum_monthly_income', 0.0)
+        
+        # Budget should only be validated against monthly income (100% max)
+        # Not capped by available funds or credit card balances
+        # This allows users to save more money and still live their lives
+        # Credit card debt is addressed separately through debt payoff recommendations
+        max_allowed_budget = monthly_income if monthly_income > 0 else 0.0
+        
+        if amount > max_allowed_budget and monthly_income > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Budget cannot exceed 100% of monthly take-home income. Maximum allowed: ${max_allowed_budget:.2f} (Monthly income: ${monthly_income:.2f})"
+            )
+        
         # Check if budget already exists for this month
         existing_budget = session.query(Budget).filter(
             and_(
@@ -749,6 +850,125 @@ def set_user_budget(
             "month": month,
             "amount": amount,
             "message": "Budget saved successfully"
+        }
+    finally:
+        session.close()
+
+
+@app.post("/api/insights/{user_id}/generate-budget")
+def generate_budget(
+    user_id: str,
+    month: Optional[str] = Query(None, description="Month in YYYY-MM format (defaults to current month)")
+):
+    """Generate and save a suggested budget for a user based on their financial data.
+    
+    Args:
+        user_id: User ID
+        month: Month in YYYY-MM format (defaults to current month)
+    
+    Returns:
+        Generated budget with category breakdown
+    """
+    from insights.budget_calculator import BudgetCalculator
+    from ingest.schema import Budget
+    from datetime import datetime, timedelta
+    import uuid
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Parse month or use current month
+        if month:
+            try:
+                month_date = datetime.strptime(month, "%Y-%m")
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid month format. Use YYYY-MM")
+        else:
+            month_date = datetime.now().replace(day=1)
+        
+        # Calculate period
+        period_start = month_date.replace(day=1)
+        if month_date.month == 12:
+            period_end = month_date.replace(year=month_date.year + 1, month=1, day=1) - timedelta(days=1)
+        else:
+            period_end = month_date.replace(month=month_date.month + 1, day=1) - timedelta(days=1)
+        
+        # Generate suggested budget
+        calculator = BudgetCalculator(session)
+        suggested_budget = calculator.suggest_budget(user_id, month_date, lookback_months=6)
+        
+        # Check if budget already exists for this month
+        existing_budget = session.query(Budget).filter(
+            and_(
+                Budget.user_id == user_id,
+                Budget.category.is_(None),  # Overall budget
+                Budget.period_start == period_start,
+                Budget.period_end == period_end
+            )
+        ).first()
+        
+        # Store overall budget
+        if existing_budget:
+            existing_budget.amount = suggested_budget['total_budget']
+            existing_budget.updated_at = datetime.now()
+            overall_budget_id = existing_budget.id
+        else:
+            overall_budget_id = str(uuid.uuid4())
+            overall_budget = Budget(
+                id=overall_budget_id,
+                user_id=user_id,
+                category=None,
+                amount=suggested_budget['total_budget'],
+                period_start=period_start,
+                period_end=period_end,
+                is_suggested=True,
+                created_at=datetime.now(),
+                updated_at=datetime.now()
+            )
+            session.add(overall_budget)
+        
+        # Delete existing category budgets for this month
+        session.query(Budget).filter(
+            and_(
+                Budget.user_id == user_id,
+                Budget.category.isnot(None),
+                Budget.period_start == period_start,
+                Budget.period_end == period_end
+            )
+        ).delete()
+        
+        # Store category budgets (including 20% for savings or debt repayment)
+        category_budget_ids = []
+        for category, amount in suggested_budget.get('category_budgets', {}).items():
+            cat_budget_id = str(uuid.uuid4())
+            cat_budget = Budget(
+                id=cat_budget_id,
+                user_id=user_id,
+                category=category,
+                amount=amount,
+                period_start=period_start,
+                period_end=period_end,
+                is_suggested=True,
+                created_at=datetime.now(),
+                updated_at=datetime.now()
+            )
+            session.add(cat_budget)
+            category_budget_ids.append(cat_budget_id)
+        
+        session.commit()
+        
+        return {
+            "user_id": user_id,
+            "month": month_date.strftime("%Y-%m"),
+            "total_budget": suggested_budget['total_budget'],
+            "category_budgets": suggested_budget.get('category_budgets', {}),
+            "rationale": suggested_budget.get('rationale', ''),
+            "budget_id": overall_budget_id,
+            "category_budget_ids": category_budget_ids,
+            "message": "Budget generated and saved successfully"
         }
     finally:
         session.close()
@@ -1377,6 +1597,164 @@ def get_cancelled_subscriptions(user_id: str):
             ],
             "total": len(cancelled_subs)
         }
+    finally:
+        session.close()
+
+
+@app.post("/api/budgets/generate-all")
+def generate_budgets_for_all_users():
+    """Generate budgets for all users (for testing purposes).
+    
+    This endpoint will generate RAG-based budgets for all users in the system.
+    Budgets are capped at 90% of monthly income.
+    
+    Returns:
+        Dictionary with generation results
+    """
+    from recommend.budget_generator import RAGBudgetGenerator
+    from datetime import datetime, timedelta
+    from ingest.schema import Budget
+    from sqlalchemy import and_
+    import os
+    
+    session = get_session()
+    try:
+        users = session.query(User).all()
+        db_path = os.environ.get("DATABASE_PATH", "data/spendsense.db")
+        generator = RAGBudgetGenerator(db_path=db_path)
+        
+        results = {
+            "total_users": len(users),
+            "generated": 0,
+            "skipped": 0,
+            "failed": 0,
+            "errors": []
+        }
+        
+        current_month = datetime.now().strftime("%Y-%m")
+        month_start = datetime.now().replace(day=1)
+        if month_start.month == 12:
+            month_end = month_start.replace(year=month_start.year + 1, month=1, day=1) - timedelta(days=1)
+        else:
+            month_end = month_start.replace(month=month_start.month + 1, day=1) - timedelta(days=1)
+        
+        for user in users:
+            try:
+                # Check if budget already exists for current month
+                existing = session.query(Budget).filter(
+                    and_(
+                        Budget.user_id == user.id,
+                        Budget.category.is_(None),
+                        Budget.period_start <= month_end,
+                        Budget.period_end >= month_start
+                    )
+                ).first()
+                
+                if not existing:
+                    generator.generate_user_budget(session, user.id, current_month)
+                    results["generated"] += 1
+                else:
+                    results["skipped"] += 1
+            except Exception as e:
+                results["failed"] += 1
+                results["errors"].append({
+                    "user_id": user.id,
+                    "error": str(e)
+                })
+        
+        session.commit()
+        
+        return results
+    finally:
+        session.close()
+
+
+@app.post("/api/operator/recommendations/generate-custom")
+def generate_custom_recommendation(request: Dict[str, Any] = Body(...)):
+    """Generate a custom recommendation from an admin prompt using RAG.
+    
+    Request body:
+        - user_id: User ID
+        - admin_prompt: Admin's prompt describing what recommendation to create
+        - context_data: Optional context data (e.g., {"category": "streaming", "subscriptions": ["YouTube Premium", "HBO Max", "Spotify"]})
+        - window_days: Optional time window for feature computation (default 180)
+    
+    Returns:
+        Generated recommendation dictionary ready for review
+    """
+    from recommend.custom_recommendation_generator import CustomRecommendationGenerator
+    import os
+    
+    user_id = request.get('user_id')
+    admin_prompt = request.get('admin_prompt')
+    context_data = request.get('context_data')
+    window_days = request.get('window_days', 180)
+    
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id is required")
+    if not admin_prompt:
+        raise HTTPException(status_code=400, detail="admin_prompt is required")
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        db_path = os.environ.get("DATABASE_PATH", "data/spendsense.db")
+        generator = CustomRecommendationGenerator(db_path=db_path)
+        
+        recommendation_type = request.get('recommendation_type', 'actionable_recommendation')
+        
+        recommendation = generator.generate_from_prompt(
+            user_id=user_id,
+            admin_prompt=admin_prompt,
+            context_data=context_data,
+            window_days=window_days,
+            recommendation_type=recommendation_type
+        )
+        
+        # Store the recommendation in the database
+        from ingest.schema import Recommendation
+        import uuid
+        
+        rec_id = recommendation.get('id', str(uuid.uuid4()))
+        rec = Recommendation(
+            id=rec_id,
+            user_id=user_id,
+            recommendation_type=recommendation_type,
+            title=recommendation.get('title', 'Custom Recommendation'),
+            description=recommendation.get('recommendation_text', '') or recommendation.get('description', ''),
+            rationale=recommendation.get('rationale', 'Generated from admin prompt'),
+            content_id='admin_custom',
+            persona_id='admin_custom',
+            action_items=recommendation.get('action_items', []),
+            expected_impact=recommendation.get('expected_impact', ''),
+            priority=recommendation.get('priority', 'medium'),
+            approved=False,  # Requires admin approval
+            flagged=False,
+            rejected=False,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
+        )
+        session.add(rec)
+        session.commit()
+        session.refresh(rec)
+        
+        # Add database ID to returned recommendation
+        recommendation['id'] = rec.id
+        recommendation['approved'] = False
+        recommendation['rejected'] = False
+        recommendation['flagged'] = False
+        
+        return {
+            "success": True,
+            "recommendation": recommendation
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate recommendation: {str(e)}")
     finally:
         session.close()
 

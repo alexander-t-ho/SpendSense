@@ -8,25 +8,25 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5E6D3] via-[#D4C4B0] to-[#5D4037]">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b border-[#D4C4B0]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <Link to="/" className="flex items-center space-x-2">
-              <TrendingUp className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">SpendSense</span>
+              <TrendingUp className="h-8 w-8 text-[#556B2F]" />
+              <span className="text-2xl font-bold text-[#5D4037]">SpendSense</span>
             </Link>
             <nav className="flex space-x-4">
               <Link
                 to="/"
-                className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-[#5D4037] hover:text-[#556B2F] px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Dashboard
               </Link>
               <Link
                 to="/operator"
-                className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-[#5D4037] hover:text-[#556B2F] px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Operator
               </Link>

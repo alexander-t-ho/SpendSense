@@ -2,28 +2,25 @@ import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { fetchUserDetail } from '../../services/api'
 import AccountCard from '../../components/AccountCard'
-import FeatureCard from '../../components/FeatureCard'
 import TransactionTable from '../../components/TransactionTable'
 import FinancialInsightsCarousel from '../../components/FinancialInsightsCarousel'
+import UserBudgetDisplay from '../../components/UserBudgetDisplay'
 import RecommendationsSection from '../../components/RecommendationsSection'
-// PersonaPieChart hidden from user view
-import { useState } from 'react'
+import ConsentModal from '../../components/ConsentModal'
+import { useState, useEffect } from 'react'
+import { FileText, BarChart3, Settings, MessageSquare } from 'lucide-react'
+import { getConsentStatus } from '../../services/api'
 
 /**
  * User Dashboard - End-user view
  * User can only see their own account data
- * Same interface as admin, but restricted to single user
  */
 export default function UserDashboard() {
-  // In a real app, this would come from authentication context
-  // For now, we'll use a query parameter or route param
   const { userId } = useParams<{ userId: string }>()
   const [windowDays, setWindowDays] = useState<number>(30)
-  const [transactionsExpanded, setTransactionsExpanded] = useState<boolean>(true)
-
-  // TODO: Get userId from auth context instead of route param
-  // For now, if no userId in route, we'd redirect to login
-  // const userId = useAuth().user?.id
+  const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'recommendations'>('overview')
+  const [activeSubTab, setActiveSubTab] = useState<'accounts' | 'transactions'>('accounts')
+  const [consentModalOpen, setConsentModalOpen] = useState(false)
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['user', userId, windowDays],
@@ -31,10 +28,23 @@ export default function UserDashboard() {
     enabled: !!userId,
   })
 
+  const { data: consent } = useQuery({
+    queryKey: ['consent', userId],
+    queryFn: () => getConsentStatus(userId!),
+    enabled: !!userId,
+  })
+
+  // Auto-open consent modal if user hasn't consented
+  useEffect(() => {
+    if (consent && !consent.consented && !consentModalOpen) {
+      setConsentModalOpen(true)
+    }
+  }, [consent, consentModalOpen])
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading your financial data...</div>
+        <div className="text-[#8B6F47]">Loading your financial data...</div>
       </div>
     )
   }
@@ -42,128 +52,183 @@ export default function UserDashboard() {
   if (!user) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Unable to load your account. Please try again later.</p>
+        <p className="text-[#8B6F47]">Unable to load your account. Please try again later.</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
+      {/* Header with Name, Email, and Tabs */}
+      <div className="bg-white shadow rounded-lg p-6 border border-[#D4C4B0]">
+        <div className="flex items-center justify-between mb-4">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Your Financial Dashboard</h1>
-        <p className="mt-2 text-gray-600">Welcome back, {user.name}</p>
+            <h1 className="text-3xl font-bold text-[#5D4037]">Welcome back, {user.name}</h1>
+            <p className="mt-1 text-[#556B2F]">{user.email}</p>
+          </div>
+          <button
+            onClick={() => setConsentModalOpen(true)}
+            className="px-4 py-2 text-sm font-medium text-[#556B2F] hover:text-[#5D4037] hover:bg-[#F5E6D3] rounded-md transition-colors border border-[#D4C4B0]"
+          >
+            <FileText className="inline-block mr-2 h-4 w-4" />
+            Consent
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-[#D4C4B0]">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'overview'
+                ? 'text-[#556B2F] border-b-2 border-[#556B2F]'
+                : 'text-[#556B2F] hover:text-[#5D4037] hover:bg-[#F5E6D3]'
+            }`}
+          >
+            <BarChart3 size={18} />
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab('insights')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'insights'
+                ? 'text-[#556B2F] border-b-2 border-[#556B2F]'
+                : 'text-[#556B2F] hover:text-[#5D4037] hover:bg-[#F5E6D3]'
+            }`}
+          >
+            <Settings size={18} />
+            Financial Insights
+          </button>
+          <button
+            onClick={() => setActiveTab('recommendations')}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'recommendations'
+                ? 'text-[#556B2F] border-b-2 border-[#556B2F]'
+                : 'text-[#556B2F] hover:text-[#5D4037] hover:bg-[#F5E6D3]'
+            }`}
+          >
+            <MessageSquare size={18} />
+            Recommendations
+          </button>
+        </div>
       </div>
 
-      {/* Accounts Section - Grid Layout */}
+      {/* Tab Content */}
+      {activeTab === 'overview' ? (
+        <>
+          {/* Budget Display */}
+          {userId && (
+            <UserBudgetDisplay userId={userId} />
+          )}
+
+          {/* Sub-tabs for Accounts and Transactions */}
+          <div className="bg-white shadow rounded-lg p-4 border border-[#D4C4B0]">
+            <div className="flex border-b border-[#D4C4B0] mb-4">
+              <button
+                onClick={() => setActiveSubTab('accounts')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeSubTab === 'accounts'
+                    ? 'text-[#556B2F] border-b-2 border-[#556B2F]'
+                    : 'text-[#556B2F] hover:text-[#5D4037] hover:bg-[#F5E6D3]'
+                }`}
+              >
+                Accounts
+              </button>
+              <button
+                onClick={() => setActiveSubTab('transactions')}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  activeSubTab === 'transactions'
+                    ? 'text-[#556B2F] border-b-2 border-[#556B2F]'
+                    : 'text-[#556B2F] hover:text-[#5D4037] hover:bg-[#F5E6D3]'
+                }`}
+              >
+                Transactions
+              </button>
+            </div>
+
+            {activeSubTab === 'accounts' ? (
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Accounts</h2>
+                {/* Time Window Selector */}
+                <div className="mb-4">
+                  <div className="flex items-center space-x-4">
+                    <label htmlFor="window-select" className="text-sm font-medium text-[#556B2F]">
+                      Transaction Window:
+                    </label>
+                    <select
+                      id="window-select"
+                      value={windowDays}
+                      onChange={(e) => setWindowDays(Number(e.target.value))}
+                      className="block rounded-md border-[#D4C4B0] shadow-sm focus:border-[#556B2F] focus:ring-blue-500 sm:text-sm"
+                    >
+                      <option value={30}>30 Days</option>
+                      <option value={180}>180 Days</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Accounts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {user.accounts?.map((account: any) => (
             <AccountCard key={account.id} account={account} />
           ))}
         </div>
       </div>
-
-      {/* Time Window Selector and Transactions Section */}
+            ) : (
       <div>
-        <div className="bg-white shadow rounded-lg p-4 mb-4">
-          <div className="flex items-center justify-between">
+                {/* Time Window Selector */}
+                <div className="mb-4">
             <div className="flex items-center space-x-4">
-              <label htmlFor="window-select" className="text-sm font-medium text-gray-700">
+                    <label htmlFor="window-select" className="text-sm font-medium text-[#556B2F]">
                 Transaction Window:
               </label>
               <select
                 id="window-select"
                 value={windowDays}
                 onChange={(e) => setWindowDays(Number(e.target.value))}
-                className="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block rounded-md border-[#D4C4B0] shadow-sm focus:border-[#556B2F] focus:ring-blue-500 sm:text-sm"
               >
                 <option value={30}>30 Days</option>
                 <option value={180}>180 Days</option>
               </select>
-            </div>
-            <button
-              onClick={() => setTransactionsExpanded(!transactionsExpanded)}
-              className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-            >
-              <span>Your Transactions (Last {windowDays} Days)</span>
-              {transactionsExpanded ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              )}
-            </button>
           </div>
         </div>
 
-        {/* Collapsible Transactions */}
-        {transactionsExpanded && (
-          <div>
+                {/* Transactions Table */}
             {user.transactions && user.transactions.length > 0 ? (
               <TransactionTable transactions={user.transactions} />
             ) : (
-              <div className="bg-white shadow rounded-lg p-6 text-center text-gray-500">
-                <p>No transactions found for the last {windowDays} days.</p>
-                <p className="text-sm mt-2">Transaction count: {user.transactions?.length || 0}</p>
+                  <div className="text-center py-8 text-[#8B6F47]">
+                    <p>No transactions found for the selected window.</p>
               </div>
             )}
           </div>
         )}
       </div>
-
-      {/* Suggested Budget - Right below transactions */}
-      {userId && (
-        <div className="mt-6">
-          <SuggestedBudgetCard userId={userId} lookbackMonths={6} />
-        </div>
+        </>
+      ) : activeTab === 'insights' ? (
+        /* Financial Insights Tab */
+        userId && (
+          <div className="space-y-6">
+            <FinancialInsightsCarousel userId={userId} />
+          </div>
+        )
+      ) : (
+        /* Recommendations Tab */
+        userId && (
+          <div className="space-y-6">
+            <RecommendationsSection userId={userId} windowDays={windowDays} readOnly={false} />
+          </div>
+        )
       )}
 
-      {/* Features Section - HIDDEN */}
-      {false && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {user.features_30d && (
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">30-Day Financial Insights</h2>
-              <FeatureCard features={user.features_30d} />
-            </div>
-          )}
-
-          {user.features_180d && (
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">180-Day Financial Insights</h2>
-              <FeatureCard features={user.features_180d} />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Financial Insights Carousel */}
-      {userId && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-900">Financial Insights</h2>
-          <FinancialInsightsCarousel userId={userId} />
-        </div>
-      )}
-
-      {/* Persona & Risk Analysis - HIDDEN FROM USER VIEW */}
-      {false && user.persona && user.persona.all_matching_personas && user.persona.all_matching_personas.length > 0 && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Financial Profile</h2>
-          {/* ... persona analysis content hidden ... */}
-        </div>
-      )}
-
-      {/* Recommendations */}
-      {userId && (
-        <div className="mt-8">
-          <RecommendationsSection userId={userId} windowDays={windowDays} readOnly={false} />
-        </div>
+      {/* Consent Modal */}
+      {consentModalOpen && (
+        <ConsentModal
+          userId={userId!}
+          isOpen={consentModalOpen}
+          onClose={() => setConsentModalOpen(false)}
+        />
       )}
     </div>
   )
 }
-

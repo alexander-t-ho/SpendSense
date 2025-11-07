@@ -43,7 +43,7 @@ function getAccountTypeLabel(accountType: string, accountSubtype: string | null)
 export default function TransactionTable({ transactions }: TransactionTableProps) {
   if (!transactions || transactions.length === 0) {
     return (
-      <div className="bg-white shadow rounded-lg p-6 text-center text-gray-500">
+      <div className="bg-white shadow rounded-lg p-6 text-center text-[#8B6F47]">
         <p>No transactions to display</p>
       </div>
     )
@@ -95,42 +95,42 @@ export default function TransactionTable({ transactions }: TransactionTableProps
         const accountTypeLabel = getAccountTypeLabel(accountData.account_type, accountData.account_subtype)
         return (
         <div key={accountId} className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="px-6 py-4 border-b border-[#D4C4B0] bg-[#E8F5E9]">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-[#5D4037]">
                   {accountData.account_name}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-[#556B2F]">
                   {accountTypeLabel} • ...{maskAccountId(accountId)}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{accountData.transactions.length} transactions</p>
-                <p className="text-xs text-gray-500">Last 30 days</p>
+                <p className="text-sm font-medium text-[#5D4037]">{accountData.transactions.length} transactions</p>
+                <p className="text-xs text-[#8B6F47]">Last 30 days</p>
               </div>
             </div>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-[#E8F5E9]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[#8B6F47] uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[#8B6F47] uppercase tracking-wider">
                     Merchant
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[#8B6F47] uppercase tracking-wider">
                     Category
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[#8B6F47] uppercase tracking-wider">
                     Channel
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-[#8B6F47] uppercase tracking-wider">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-[#8B6F47] uppercase tracking-wider">
                     Status
                   </th>
                 </tr>
@@ -140,29 +140,29 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                   const isExpense = tx.amount < 0
                   
                   return (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <tr key={index} className="hover:bg-[#E8F5E9]">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#5D4037]">
                         {formatDate(tx.date)}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className="px-6 py-4 text-sm text-[#5D4037]">
                         <div>
                           <div className="font-medium">
                             {tx.merchant_name || tx.merchant_entity_id || 'Unknown'}
                           </div>
                           {tx.merchant_entity_id && tx.merchant_name && (
-                            <div className="text-xs text-gray-500">ID: {tx.merchant_entity_id}</div>
+                            <div className="text-xs text-[#8B6F47]">ID: {tx.merchant_entity_id}</div>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-[#556B2F]">
                         <div>
                           <div>{tx.primary_category || 'N/A'}</div>
                           {tx.detailed_category && tx.detailed_category !== tx.primary_category && (
-                            <div className="text-xs text-gray-500">{tx.detailed_category}</div>
+                            <div className="text-xs text-[#8B6F47]">{tx.detailed_category}</div>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#8B6F47] capitalize">
                         {tx.payment_channel || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
