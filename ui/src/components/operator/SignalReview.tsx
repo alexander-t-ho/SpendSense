@@ -21,19 +21,19 @@ export default function SignalReview() {
 
   return (
     <div className="bg-white shadow rounded-lg">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">Signal Review</h2>
-        <p className="text-sm text-gray-600 mt-1">View all behavioral signals for a specific user</p>
+      <div className="px-6 py-4 border-b border-[#D4C4B0]">
+        <h2 className="text-lg font-semibold text-[#5D4037]">Signal Review</h2>
+        <p className="text-sm text-[#556B2F] mt-1">View all behavioral signals for a specific user</p>
       </div>
 
       <div className="px-6 py-4 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select User</label>
+            <label className="block text-sm font-medium text-[#556B2F] mb-2">Select User</label>
             <select
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-[#D4C4B0] rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-[#556B2F]"
             >
               <option value="">-- Select a user --</option>
               {users?.map((user: any) => (
@@ -44,11 +44,11 @@ export default function SignalReview() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Time Window</label>
+            <label className="block text-sm font-medium text-[#556B2F] mb-2">Time Window</label>
             <select
               value={windowDays}
               onChange={(e) => setWindowDays(Number(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-[#D4C4B0] rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-[#556B2F]"
             >
               <option value={30}>30 days</option>
               <option value={180}>180 days</option>
@@ -57,14 +57,14 @@ export default function SignalReview() {
         </div>
 
         {!selectedUserId && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-[#8B6F47]">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
             <p>Please select a user to view their behavioral signals</p>
           </div>
         )}
 
         {selectedUserId && isLoading && (
-          <div className="text-center py-12 text-gray-500">Loading signals...</div>
+          <div className="text-center py-12 text-[#8B6F47]">Loading signals...</div>
         )}
 
         {selectedUserId && error && (
@@ -128,19 +128,19 @@ function SignalsDisplay({ signals }: { signals: UserSignals }) {
         if (signals.length === 0) return null
 
         return (
-          <div key={categoryName} className="border border-gray-200 rounded-lg">
-            <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-              <h3 className="text-md font-semibold text-gray-900">{categoryName}</h3>
+          <div key={categoryName} className="border border-[#D4C4B0] rounded-lg">
+            <div className="px-4 py-3 bg-[#E8F5E9] border-b border-[#D4C4B0]">
+              <h3 className="text-md font-semibold text-[#5D4037]">{categoryName}</h3>
             </div>
             <div className="divide-y divide-gray-200">
               {signals.map(([key, value]) => (
                 <div key={key} className="px-4 py-3">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{key.replace(/_/g, ' ')}</p>
+                      <p className="text-sm font-medium text-[#5D4037]">{key.replace(/_/g, ' ')}</p>
                     </div>
                     <div className="ml-4 text-right">
-                      <p className="text-sm text-gray-700 font-mono">{formatValue(value)}</p>
+                      <p className="text-sm text-[#556B2F] font-mono">{formatValue(value)}</p>
                     </div>
                   </div>
                 </div>

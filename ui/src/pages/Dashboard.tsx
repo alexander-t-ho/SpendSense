@@ -17,7 +17,7 @@ export default function Dashboard() {
   if (usersLoading || statsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-[#556B2F]">Loading...</div>
       </div>
     )
   }
@@ -25,10 +25,10 @@ export default function Dashboard() {
   if (usersError || statsError) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-red-500">
+        <div className="text-red-600">
           <p className="font-semibold">Error loading data</p>
           <p className="text-sm mt-2">{usersError?.message || statsError?.message}</p>
-          <p className="text-xs mt-2 text-gray-500">Make sure the backend API is running on http://localhost:8000</p>
+          <p className="text-xs mt-2 text-[#556B2F]">Make sure the backend API is running on http://localhost:8000</p>
         </div>
       </div>
     )
@@ -37,8 +37,8 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">Financial insights for all users</p>
+        <h1 className="text-3xl font-bold text-[#5D4037]">Dashboard</h1>
+        <p className="mt-2 text-[#556B2F]">Financial insights for all users</p>
       </div>
 
       {/* Stats Cards */}
@@ -70,43 +70,43 @@ export default function Dashboard() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
+      <div className="bg-white shadow rounded-lg border border-[#D4C4B0]">
+        <div className="px-6 py-4 border-b border-[#D4C4B0]">
+          <h2 className="text-lg font-semibold text-[#5D4037]">
             Users {users && `(${users.length})`}
           </h2>
         </div>
         {!users || users.length === 0 ? (
-          <div className="px-6 py-12 text-center text-gray-500">
+          <div className="px-6 py-12 text-center text-[#556B2F]">
             <p>No users found. Make sure the backend API is running.</p>
             <p className="text-sm mt-2">Backend should be at: http://localhost:8000</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-[#D4C4B0]">
+              <thead className="bg-[#E8F5E9]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[#5D4037] uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase tracking-wider">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase tracking-wider">
                     Persona & Risk
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase tracking-wider">
                     Accounts
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase tracking-wider">
                     Created
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-amber-900 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-amber-200">
                 {users.map((user: any) => {
                   const persona = user.persona || {}
                   
@@ -120,32 +120,32 @@ export default function Dashboard() {
                   const primaryRiskColor = getRiskColor(primaryRisk)
                   
                   return (
-                    <tr key={user.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <tr key={user.id} className="hover:bg-[#E8F5E9]">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#5D4037]">
                         {user.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#556B2F]">
                         {user.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-sm font-medium text-[#5D4037]">
                               {primaryName}
                             </span>
                             {primaryPersona.percentage && (
-                              <span className="text-xs font-semibold text-blue-600">
+                              <span className="text-xs font-semibold text-[#556B2F]">
                                 {primaryPersona.percentage}%
                               </span>
                             )}
                           </div>
                           {secondaryPersona && (
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-600">
+                              <span className="text-xs text-[#556B2F]">
                                 {secondaryPersona.persona_name}
                               </span>
                               {secondaryPersona.percentage && (
-                                <span className="text-xs font-semibold text-blue-600">
+                                <span className="text-xs font-semibold text-[#556B2F]">
                                   {secondaryPersona.percentage}%
                                 </span>
                               )}
@@ -156,16 +156,16 @@ export default function Dashboard() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#556B2F]">
                         {user.account_count || 0}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#556B2F]">
                         {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <Link
                           to={`/user/${user.id}`}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-[#556B2F] hover:text-[#5D4037]"
                         >
                           View Details
                         </Link>
@@ -191,29 +191,29 @@ function getRiskColor(riskLevel: string): string {
     case 'MEDIUM':
       return 'bg-yellow-100 text-yellow-800'
     case 'LOW':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-[#E8F5E9] text-[#5D4037]'
     case 'MINIMAL':
       return 'bg-green-100 text-green-800'
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-[#F5E6D3] text-[#5D4037]'
   }
 }
 
 function StatCard({ title, value, icon, color }: { title: string; value: number; icon: React.ReactNode; color: 'blue' | 'green' | 'purple' | 'orange' }) {
   const colorClasses: Record<string, string> = {
-    blue: 'bg-blue-100 text-blue-600',
-    green: 'bg-green-100 text-green-600',
-    purple: 'bg-purple-100 text-purple-600',
-    orange: 'bg-orange-100 text-orange-600',
+    blue: 'bg-[#E8F5E9] text-[#556B2F]',
+    green: 'bg-[#E8F5E9] text-[#556B2F]',
+    purple: 'bg-[#E8F5E9] text-[#556B2F]',
+    orange: 'bg-[#F5E6D3] text-[#8B6F47]',
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow border border-[#D4C4B0] p-6">
       <div className="flex items-center">
-        <div className={`${colorClasses[color] || colorClasses.blue} p-3 rounded-lg`}>{icon}</div>
+        <div className={`${colorClasses[color] || colorClasses.green} p-3 rounded-lg`}>{icon}</div>
         <div className="ml-4">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-semibold text-gray-900">{value.toLocaleString()}</p>
+          <p className="text-sm font-medium text-[#556B2F]">{title}</p>
+          <p className="text-2xl font-semibold text-[#5D4037]">{value.toLocaleString()}</p>
         </div>
       </div>
     </div>

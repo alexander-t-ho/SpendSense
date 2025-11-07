@@ -3,20 +3,19 @@
  */
 
 // Use window location for WebSocket to work with Vite proxy in development
-const getWebSocketUrl = () => {
-  if (window.location.protocol === 'https:') {
-    return 'wss://' + window.location.host
-  }
-  // In development, use the same host/port as the page (Vite proxy handles it)
-  // In production, this would be the actual backend URL
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const host = window.location.hostname === 'localhost' 
-    ? 'localhost:8000' 
-    : window.location.host
-  return `${protocol}//${host}`
-}
-
-const WS_BASE_URL = getWebSocketUrl()
+// const getWebSocketUrl = () => {
+//   if (window.location.protocol === 'https:') {
+//     return 'wss://' + window.location.host
+//   }
+//   // In development, use the same host/port as the page (Vite proxy handles it)
+//   // In production, this would be the actual backend URL
+//   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+//   const host = window.location.hostname === 'localhost' 
+//     ? 'localhost:8000' 
+//     : window.location.host
+//   return `${protocol}//${host}`
+// }
+// const WS_BASE_URL = getWebSocketUrl()
 
 export interface RecommendationUpdate {
   type: 'recommendation_update'

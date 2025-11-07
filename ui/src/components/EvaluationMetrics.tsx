@@ -60,9 +60,6 @@ export default function EvaluationMetrics({ latencySampleSize }: EvaluationMetri
     )
   }
 
-  const getStatusColor = (passed: boolean) => {
-    return passed ? 'text-green-600' : 'text-red-600'
-  }
 
   const targetsMet = Object.values(metrics.targets_met || {}).filter(Boolean).length
   const totalTargets = Object.keys(metrics.targets_met || {}).length
@@ -71,8 +68,8 @@ export default function EvaluationMetrics({ latencySampleSize }: EvaluationMetri
     <div className="bg-white shadow rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">System Evaluation Metrics</h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <h2 className="text-2xl font-bold text-[#5D4037]">System Evaluation Metrics</h2>
+          <p className="text-sm text-[#8B6F47] mt-1">
             Phase 8: Evaluation & Metrics Dashboard
           </p>
         </div>
@@ -89,15 +86,15 @@ export default function EvaluationMetrics({ latencySampleSize }: EvaluationMetri
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-600">Overall Score</p>
-            <p className="text-4xl font-bold text-gray-900 mt-2">
+            <p className="text-sm font-medium text-[#556B2F]">Overall Score</p>
+            <p className="text-4xl font-bold text-[#5D4037] mt-2">
               {metrics.overall_score ? (metrics.overall_score * 100).toFixed(1) : '0.0'}%
             </p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-[#8B6F47] mt-2">
               Targets Met: {targetsMet} / {totalTargets}
             </p>
           </div>
-          <Target className="h-16 w-16 text-blue-500 opacity-50" />
+          <Target className="h-16 w-16 text-[#556B2F] opacity-50" />
         </div>
       </div>
 
@@ -107,22 +104,22 @@ export default function EvaluationMetrics({ latencySampleSize }: EvaluationMetri
         <div className="border rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              <h3 className="font-semibold text-gray-900">Coverage</h3>
+              <Users className="h-5 w-5 text-[#556B2F]" />
+              <h3 className="font-semibold text-[#5D4037]">Coverage</h3>
             </div>
             {getStatusIcon(metrics.targets_met?.coverage_100_pct || false)}
           </div>
           <div className="space-y-2">
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-bold text-gray-900">
+              <span className="text-3xl font-bold text-[#5D4037]">
                 {metrics.coverage?.coverage_percentage || 0}%
               </span>
-              <span className="text-sm text-gray-500">of users</span>
+              <span className="text-sm text-[#8B6F47]">of users</span>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[#8B6F47]">
               Target: 100% (users with persona + ≥3 behaviors)
             </p>
-            <div className="text-xs text-gray-600 mt-2">
+            <div className="text-xs text-[#556B2F] mt-2">
               <p>• {metrics.coverage?.users_with_persona || 0} users with persona</p>
               <p>• {metrics.coverage?.users_with_3plus_behaviors || 0} users with ≥3 behaviors</p>
               <p>• {metrics.coverage?.users_with_persona_and_3plus_behaviors || 0} meeting coverage</p>
@@ -135,21 +132,21 @@ export default function EvaluationMetrics({ latencySampleSize }: EvaluationMetri
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
               <BarChart3 className="h-5 w-5 text-green-500" />
-              <h3 className="font-semibold text-gray-900">Explainability</h3>
+              <h3 className="font-semibold text-[#5D4037]">Explainability</h3>
             </div>
             {getStatusIcon(metrics.targets_met?.explainability_100_pct || false)}
           </div>
           <div className="space-y-2">
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-bold text-gray-900">
+              <span className="text-3xl font-bold text-[#5D4037]">
                 {metrics.explainability?.explainability_percentage || 0}%
               </span>
-              <span className="text-sm text-gray-500">with rationales</span>
+              <span className="text-sm text-[#8B6F47]">with rationales</span>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[#8B6F47]">
               Target: 100% (recommendations with plain-language rationales)
             </p>
-            <div className="text-xs text-gray-600 mt-2">
+            <div className="text-xs text-[#556B2F] mt-2">
               <p>• {metrics.explainability?.total_recommendations || 0} total recommendations</p>
               <p>• {metrics.explainability?.recommendations_with_rationales || 0} with rationales</p>
             </div>
@@ -161,21 +158,21 @@ export default function EvaluationMetrics({ latencySampleSize }: EvaluationMetri
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
               <TrendingUp className="h-5 w-5 text-purple-500" />
-              <h3 className="font-semibold text-gray-900">Relevance</h3>
+              <h3 className="font-semibold text-[#5D4037]">Relevance</h3>
             </div>
             {getStatusIcon(metrics.targets_met?.relevance_high || false)}
           </div>
           <div className="space-y-2">
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-bold text-gray-900">
+              <span className="text-3xl font-bold text-[#5D4037]">
                 {metrics.relevance?.relevance_percentage || 0}%
               </span>
-              <span className="text-sm text-gray-500">persona fit</span>
+              <span className="text-sm text-[#8B6F47]">persona fit</span>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[#8B6F47]">
               Target: ≥80% (education-persona fit scoring)
             </p>
-            <div className="text-xs text-gray-600 mt-2">
+            <div className="text-xs text-[#556B2F] mt-2">
               <p>• {metrics.relevance?.total_recommendations || 0} total recommendations</p>
               <p>• {metrics.relevance?.relevant_recommendations || 0} relevant to persona</p>
             </div>
@@ -187,21 +184,21 @@ export default function EvaluationMetrics({ latencySampleSize }: EvaluationMetri
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
               <Clock className="h-5 w-5 text-orange-500" />
-              <h3 className="font-semibold text-gray-900">Latency</h3>
+              <h3 className="font-semibold text-[#5D4037]">Latency</h3>
             </div>
             {getStatusIcon(metrics.targets_met?.latency_under_5_s || false)}
           </div>
           <div className="space-y-2">
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-bold text-gray-900">
+              <span className="text-3xl font-bold text-[#5D4037]">
                 {metrics.latency?.average_latency_seconds?.toFixed(3) || '0.000'}s
               </span>
-              <span className="text-sm text-gray-500">average</span>
+              <span className="text-sm text-[#8B6F47]">average</span>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[#8B6F47]">
               Target: &lt;5 seconds (time to generate recommendations)
             </p>
-            <div className="text-xs text-gray-600 mt-2">
+            <div className="text-xs text-[#556B2F] mt-2">
               <p>• {metrics.latency?.total_users_tested || 0} users tested</p>
               <p>• Min: {metrics.latency?.min_latency_seconds?.toFixed(3) || '0.000'}s</p>
               <p>• Max: {metrics.latency?.max_latency_seconds?.toFixed(3) || '0.000'}s</p>
@@ -214,24 +211,24 @@ export default function EvaluationMetrics({ latencySampleSize }: EvaluationMetri
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-5 w-5 text-indigo-500" />
-              <h3 className="font-semibold text-gray-900">Fairness</h3>
+              <h3 className="font-semibold text-[#5D4037]">Fairness</h3>
             </div>
             {getStatusIcon(metrics.targets_met?.fairness_good || false)}
           </div>
           <div className="space-y-2">
             <div className="flex items-baseline space-x-2">
-              <span className="text-3xl font-bold text-gray-900">
+              <span className="text-3xl font-bold text-[#5D4037]">
                 {metrics.fairness?.fairness_score?.toFixed(3) || '0.000'}
               </span>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[#8B6F47]">
               Target: ≥0.7 (demographic parity in persona distribution)
             </p>
-            <p className="text-xs font-medium text-gray-700 mt-2">
+            <p className="text-xs font-medium text-[#556B2F] mt-2">
               {metrics.fairness?.interpretation || 'N/A'}
             </p>
             {metrics.fairness?.persona_distribution && (
-              <div className="text-xs text-gray-600 mt-2 space-y-1">
+              <div className="text-xs text-[#556B2F] mt-2 space-y-1">
                 {Object.entries(metrics.fairness.persona_distribution).map(([persona, count]: [string, any]) => (
                   <p key={persona}>
                     • {persona}: {count.count} users ({count.percentage}%)
@@ -245,7 +242,7 @@ export default function EvaluationMetrics({ latencySampleSize }: EvaluationMetri
 
       {/* Timestamp */}
       {metrics.timestamp && (
-        <div className="mt-6 text-xs text-gray-500 text-center">
+        <div className="mt-6 text-xs text-[#8B6F47] text-center">
           Last updated: {new Date(metrics.timestamp).toLocaleString()}
         </div>
       )}

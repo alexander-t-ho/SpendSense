@@ -86,9 +86,9 @@ export default function ConsentBanner({ userId, onConsentChange, readOnly = fals
 
   if (isLoading) {
     return (
-      <div className="bg-gray-50 border-l-4 border-gray-400 p-4 mb-4">
+      <div className="bg-[#E8F5E9] border-l-4 border-gray-400 p-4 mb-4">
         <div className="flex items-center">
-          <div className="text-sm text-gray-600">Loading consent status...</div>
+          <div className="text-sm text-[#556B2F]">Loading consent status...</div>
         </div>
       </div>
     )

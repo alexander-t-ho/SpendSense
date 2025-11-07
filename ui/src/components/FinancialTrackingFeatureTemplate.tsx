@@ -82,8 +82,8 @@ const colorClasses = {
   blue: {
     bg: 'bg-blue-50',
     text: 'text-blue-900',
-    icon: 'text-blue-600',
-    border: 'border-blue-500'
+    icon: 'text-[#556B2F]',
+    border: 'border-[#556B2F]'
   },
   green: {
     bg: 'bg-green-50',
@@ -176,15 +176,15 @@ export default function FinancialTrackingFeatureTemplate({
             <Icon className={`h-5 w-5 ${colorTheme.icon}`} />
           )}
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            <h3 className="text-lg font-semibold text-[#5D4037]">{title}</h3>
             {subtitle && (
-              <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>
+              <p className="text-sm text-[#8B6F47] mt-0.5">{subtitle}</p>
             )}
           </div>
         </div>
         <div className="flex items-center space-x-3">
           {period && (
-            <span className="text-sm text-gray-500">{period}</span>
+            <span className="text-sm text-[#8B6F47]">{period}</span>
           )}
           {headerActions}
         </div>
@@ -229,7 +229,7 @@ export default function FinancialTrackingFeatureTemplate({
                           ? 'text-green-600'
                           : metric.trend === 'down'
                           ? 'text-red-600'
-                          : 'text-gray-600'
+                          : 'text-[#556B2F]'
                       }`}
                     >
                       {metric.trend === 'up' ? '↑' : metric.trend === 'down' ? '↓' : '→'} {metric.trendValue}
@@ -259,10 +259,10 @@ export default function FinancialTrackingFeatureTemplate({
       {/* Insights */}
       {insights.length > 0 && (
         <div className="border-t pt-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Insights</h4>
+          <h4 className="text-sm font-medium text-[#556B2F] mb-3">Insights</h4>
           <ul className="space-y-2">
             {insights.map((insight, index) => (
-              <li key={index} className="text-sm text-gray-600 flex items-start">
+              <li key={index} className="text-sm text-[#556B2F] flex items-start">
                 <span className={`${colorTheme.icon} mr-2 mt-0.5`}>•</span>
                 <span>{insight}</span>
               </li>

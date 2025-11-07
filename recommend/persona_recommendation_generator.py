@@ -4,6 +4,7 @@ from typing import Dict, List, Any, Optional
 from sqlalchemy.orm import Session
 from datetime import datetime
 import uuid
+import re
 
 from personas.assigner import PersonaAssigner
 from recommend.actionable_recommendations import ACTIONABLE_RECOMMENDATIONS, ActionableRecommendation
@@ -120,19 +121,36 @@ class PersonaRecommendationGenerator:
         )
         stored_recommendations.extend(spending_recs)
         
+        # Add debt payoff timeline recommendation if user has credit card debt
+        # Generate this FIRST so it's always included and prioritized
+        try:
+            debt_rec = self._generate_debt_payoff_recommendation(user_id, features)
+            if debt_rec:
+                # Insert at the beginning to prioritize debt payoff recommendation
+                stored_recommendations.insert(0, debt_rec)
+                print(f"✓ Successfully generated debt payoff recommendation for user {user_id}")
+            else:
+                print(f"⚠️  Debt payoff recommendation returned None for user {user_id}")
+        except Exception as e:
+            print(f"⚠️  Error generating debt payoff recommendation for user {user_id}: {e}")
+            import traceback
+            traceback.print_exc()
+        
         # Store in database (approved=False by default, awaiting admin approval)
         stored_recommendations_with_ids = []
         for rec_data in stored_recommendations:
             rec_id = str(uuid.uuid4())
+            # Use recommendation_type from rec_data if available, otherwise default to "education"
+            recommendation_type = rec_data.get('recommendation_type', 'education')
             rec = Recommendation(
                 id=rec_id,
                 user_id=user_id,
-                recommendation_type="education",
+                recommendation_type=recommendation_type,
                 title=rec_data['title'],
                 description=rec_data.get('recommendation_text', ''),
                 rationale=rec_data.get('rationale', ''),
-                content_id=rec_data['id'],
-                persona_id=rec_data['persona_id'],
+                content_id=rec_data.get('id', rec_data.get('content_id')),
+                persona_id=rec_data.get('persona_id'),
                 action_items=rec_data.get('action_items', []),
                 expected_impact=rec_data.get('expected_impact', ''),
                 priority=rec_data.get('priority', 'medium'),
@@ -264,8 +282,20 @@ class PersonaRecommendationGenerator:
             for action_template in rec_template.action_items:
                 try:
                     formatted_action = action_template.format(**template_data)
-                    action_items.append(formatted_action)
-                except (KeyError, ValueError):
+                    # Validate formatted action is not just a single letter or too short
+                    if isinstance(formatted_action, str) and len(formatted_action.strip()) >= 10:
+                        # Check it's not just a single character
+                        if not re.match(r'^[A-Z0-9]$', formatted_action.strip()):
+                            action_items.append(formatted_action)
+                        else:
+                            print(f"⚠️  Rejecting single-character action item: '{formatted_action}'")
+                            # Fallback to template if formatted version is invalid
+                            action_items.append(action_template)
+                    else:
+                        # If formatted is too short, use template
+                        action_items.append(action_template)
+                except (KeyError, ValueError) as e:
+                    # If formatting fails, use template as-is
                     action_items.append(action_template)
             
             # Format expected impact
@@ -305,13 +335,60 @@ class PersonaRecommendationGenerator:
                     features=features,
                     template_info={'template_id': rec_template.id, 'persona_id': persona_id}
                 )
-                recommendations.append(enhanced_rec)
+                
+                # Post-enhancement validation: Reject recommendations with $0 values
+                final_validation = self.rag_enhancer.validator.validate(enhanced_rec)
+                if final_validation['is_valid'] or final_validation['status'] != 'needs_regeneration':
+                    # Check one more time for $0 values even if validation passed
+                    if not self._has_zero_values(enhanced_rec):
+                        recommendations.append(enhanced_rec)
+                    else:
+                        print(f"⚠️  Rejecting recommendation {rec_template.id}: Still contains $0 values after enhancement")
+                else:
+                    print(f"⚠️  Rejecting recommendation {rec_template.id}: Failed validation after enhancement")
             except Exception as e:
                 print(f"⚠️  RAG enhancement failed for recommendation {rec_template.id}: {e}")
-                # Fallback to original recommendation if RAG fails
-                recommendations.append(rec)
+                # Only add original if it doesn't have $0 values
+                if not self._has_zero_values(rec):
+                    recommendations.append(rec)
+                else:
+                    print(f"⚠️  Rejecting recommendation {rec_template.id}: Contains $0 values and RAG enhancement failed")
         
         return recommendations
+    
+    def _has_zero_values(self, recommendation: Dict[str, Any]) -> bool:
+        """Check if recommendation contains $0 values.
+        
+        Args:
+            recommendation: Recommendation dictionary
+        
+        Returns:
+            True if recommendation contains $0 values, False otherwise
+        """
+        import re
+        
+        zero_patterns = [
+            r'\$0(?:\.00)?',
+            r'\$\s*0(?:\.00)?',
+            r'0(?:\.00)?\s*dollars',
+            r'0(?:\.0+)?\s*months?\s*$',  # "0 months" at end of string
+        ]
+        
+        text = recommendation.get('recommendation_text', '') or recommendation.get('description', '')
+        action_items = recommendation.get('action_items', [])
+        expected_impact = recommendation.get('expected_impact', '')
+        
+        all_text = f"{text} {' '.join(action_items)} {expected_impact}"
+        
+        for pattern in zero_patterns:
+            if re.search(pattern, all_text, re.IGNORECASE):
+                return True
+        
+        # Also check for numeric 0 values that might indicate missing data
+        if '0/month' in all_text.lower() or '0/year' in all_text.lower():
+            return True
+        
+        return False
     
     def _extract_data_for_persona(
         self,
@@ -337,9 +414,16 @@ class PersonaRecommendationGenerator:
             if persona_id == 'high_utilization':
                 credit_cards = self.data_extractor.extract_credit_card_data(user_id)
                 if credit_cards:
-                    # Use the card with highest utilization
-                    highest_util_card = max(credit_cards, key=lambda c: c.get('utilization_percent', 0))
-                    data_points.update(highest_util_card)
+                    # For overdue recommendations, prioritize overdue cards
+                    # Otherwise use the card with highest utilization
+                    overdue_cards = [c for c in credit_cards if c.get('is_overdue', False)]
+                    if overdue_cards:
+                        # Use the overdue card with highest amount due
+                        selected_card = max(overdue_cards, key=lambda c: c.get('amount_due', 0))
+                    else:
+                        # Use the card with highest utilization
+                        selected_card = max(credit_cards, key=lambda c: c.get('utilization_percent', 0))
+                    data_points.update(selected_card)
             
             elif persona_id == 'subscription_heavy':
                 sub_data = self.data_extractor.extract_subscription_data(user_id, window_days)
@@ -526,10 +610,19 @@ class PersonaRecommendationGenerator:
                         features=features,
                         template_info={'template_id': merchant_rec_template.id, 'merchant_name': merchant_data['merchant_name']}
                     )
-                    recommendations.append(enhanced_rec)
+                    
+                    # Post-enhancement validation: Reject recommendations with $0 values
+                    if not self._has_zero_values(enhanced_rec):
+                        recommendations.append(enhanced_rec)
+                    else:
+                        print(f"⚠️  Rejecting merchant recommendation: Still contains $0 values after enhancement")
                 except Exception as e:
                     print(f"⚠️  RAG enhancement failed for merchant recommendation: {e}")
-                    recommendations.append(rec)
+                    # Only add if no $0 values
+                    if not self._has_zero_values(rec):
+                        recommendations.append(rec)
+                    else:
+                        print(f"⚠️  Rejecting merchant recommendation: Contains $0 values and RAG failed")
         
         # Generate category-specific recommendations (if we haven't reached max)
         if len(recommendations) < max_recommendations:
@@ -589,12 +682,177 @@ class PersonaRecommendationGenerator:
                             features=features,
                             template_info={'template_id': category_rec_template.id, 'category': category_data['category']}
                         )
-                        recommendations.append(enhanced_rec)
+                        
+                        # Post-enhancement validation: Reject recommendations with $0 values
+                        if not self._has_zero_values(enhanced_rec):
+                            recommendations.append(enhanced_rec)
+                        else:
+                            print(f"⚠️  Rejecting category recommendation: Still contains $0 values after enhancement")
                     except Exception as e:
                         print(f"⚠️  RAG enhancement failed for category recommendation: {e}")
-                        recommendations.append(rec)
+                        # Only add if no $0 values
+                        if not self._has_zero_values(rec):
+                            recommendations.append(rec)
+                        else:
+                            print(f"⚠️  Rejecting category recommendation: Contains $0 values and RAG failed")
         
         return recommendations
+    
+    def _generate_debt_payoff_recommendation(
+        self,
+        user_id: str,
+        features: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Generate debt payoff timeline recommendation for users with credit card debt.
+        
+        Args:
+            user_id: User ID
+            features: User features
+        
+        Returns:
+            Debt payoff recommendation dictionary or None if user has no debt
+        """
+        from ingest.schema import Account
+        from insights.budget_calculator import BudgetCalculator
+        from datetime import datetime
+        
+        # Check if user has credit card debt
+        from sqlalchemy import and_
+        credit_card_accounts = self.db.query(Account).filter(
+            and_(
+                Account.user_id == user_id,
+                Account.type == 'credit'
+            )
+        ).all()
+        
+        total_debt = sum(abs(acc.current or 0) for acc in credit_card_accounts)
+        
+        if total_debt <= 0:
+            print(f"⚠️  No credit card debt found for user {user_id}")
+            return None
+        
+        print(f"✓ Found ${total_debt:,.2f} in credit card debt for user {user_id}")
+        
+        # Get monthly debt repayment from budget
+        try:
+            budget_calculator = BudgetCalculator(self.db)
+            suggested_budget = budget_calculator.suggest_budget(user_id, datetime.now().replace(day=1), lookback_months=6)
+            category_budgets = suggested_budget.get('category_budgets', {})
+            monthly_payment = category_budgets.get('Debt Repayment', 0)
+            
+            # Get monthly income from budget calculation (has better fallback logic)
+            monthly_income = suggested_budget.get('average_monthly_income', 0.0)
+            if monthly_income == 0.0:
+                # Try income features as fallback
+                income_features = features.get('income', {})
+                monthly_income = income_features.get('minimum_monthly_income', 0.0)
+                if monthly_income == 0.0:
+                    avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
+                    frequency = income_features.get('payment_frequency', {}).get('frequency', 'monthly')
+                    if frequency == 'weekly':
+                        monthly_income = avg_income_per_pay * 4.33
+                    elif frequency == 'biweekly':
+                        monthly_income = avg_income_per_pay * 2.17
+                    elif frequency == 'monthly':
+                        monthly_income = avg_income_per_pay
+            
+            if monthly_payment <= 0:
+                # Fallback: use 32.5% of monthly income
+                if monthly_income > 0:
+                    monthly_payment = monthly_income * 0.325  # 32.5% for debt repayment
+                    print(f"✓ Using fallback monthly payment: ${monthly_payment:,.2f} (32.5% of ${monthly_income:,.2f} income)")
+                else:
+                    print(f"⚠️  Cannot calculate monthly payment: monthly_income is 0")
+            else:
+                print(f"✓ Using budget monthly payment: ${monthly_payment:,.2f}")
+        except Exception as e:
+            print(f"⚠️  Error getting budget for debt recommendation: {e}")
+            import traceback
+            traceback.print_exc()
+            # Fallback: use 32.5% of monthly income from features
+            income_features = features.get('income', {})
+            monthly_income = income_features.get('minimum_monthly_income', 0.0)
+            if monthly_income == 0.0:
+                avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
+                frequency = income_features.get('payment_frequency', {}).get('frequency', 'monthly')
+                if frequency == 'weekly':
+                    monthly_income = avg_income_per_pay * 4.33
+                elif frequency == 'biweekly':
+                    monthly_income = avg_income_per_pay * 2.17
+                elif frequency == 'monthly':
+                    monthly_income = avg_income_per_pay
+            monthly_payment = monthly_income * 0.325 if monthly_income > 0 else 0  # 32.5% for debt repayment
+        
+        if monthly_payment <= 0:
+            print(f"⚠️  Monthly payment is 0 or negative for user {user_id}, cannot generate debt payoff recommendation")
+            return None
+        
+        # Calculate debt payoff timeline
+        try:
+            timeline = budget_calculator.calculate_debt_payoff_timeline(
+                user_id, monthly_payment, estimated_apr=0.20
+            )
+            
+            if timeline['months_to_payoff'] is None or timeline['months_to_payoff'] <= 0:
+                print(f"⚠️  Invalid timeline calculation for user {user_id}: months_to_payoff={timeline.get('months_to_payoff')}")
+                return None
+            
+            print(f"✓ Calculated debt payoff timeline: {timeline['months_to_payoff']} months")
+        except Exception as e:
+            print(f"⚠️  Error calculating debt payoff timeline: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+        
+        # Build recommendation
+        months = timeline['months_to_payoff']
+        years = months / 12.0
+        
+        if months < 12:
+            timeline_text = f"{months} months"
+        elif months < 24:
+            timeline_text = f"{years:.1f} years ({months} months)"
+        else:
+            timeline_text = f"{years:.1f} years"
+        
+        title = f"Debt Payoff Timeline: Pay Off ${total_debt:,.0f} in {timeline_text}"
+        
+        description = (
+            f"Based on your current budget allocation of ${monthly_payment:,.2f}/month for debt repayment, "
+            f"you can pay off your ${total_debt:,.2f} in credit card debt in approximately {timeline_text}. "
+            f"This assumes a 20% APR and aggressive repayment strategy."
+        )
+        
+        rationale = (
+            f"At ${monthly_payment:,.2f}/month, you'll pay off ${total_debt:,.2f} in debt in {timeline_text}. "
+            f"Total interest paid will be approximately ${timeline['total_interest']:,.2f}. "
+            f"By following the recommended strategies, you can accelerate your debt payoff and save on interest."
+        )
+        
+        action_items = timeline['strategy_recommendations']
+        
+        expected_impact = (
+            f"Paying off ${total_debt:,.2f} in credit card debt will free up ${monthly_payment:,.2f}/month "
+            f"for savings and investments, improve your credit score, and reduce financial stress."
+        )
+        
+        return {
+            'id': f'debt_payoff_timeline_{user_id}',
+            'title': title,
+            'recommendation_text': description,
+            'rationale': rationale,
+            'action_items': action_items,
+            'expected_impact': expected_impact,
+            'persona_id': 'debt_management',
+            'priority': 'high',
+            'category': 'debt_management',
+            'recommendation_type': 'actionable_recommendation',  # Ensure type is set
+            'timeline_months': months,
+            'total_debt': total_debt,
+            'monthly_payment': monthly_payment,
+            'total_interest': timeline['total_interest'],
+            'payoff_date': timeline['payoff_date']
+        }
     
     def close(self):
         """Close database connections."""

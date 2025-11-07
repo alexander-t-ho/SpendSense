@@ -41,7 +41,7 @@ export default function AccountCard({ account }: AccountCardProps) {
         if (utilization >= 50) return 'border-yellow-300 bg-yellow-50'
         if (utilization >= 30) return 'border-green-300 bg-green-50'
       }
-      return 'border-gray-200 bg-gray-50'
+      return 'border-[#D4C4B0] bg-[#E8F5E9]'
     }
     if (account.type === 'loan') return 'border-orange-200 bg-orange-50'
     return 'border-blue-200 bg-blue-50'
@@ -59,11 +59,11 @@ export default function AccountCard({ account }: AccountCardProps) {
     <div className={`border rounded-lg p-4 ${getTypeColor()}`}>
       <div className="flex items-start justify-between">
         <div className="flex items-center space-x-2">
-          <div className="text-gray-600">{getIcon()}</div>
+          <div className="text-[#556B2F]">{getIcon()}</div>
           <div>
-            <h3 className="font-semibold text-gray-900">{account.name}</h3>
-            <p className="text-sm text-gray-600 capitalize">{account.subtype || account.type}</p>
-            <p className="text-xs text-gray-500 font-mono">{maskAccountId(account.account_id)}</p>
+            <h3 className="font-semibold text-[#5D4037]">{account.name}</h3>
+            <p className="text-sm text-[#556B2F] capitalize">{account.subtype || account.type}</p>
+            <p className="text-xs text-[#8B6F47] font-mono">{maskAccountId(account.account_id)}</p>
           </div>
         </div>
       </div>
@@ -72,37 +72,37 @@ export default function AccountCard({ account }: AccountCardProps) {
         {account.type === 'credit' && (
           <>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Balance:</span>
+              <span className="text-[#556B2F]">Balance:</span>
               <span className="font-medium">{formatCurrency(account.current)}</span>
             </div>
             {account.limit && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Limit:</span>
+                <span className="text-[#556B2F]">Limit:</span>
                 <span className="font-medium">{formatCurrency(account.limit)}</span>
               </div>
             )}
             {account.amount_due !== undefined && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Amount Due:</span>
+                <span className="text-[#556B2F]">Amount Due:</span>
                 <span className="font-medium">{formatCurrency(account.amount_due)}</span>
               </div>
             )}
             {account.minimum_payment_due !== undefined && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Minimum Payment:</span>
+                <span className="text-[#556B2F]">Minimum Payment:</span>
                 <span className="font-medium">{formatCurrency(account.minimum_payment_due)}</span>
               </div>
             )}
             {account.limit && account.current && (() => {
               const utilization = (Math.abs(account.current) / account.limit) * 100
-              let utilizationColor = 'text-gray-900'
+              let utilizationColor = 'text-[#5D4037]'
               if (utilization >= 80) utilizationColor = 'text-red-600 font-bold'
               else if (utilization >= 50) utilizationColor = 'text-yellow-600 font-semibold'
               else if (utilization >= 30) utilizationColor = 'text-green-600'
               
               return (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Utilization:</span>
+                  <span className="text-[#556B2F]">Utilization:</span>
                   <span className={`font-medium ${utilizationColor}`}>
                     {utilization.toFixed(1)}%
                   </span>
@@ -115,18 +115,18 @@ export default function AccountCard({ account }: AccountCardProps) {
         {account.type === 'loan' && (
           <>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Balance:</span>
+              <span className="text-[#556B2F]">Balance:</span>
               <span className="font-medium">{formatCurrency(account.current)}</span>
             </div>
             {account.interest_rate && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Interest Rate:</span>
+                <span className="text-[#556B2F]">Interest Rate:</span>
                 <span className="font-medium">{account.interest_rate.toFixed(2)}%</span>
               </div>
             )}
             {account.next_payment_due_date && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Next Payment:</span>
+                <span className="text-[#556B2F]">Next Payment:</span>
                 <span className="font-medium">
                   {new Date(account.next_payment_due_date).toLocaleDateString()}
                 </span>
@@ -140,8 +140,8 @@ export default function AccountCard({ account }: AccountCardProps) {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <div>
-                  <span className="text-gray-600 font-medium">Available Balance:</span>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <span className="text-[#556B2F] font-medium">Available Balance:</span>
+                  <p className="text-xs text-[#8B6F47] mt-0.5">
                     Immediate usable funds for transactions
                   </p>
                 </div>
@@ -151,12 +151,12 @@ export default function AccountCard({ account }: AccountCardProps) {
               </div>
               <div className="flex justify-between text-sm border-t pt-2">
                 <div>
-                  <span className="text-gray-600 font-medium">Current Balance:</span>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <span className="text-[#556B2F] font-medium">Current Balance:</span>
+                  <p className="text-xs text-[#8B6F47] mt-0.5">
                     Total including pending transactions
                   </p>
                 </div>
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-[#5D4037]">
                   {formatCurrency(account.current)}
                 </span>
               </div>
@@ -167,4 +167,3 @@ export default function AccountCard({ account }: AccountCardProps) {
     </div>
   )
 }
-

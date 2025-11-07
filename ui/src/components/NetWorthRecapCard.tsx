@@ -30,16 +30,16 @@ export default function NetWorthRecapCard({ userId, period = 'month' }: NetWorth
 
   if (isLoading) {
     return (
-      <div className="relative bg-gradient-to-b from-purple-900 via-blue-900 to-blue-950 rounded-2xl overflow-hidden p-8">
-        <div className="text-white">Loading net worth...</div>
+      <div className="relative bg-gradient-to-b from-[#F5E6D3] via-white to-[#F5E6D3] rounded-2xl overflow-hidden p-8">
+        <div className="text-[#5D4037]">Loading net worth...</div>
       </div>
     )
   }
 
   if (!netWorth) {
     return (
-      <div className="relative bg-gradient-to-b from-purple-900 via-blue-900 to-blue-950 rounded-2xl overflow-hidden p-8">
-        <div className="text-red-300">Failed to load net worth data</div>
+      <div className="relative bg-gradient-to-b from-[#F5E6D3] via-white to-[#F5E6D3] rounded-2xl overflow-hidden p-8">
+        <div className="text-red-600">Failed to load net worth data</div>
       </div>
     )
   }
@@ -79,44 +79,44 @@ export default function NetWorthRecapCard({ userId, period = 'month' }: NetWorth
   }
 
   return (
-    <div className="relative bg-gradient-to-b from-purple-900 via-blue-900 to-blue-950 rounded-2xl overflow-hidden p-8">
+    <div className="relative bg-gradient-to-b from-[#F5E6D3] via-white to-[#F5E6D3] rounded-2xl overflow-hidden p-8">
       {/* Header */}
       <div className="text-center mb-6">
-        <h1 className="text-4xl font-serif text-white mb-2">Net Worth Overview</h1>
-        <p className="text-white/80 text-sm">
+        <h1 className="text-4xl font-serif text-[#5D4037] mb-2">Net Worth Overview</h1>
+        <p className="text-[#556B2F]/80 text-sm">
           Track your financial position and growth over time.
         </p>
       </div>
 
       {/* Main Card */}
-      <div className="relative bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-6 shadow-xl">
+      <div className="relative bg-white/90 backdrop-blur-md rounded-xl border border-[#D4C4B0]/50 p-6 shadow-xl">
         {/* Close Button */}
         <button
           onClick={() => setIsClosed(true)}
-          className="absolute top-4 right-4 text-white hover:text-white/70 transition-colors z-10"
+          className="absolute top-4 right-4 text-[#5D4037] hover:text-[#556B2F] transition-colors z-10"
           aria-label="Close"
         >
           <X size={20} />
         </button>
 
         {/* Main Heading */}
-        <h2 className="text-2xl font-semibold text-white mb-1">
+        <h2 className="text-2xl font-semibold text-[#5D4037] mb-1">
           Your net worth is {formatAmount(netWorthValue)}
         </h2>
 
         {/* Timeframe Label */}
-        <p className="text-xs uppercase tracking-wider text-white/60 mb-4">
+        <p className="text-xs uppercase tracking-wider text-[#556B2F]/60 mb-4">
           {period.toUpperCase()} VIEW
         </p>
 
         {/* Net Worth Value */}
-        <div className="text-4xl font-bold text-white mb-6">
+        <div className="text-4xl font-bold text-[#5D4037] mb-6 text-center">
           ${netWorthValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </div>
 
         {/* Change Indicator */}
         {changeAmount !== 0 && (
-          <div className={`flex items-center gap-2 mb-6 ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+          <div className={`flex items-center gap-2 mb-6 justify-center ${isPositive ? 'text-[#556B2F]' : 'text-red-600'}`}>
             {isPositive ? <ArrowUp size={20} /> : <ArrowDown size={20} />}
             <span className="text-lg font-semibold">
               {isPositive ? '+' : ''}{changePercent.toFixed(1)}% ({isPositive ? '+' : ''}${Math.abs(changeAmount).toLocaleString('en-US', { maximumFractionDigits: 2 })})
@@ -126,15 +126,15 @@ export default function NetWorthRecapCard({ userId, period = 'month' }: NetWorth
 
         {/* Key Metrics */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-white/10 rounded-lg p-4 border border-white/20">
-            <p className="text-xs text-white/70 mb-1">Total Assets</p>
-            <p className="text-xl font-bold text-green-400">
+          <div className="bg-[#E8F5E9] rounded-lg p-4 border border-[#C8E6C9]">
+            <p className="text-xs text-[#556B2F] mb-1">Total Assets</p>
+            <p className="text-xl font-bold text-[#556B2F]">
               ${totalAssets.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
           </div>
-          <div className="bg-white/10 rounded-lg p-4 border border-white/20">
-            <p className="text-xs text-white/70 mb-1">Total Liabilities</p>
-            <p className="text-xl font-bold text-red-400">
+          <div className="bg-[#E8F5E9] rounded-lg p-4 border border-[#C8E6C9]">
+            <p className="text-xs text-[#556B2F] mb-1">Total Liabilities</p>
+            <p className="text-xl font-bold text-red-600">
               ${totalLiabilities.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
           </div>
@@ -147,34 +147,34 @@ export default function NetWorthRecapCard({ userId, period = 'month' }: NetWorth
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorNetWorth" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#FFFFFF" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#FFFFFF" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#556B2F" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#556B2F" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(93,64,55,0.1)" />
                 <XAxis 
                   dataKey="date" 
-                  tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 12 }}
-                  stroke="rgba(255,255,255,0.3)"
+                  tick={{ fill: '#5D4037', fontSize: 12 }}
+                  stroke="#5D4037"
                 />
                 <YAxis 
-                  tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 12 }}
+                  tick={{ fill: '#5D4037', fontSize: 12 }}
                   tickFormatter={(value) => `$${value.toFixed(0)}`}
-                  stroke="rgba(255,255,255,0.3)"
+                  stroke="#5D4037"
                 />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)', 
-                    border: '1px solid rgba(255,255,255,0.2)',
+                    backgroundColor: 'rgba(245, 230, 211, 0.95)', 
+                    border: '1px solid #5D4037',
                     borderRadius: '8px',
-                    color: '#fff'
+                    color: '#5D4037'
                   }}
                   formatter={(value: number) => [`$${value.toLocaleString('en-US', { maximumFractionDigits: 2 })}`, 'Net Worth']}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="netWorth" 
-                  stroke="#FFFFFF" 
+                  stroke="#556B2F" 
                   strokeWidth={2}
                   fillOpacity={1} 
                   fill="url(#colorNetWorth)" 
@@ -185,7 +185,7 @@ export default function NetWorthRecapCard({ userId, period = 'month' }: NetWorth
         )}
 
         {/* Summary Text */}
-        <p className="text-white/90 text-sm leading-relaxed">
+        <p className="text-[#5D4037]/90 text-sm leading-relaxed">
           {isPositive 
             ? `Your net worth increased by ${changePercent.toFixed(1)}% over the last ${period}. Keep up the great work!`
             : changeAmount < 0

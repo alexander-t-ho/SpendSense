@@ -451,7 +451,13 @@ class RecommendationGenerator:
             'high_apy': 4.5,
             'additional_annual_earnings': 0,
             'goal_amount': 0,
-            'months_to_goal': 0
+            'months_to_goal': 0,
+            'overdue_payment_6mo': 0,
+            'overdue_months_6mo': 6,
+            'overdue_payment_12mo': 0,
+            'overdue_months_12mo': 12,
+            'overdue_payment_24mo': 0,
+            'overdue_months_24mo': 24
         }
         return defaults.get(key, 0)
     

@@ -81,6 +81,25 @@ export async function fetchBudgetTracking(userId: string, month?: string) {
   return response.json()
 }
 
+export async function generateRAGBudget(userId: string, month?: string) {
+  const params = month ? `?month=${month}` : ''
+  const response = await fetch(`${INSIGHTS_API_BASE}/${userId}/generate-budget${params}`, {
+    method: 'POST',
+  })
+  if (!response.ok) {
+    throw new Error('Failed to generate budget')
+  }
+  return response.json()
+}
+
+export async function fetchApprovedRecommendations(userId: string) {
+  const response = await fetch(`${API_BASE_URL}/recommendations/${userId}/approved`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch approved recommendations')
+  }
+  return response.json()
+}
+
 // Recommendations API
 export async function fetchRecommendations(
   userId: string,

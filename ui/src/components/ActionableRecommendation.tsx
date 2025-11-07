@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { X, CheckCircle2, CheckCircle, Calendar } from 'lucide-react'
 import { SubscriptionWebSocket, SubscriptionCancellationUpdate } from '../services/subscriptionWebSocket'
 
@@ -214,11 +214,11 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
   const totalYearlySavings = totalMonthlySavings * 12
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+    <div className="bg-white border border-[#D4C4B0] rounded-lg p-6 shadow-sm">
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{recommendation.title}</h3>
-          <p className="text-sm text-gray-700 mb-4">{recommendation.recommendation_text}</p>
+          <h3 className="text-lg font-semibold text-[#5D4037] mb-2">{recommendation.title}</h3>
+          <p className="text-sm text-[#556B2F] mb-4">{recommendation.recommendation_text}</p>
         </div>
         {recommendation.priority && (
           <span
@@ -227,7 +227,7 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
                 ? 'bg-red-100 text-red-800'
                 : recommendation.priority === 'medium'
                 ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-gray-100 text-gray-800'
+                : 'bg-[#F5E6D3] text-[#5D4037]'
             }`}
           >
             {recommendation.priority}
@@ -257,18 +257,18 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
       {isSubscriptionRecommendation && (
         <div className="mt-4">
           {isLoadingSubs ? (
-            <div className="text-sm text-gray-500">Loading your subscriptions...</div>
+            <div className="text-sm text-[#8B6F47]">Loading your subscriptions...</div>
           ) : activeSubscriptions.length > 0 ? (
             <div className="space-y-3">
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">Your Subscriptions</h4>
+              <h4 className="text-sm font-semibold text-[#5D4037] mb-2">Your Subscriptions</h4>
               {activeSubscriptions.map((subscription: Subscription, idx: number) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-[#E8F5E9] border border-[#D4C4B0] rounded-lg"
                 >
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{subscription.merchant_name}</p>
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-sm font-medium text-[#5D4037]">{subscription.merchant_name}</p>
+                    <p className="text-xs text-[#556B2F] mt-1">
                       ${subscription.average_amount.toFixed(2)}/{subscription.cadence}
                       {subscription.cadence === 'monthly' && (
                         <span className="ml-2">
@@ -287,7 +287,7 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
               ))}
             </div>
           ) : subscriptionsData?.subscriptions?.length === 0 ? (
-            <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded">
+            <div className="text-sm text-[#8B6F47] p-3 bg-[#E8F5E9] rounded">
               No active subscriptions found.
             </div>
           ) : null}
@@ -337,7 +337,6 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
           recommendationId={recommendation.id}
           userId={userId}
           actionItems={recommendation.action_items}
-          recommendationTitle={recommendation.title}
         />
       )}
 
@@ -345,13 +344,13 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
       {recommendation.expected_impact && (
         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-xs font-semibold text-blue-900 mb-1">Expected Impact:</p>
-          <p className="text-sm text-blue-800">{recommendation.expected_impact}</p>
+          <p className="text-sm text-[#5D4037]">{recommendation.expected_impact}</p>
         </div>
       )}
 
       {/* Disclaimer */}
-      <div className="mt-4 pt-3 border-t border-gray-200">
-        <p className="text-xs text-gray-500 italic">
+      <div className="mt-4 pt-3 border-t border-[#D4C4B0]">
+        <p className="text-xs text-[#8B6F47] italic">
           This is educational content, not financial advice. Consult a licensed advisor for personalized guidance.
         </p>
       </div>
@@ -364,10 +363,9 @@ interface ActionPlanApprovalProps {
   recommendationId: string
   userId: string
   actionItems: string[]
-  recommendationTitle: string
 }
 
-function ActionPlanApproval({ recommendationId, userId, actionItems, recommendationTitle }: ActionPlanApprovalProps) {
+function ActionPlanApproval({ recommendationId, userId, actionItems }: ActionPlanApprovalProps) {
   const queryClient = useQueryClient()
   
   // Check if plan is already approved
@@ -428,8 +426,8 @@ function ActionPlanApproval({ recommendationId, userId, actionItems, recommendat
 
   if (isLoadingPlan) {
     return (
-      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-        <p className="text-sm text-gray-500">Loading plan status...</p>
+      <div className="mt-4 p-3 bg-[#E8F5E9] rounded-lg">
+        <p className="text-sm text-[#8B6F47]">Loading plan status...</p>
       </div>
     )
   }
@@ -472,14 +470,14 @@ function ActionPlanApproval({ recommendationId, userId, actionItems, recommendat
   const isSpendingPattern = actionItems.some(item => item.toLowerCase().startsWith('option 1'))
   
   return (
-    <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+    <div className="mt-4 p-4 bg-[#E8F5E9] border border-[#D4C4B0] rounded-lg">
       <div className="flex items-start gap-3 mb-3">
-        <Calendar className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+        <Calendar className="w-5 h-5 text-[#556B2F] mt-0.5 flex-shrink-0" />
         <div className="flex-1">
-          <h4 className="text-sm font-semibold text-gray-900 mb-2">
+          <h4 className="text-sm font-semibold text-[#5D4037] mb-2">
             {isSpendingPattern ? 'Choose Your Savings Plan' : 'Action Plan'}
           </h4>
-          <p className="text-xs text-gray-600 mb-3">
+          <p className="text-xs text-[#556B2F] mb-3">
             {isSpendingPattern 
               ? 'Review the options below and choose the one that best fits your lifestyle:'
               : 'Review the plan below and approve it to start tracking your progress:'}
@@ -501,26 +499,26 @@ function ActionPlanApproval({ recommendationId, userId, actionItems, recommendat
                     return (
                       <div
                         key={idx}
-                        className="p-3 bg-white border-2 border-gray-200 rounded-lg hover:border-blue-400 transition-colors cursor-pointer"
+                        className="p-3 bg-white border-2 border-[#D4C4B0] rounded-lg hover:border-blue-400 transition-colors cursor-pointer"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-bold text-blue-600">Option {optionNum}</span>
+                              <span className="text-xs font-bold text-[#556B2F]">Option {optionNum}</span>
                               {savingsAmount && (
                                 <span className="text-xs font-semibold text-green-600">
                                   Save ${parseFloat(savingsAmount.replace(/,/g, '')).toLocaleString()}/{savingsPeriod}
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-gray-700">{optionText}</p>
+                            <p className="text-xs text-[#556B2F]">{optionText}</p>
                           </div>
                         </div>
                       </div>
                     )
                   })}
                 {actionItems.find(item => item.toLowerCase().includes('choose the option')) && (
-                  <p className="text-xs text-gray-500 italic mt-2">
+                  <p className="text-xs text-[#8B6F47] italic mt-2">
                     {actionItems.find(item => item.toLowerCase().includes('choose the option'))}
                   </p>
                 )}
@@ -529,8 +527,8 @@ function ActionPlanApproval({ recommendationId, userId, actionItems, recommendat
               // Display regular action items as list
               <ul className="space-y-2">
                 {actionItems.map((item, idx) => (
-                  <li key={idx} className="text-xs text-gray-700 flex items-start">
-                    <span className="text-blue-600 mr-2 mt-0.5 font-bold">•</span>
+                  <li key={idx} className="text-xs text-[#556B2F] flex items-start">
+                    <span className="text-[#556B2F] mr-2 mt-0.5 font-bold">•</span>
                     <span>{item}</span>
                   </li>
                 ))}
