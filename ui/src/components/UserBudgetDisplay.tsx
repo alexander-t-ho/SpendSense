@@ -209,6 +209,11 @@ export default function UserBudgetDisplay({ userId, month }: UserBudgetDisplayPr
               </p>
             </div>
           </div>
+
+          {/* Rationale Text */}
+          <p className="text-[#5D4037]/90 text-sm leading-relaxed pt-4 border-t border-[#D4C4B0] mt-4">
+            This budget was based on 80% of your predicted monthly income. We recommend you set 20% of all paychecks towards savings, emergency funds, or paying off debts.
+          </p>
         </div>
       )}
     </div>

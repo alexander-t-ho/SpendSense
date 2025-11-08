@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchNetWorth, fetchNetWorthHistory } from '../services/api'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { useState } from 'react'
-import { X, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowUp, ArrowDown } from 'lucide-react'
 
 interface NetWorthRecapCardProps {
   userId: string
@@ -10,23 +9,17 @@ interface NetWorthRecapCardProps {
 }
 
 export default function NetWorthRecapCard({ userId, period = 'month' }: NetWorthRecapCardProps) {
-  const [isClosed, setIsClosed] = useState(false)
-
   const { data: netWorth, isLoading } = useQuery({
     queryKey: ['netWorth', userId, period],
     queryFn: () => fetchNetWorth(userId, period),
-    enabled: !!userId && !isClosed,
+    enabled: !!userId,
   })
 
   const { data: history } = useQuery({
     queryKey: ['netWorthHistory', userId, period],
     queryFn: () => fetchNetWorthHistory(userId, period),
-    enabled: !!userId && !isClosed,
+    enabled: !!userId,
   })
-
-  if (isClosed) {
-    return null
-  }
 
   if (isLoading) {
     return (
@@ -90,15 +83,6 @@ export default function NetWorthRecapCard({ userId, period = 'month' }: NetWorth
 
       {/* Main Card */}
       <div className="relative bg-white/90 backdrop-blur-md rounded-xl border border-[#D4C4B0]/50 p-6 shadow-xl">
-        {/* Close Button */}
-        <button
-          onClick={() => setIsClosed(true)}
-          className="absolute top-4 right-4 text-[#5D4037] hover:text-[#556B2F] transition-colors z-10"
-          aria-label="Close"
-        >
-          <X size={20} />
-        </button>
-
         {/* Main Heading */}
         <h2 className="text-2xl font-semibold text-[#5D4037] mb-1">
           Your net worth is {formatAmount(netWorthValue)}

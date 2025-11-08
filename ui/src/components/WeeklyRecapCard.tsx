@@ -1,7 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
 import { fetchWeeklyRecap } from '../services/api'
-import { X } from 'lucide-react'
 
 interface WeeklyRecapCardProps {
   userId: string
@@ -9,17 +7,11 @@ interface WeeklyRecapCardProps {
 }
 
 export default function WeeklyRecapCard({ userId, weekStart }: WeeklyRecapCardProps) {
-  const [isClosed, setIsClosed] = useState(false)
-  
   const { data: recap, isLoading, error } = useQuery({
     queryKey: ['weeklyRecap', userId, weekStart],
     queryFn: () => fetchWeeklyRecap(userId, weekStart),
-    enabled: !!userId && !isClosed,
+    enabled: !!userId,
   })
-
-  if (isClosed) {
-    return null
-  }
 
   if (isLoading) {
     return (
@@ -86,15 +78,6 @@ export default function WeeklyRecapCard({ userId, weekStart }: WeeklyRecapCardPr
             <div className="w-2 h-1 bg-[#E8F5E9] rounded-full border border-[#C8E6C9]" />
             <div className="w-2 h-1 bg-[#E8F5E9] rounded-full border border-[#C8E6C9]" />
           </div>
-
-          {/* Close Button */}
-          <button
-            onClick={() => setIsClosed(true)}
-            className="absolute top-4 right-4 text-[#5D4037] hover:text-[#8B6F47] transition-colors"
-            aria-label="Close"
-          >
-            <X size={20} />
-          </button>
 
           {/* Main Heading */}
           <h2 className="text-2xl font-semibold text-[#5D4037] mb-1">

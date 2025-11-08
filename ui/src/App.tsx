@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import Dashboard from './pages/Dashboard'
 import UserDetail from './pages/UserDetail'
 import UserDashboard from './pages/user/UserDashboard'
 import OperatorDashboard from './pages/operator/OperatorDashboard'
@@ -19,7 +18,7 @@ function App() {
         <Layout>
           <Routes>
             {/* Admin/Operator routes - can see all users */}
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<OperatorDashboard />} />
             <Route path="/operator" element={<OperatorDashboard />} />
             <Route path="/user/:userId" element={<UserDetail />} />
             
