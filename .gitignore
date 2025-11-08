@@ -80,3 +80,4 @@ logs/
 # Frontend
 ui/dist/
 ui/.vite/
+data/persona_traces/traces_log.jsonl

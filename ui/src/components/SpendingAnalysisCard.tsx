@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchSpendingAnalysis } from '../services/api'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, TooltipProps } from 'recharts'
-import { useState } from 'react'
-import { X } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 interface SpendingAnalysisCardProps {
   userId: string
@@ -10,17 +8,11 @@ interface SpendingAnalysisCardProps {
 }
 
 export default function SpendingAnalysisCard({ userId, months = 6 }: SpendingAnalysisCardProps) {
-  const [isClosed, setIsClosed] = useState(false)
-  
   const { data: analysis, isLoading, error } = useQuery({
     queryKey: ['spendingAnalysis', userId, months],
     queryFn: () => fetchSpendingAnalysis(userId, months),
-    enabled: !!userId && !isClosed,
+    enabled: !!userId,
   })
-
-  if (isClosed) {
-    return null
-  }
 
   if (isLoading) {
     return (
@@ -38,23 +30,29 @@ export default function SpendingAnalysisCard({ userId, months = 6 }: SpendingAna
     )
   }
 
-  const chartData = analysis.monthly_breakdown?.map((month: any) => ({
-    month: new Date(month.month + '-01').toLocaleDateString('en-US', { month: 'short' }),
-    spending: Math.abs(month.spending || month.total_spending || 0),
-    income: month.income || month.total_income || 0,
-  })) || []
+  // Sort monthly breakdown by month (chronologically) and map to chart data
+  const chartData = (analysis.monthly_breakdown || [])
+    .sort((a: any, b: any) => {
+      // Sort by month string (YYYY-MM format sorts correctly)
+      return a.month.localeCompare(b.month)
+    })
+    .map((month: any) => ({
+      month: new Date(month.month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+      spending: Math.abs(month.spending || month.total_spending || 0),
+      income: month.income || month.total_income || 0,
+    }))
 
   const totalSpending = analysis.total_spending || 0
   const avgMonthly = analysis.average_monthly_spending || 0
   const topInsight = analysis.insights?.[0] || 'Your spending trends are consistent.'
 
   // Custom tooltip content to properly label spending vs income
-  const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-[#F5E6D3] border border-[#5D4037] rounded-lg p-3 shadow-lg">
           <p className="text-[#5D4037] font-semibold mb-2">{label}</p>
-          {payload.map((entry, index) => {
+          {payload.map((entry: any, index: number) => {
             const label = entry.dataKey === 'spending' ? 'Spending' : entry.dataKey === 'income' ? 'Income' : entry.name || 'Value';
             return (
               <p key={index} style={{ color: entry.color }} className="text-sm">
@@ -80,15 +78,6 @@ export default function SpendingAnalysisCard({ userId, months = 6 }: SpendingAna
 
       {/* Main Card */}
       <div className="relative bg-white/90 backdrop-blur-md rounded-xl border border-[#D4C4B0]/50 p-6 shadow-xl">
-        {/* Close Button */}
-        <button
-          onClick={() => setIsClosed(true)}
-          className="absolute top-4 right-4 text-[#5D4037] hover:text-[#8B6F47] transition-colors z-10"
-          aria-label="Close"
-        >
-          <X size={20} />
-        </button>
-
         {/* Main Heading */}
         <h2 className="text-2xl font-semibold text-[#5D4037] mb-1">
           Total spending: ${Math.abs(totalSpending).toLocaleString('en-US', { maximumFractionDigits: 0 })}

@@ -29,6 +29,7 @@ export interface OperatorRecommendation {
   flagged: boolean
   rejected?: boolean
   rejected_at?: string | null
+  rejected_by?: string | null  // User ID who rejected (if user rejected)
   created_at: string
   updated_at: string
 }

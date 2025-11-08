@@ -4,7 +4,7 @@ import os
 from fastapi import FastAPI, HTTPException, Query, Body, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, or_
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
 
@@ -332,26 +332,75 @@ def get_user_profile(
         persona_data = assigner.assign_persona(user_id, 180)
         assigner.close()
         
-        # Calculate income from payroll transactions over 180 days, scaled to yearly
+        # Calculate income from payroll transactions over 180 days
+        # Use FeaturePipeline's income features which already computed this for features_180d
         income_180d = 0.0
         yearly_income = 0.0
+        payroll_count = 0
+        use_feature_pipeline_data = False
         
-        # Get all payroll transactions in the last 180 days
-        payroll_start_date = datetime.now() - timedelta(days=180)
-        payroll_transactions = session.query(Transaction).join(Account).filter(
-            and_(
-                Account.user_id == user_id,
-                Transaction.date >= payroll_start_date,
-                Transaction.merchant_name == "PAYROLL DEPOSIT",
-                Transaction.amount > 0  # Only positive amounts (deposits)
-            )
-        ).all()
+        if features_180d and features_180d.get('income'):
+            income_features = features_180d['income']
+            # Calculate 180-day total from payroll transactions
+            if income_features.get('has_payroll_detected', False):
+                avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
+                total_payroll_transactions = income_features.get('total_payroll_transactions', 0)
+                
+                # Only use FeaturePipeline data if we have valid values
+                if avg_income_per_pay > 0 and total_payroll_transactions > 0:
+                    payroll_count = total_payroll_transactions
+                    # Calculate 180-day total: average per pay * number of pays
+                    income_180d = avg_income_per_pay * total_payroll_transactions
+                    # Scale to yearly: (180-day income / 180) * 365
+                    yearly_income = (income_180d / 180.0) * 365.0
+                    use_feature_pipeline_data = True
         
-        if payroll_transactions:
-            # Sum all payroll amounts
-            income_180d = sum(tx.amount for tx in payroll_transactions)
-            # Scale to yearly: (180-day income / 180) * 365
-            yearly_income = (income_180d / 180.0) * 365.0
+        # Fallback: if FeaturePipeline didn't find payroll OR returned zero/invalid values, try direct query
+        if not use_feature_pipeline_data or income_180d == 0.0:
+            from features.income import IncomeAnalyzer
+            income_analyzer = IncomeAnalyzer(session)
+            payroll_start_date = datetime.now() - timedelta(days=180)
+            payroll_end_date = datetime.now()
+            
+            # Use IncomeAnalyzer to detect payroll
+            payroll_transactions = income_analyzer.detect_payroll_ach(user_id, payroll_start_date, payroll_end_date)
+            
+            # If still no payroll, try all depository accounts
+            if not payroll_transactions:
+                depository_accounts = [acc for acc in accounts if acc.type == 'depository']
+                depository_account_ids = [acc.id for acc in depository_accounts]
+                
+                if depository_account_ids:
+                    payroll_tx_objects = session.query(Transaction).filter(
+                        and_(
+                            Transaction.account_id.in_(depository_account_ids),
+                            Transaction.date >= payroll_start_date,
+                            Transaction.date <= payroll_end_date,
+                            Transaction.amount > 0,
+                            or_(
+                                Transaction.merchant_name.like("%PAYROLL%"),
+                                Transaction.merchant_name.like("%DEPOSIT%"),
+                                Transaction.primary_category == "Transfer In"
+                            ),
+                            Transaction.amount >= 1000
+                        )
+                    ).all()
+                    
+                    account_id_map = {acc.id: acc.account_id for acc in depository_accounts}
+                    payroll_transactions = [
+                        {
+                            "date": tx.date,
+                            "amount": tx.amount,
+                            "account_id": account_id_map.get(tx.account_id, tx.account_id),
+                            "transaction_id": tx.transaction_id
+                        }
+                        for tx in payroll_tx_objects
+                    ]
+            
+            if payroll_transactions:
+                payroll_count = len(payroll_transactions)
+                income_180d = sum(tx["amount"] for tx in payroll_transactions)
+                yearly_income = (income_180d / 180.0) * 365.0
         
         # Build persona object with dual persona support
         persona_obj = {
@@ -386,7 +435,7 @@ def get_user_profile(
             "income": {
                 "180_day_total": round(income_180d, 2),
                 "yearly_estimated": round(yearly_income, 2),
-                "payroll_count_180d": len(payroll_transactions)
+                "payroll_count_180d": payroll_count
             }
         }
     finally:
@@ -578,32 +627,38 @@ def get_suggested_budget(
             # Minimum spending is the lowest month
             min_spending = min(monthly_spending) if monthly_spending else 0.0
             
-        # CRITICAL: Budget is based on 100% of average monthly income from income analysis
-        # Calculate average monthly income from transactions (same as budget calculator)
-        from collections import defaultdict
+        # CRITICAL: Budget is based ONLY on payroll transactions (80% of monthly average from income analysis)
+        # Calculate monthly average from 180-day payroll: (180-day total / 180) * 365 / 12
+        # This matches the "Monthly Average" shown in the Income Analysis card
+        # Budget is 80% of the monthly average
         depository_accounts = [acc for acc in accounts if acc.type == 'depository']
         depository_account_ids = [acc.id for acc in depository_accounts]
         
         monthly_income = 0.0
         if depository_account_ids:
-            # Get income transactions from last 6 months
-            six_months_ago = datetime.now() - timedelta(days=180)
-            income_transactions = session.query(Transaction).filter(
+            # Get payroll transactions using flexible pattern matching (same as IncomeAnalyzer)
+            # This matches transactions with "PAYROLL" or "DEPOSIT" in merchant name, or "Transfer In" category
+            payroll_start_date = datetime.now() - timedelta(days=180)
+            payroll_transactions = session.query(Transaction).filter(
                 and_(
                     Transaction.account_id.in_(depository_account_ids),
-                    Transaction.date >= six_months_ago,
-                    Transaction.amount > 0  # Income is positive
+                    Transaction.date >= payroll_start_date,
+                    Transaction.amount > 0,  # Only positive amounts (deposits)
+                    or_(
+                        Transaction.merchant_name.like("%PAYROLL%"),
+                        Transaction.merchant_name.like("%DEPOSIT%"),
+                        Transaction.primary_category == "Transfer In"
+                    ),
+                    Transaction.amount >= 1000  # Reasonable minimum for payroll
                 )
             ).all()
             
-            # Calculate average monthly income
-            monthly_income_dict = defaultdict(float)
-            for tx in income_transactions:
-                month_key = tx.date.strftime("%Y-%m")
-                monthly_income_dict[month_key] += abs(tx.amount)
-            
-            if monthly_income_dict:
-                monthly_income = sum(monthly_income_dict.values()) / len(monthly_income_dict)
+            # Calculate monthly average from payroll (same as income analysis)
+            # Formula: (180-day payroll total / 180) * 365 / 12
+            if payroll_transactions:
+                income_180d = sum(tx.amount for tx in payroll_transactions)
+                yearly_income = (income_180d / 180.0) * 365.0
+                monthly_income = yearly_income / 12.0
         
         # Fallback to FeaturePipeline if no transaction-based income found
         if monthly_income <= 0:
@@ -627,8 +682,8 @@ def get_suggested_budget(
             else:
                 monthly_income = income_features.get('minimum_monthly_income', 0.0)
         
-        # Max budget is 100% of monthly income (not capped by available funds)
-        # This allows users to save more money and still live their lives
+        # Max budget is 100% of monthly income (monthly average from payroll)
+        # Users can set up to 100% of monthly income, but validation will prevent exceeding it
         max_budget = monthly_income if monthly_income > 0 else 0.0
         
         # Add constraints to budget response
@@ -750,35 +805,39 @@ def set_user_budget(
         else:
             period_end = month_date.replace(month=month_date.month + 1, day=1) - timedelta(days=1)
         
-        # CRITICAL: Budget is based ONLY on average monthly income from income analysis (100% max)
-        # Credit card balances do NOT factor into the budget calculation
-        # Credit card debt should only be addressed through recommendations (debt payoff plans)
-        # Calculate average monthly income from transactions (same as budget calculator)
-        from collections import defaultdict
+        # CRITICAL: Budget is based ONLY on payroll transactions (80% of monthly average from income analysis)
+        # Calculate monthly average from 180-day payroll: (180-day total / 180) * 365 / 12
+        # This matches the "Monthly Average" shown in the Income Analysis card
+        # Budget is 80% of the monthly average
         accounts = session.query(Account).filter(Account.user_id == user_id).all()
         depository_accounts = [acc for acc in accounts if acc.type == 'depository']
         depository_account_ids = [acc.id for acc in depository_accounts]
         
         monthly_income = 0.0
         if depository_account_ids:
-            # Get income transactions from last 6 months
-            six_months_ago = datetime.now() - timedelta(days=180)
-            income_transactions = session.query(Transaction).filter(
+            # Get payroll transactions using flexible pattern matching (same as IncomeAnalyzer)
+            # This matches transactions with "PAYROLL" or "DEPOSIT" in merchant name, or "Transfer In" category
+            payroll_start_date = datetime.now() - timedelta(days=180)
+            payroll_transactions = session.query(Transaction).filter(
                 and_(
                     Transaction.account_id.in_(depository_account_ids),
-                    Transaction.date >= six_months_ago,
-                    Transaction.amount > 0  # Income is positive
+                    Transaction.date >= payroll_start_date,
+                    Transaction.amount > 0,  # Only positive amounts (deposits)
+                    or_(
+                        Transaction.merchant_name.like("%PAYROLL%"),
+                        Transaction.merchant_name.like("%DEPOSIT%"),
+                        Transaction.primary_category == "Transfer In"
+                    ),
+                    Transaction.amount >= 1000  # Reasonable minimum for payroll
                 )
             ).all()
             
-            # Calculate average monthly income
-            monthly_income_dict = defaultdict(float)
-            for tx in income_transactions:
-                month_key = tx.date.strftime("%Y-%m")
-                monthly_income_dict[month_key] += abs(tx.amount)
-            
-            if monthly_income_dict:
-                monthly_income = sum(monthly_income_dict.values()) / len(monthly_income_dict)
+            # Calculate monthly average from payroll (same as income analysis)
+            # Formula: (180-day payroll total / 180) * 365 / 12
+            if payroll_transactions:
+                income_180d = sum(tx.amount for tx in payroll_transactions)
+                yearly_income = (income_180d / 180.0) * 365.0
+                monthly_income = yearly_income / 12.0
         
         # Fallback to FeaturePipeline if no transaction-based income found
         if monthly_income <= 0:
@@ -802,17 +861,42 @@ def set_user_budget(
             else:
                 monthly_income = income_features.get('minimum_monthly_income', 0.0)
         
-        # Budget should only be validated against monthly income (100% max)
-        # Not capped by available funds or credit card balances
-        # This allows users to save more money and still live their lives
-        # Credit card debt is addressed separately through debt payoff recommendations
-        max_allowed_budget = monthly_income if monthly_income > 0 else 0.0
+        # Validate: Budget cannot exceed monthly income (100% of monthly average)
+        # Calculate available funds (checking + savings) for months-until-zero calculation
+        depository_accounts = [acc for acc in accounts if acc.type == 'depository']
+        available_funds = sum(acc.available or acc.current or 0 for acc in depository_accounts)
         
-        if amount > max_allowed_budget and monthly_income > 0:
+        # Check if budget exceeds monthly income
+        if monthly_income > 0 and amount > monthly_income:
+            # Calculate monthly deficit
+            monthly_deficit = amount - monthly_income
+            
+            # Calculate months until funds run out
+            months_until_zero = 0
+            if monthly_deficit > 0 and available_funds > 0:
+                months_until_zero = available_funds / monthly_deficit
+            elif monthly_deficit > 0:
+                months_until_zero = 0  # Already out of money
+            
+            # Round to 1 decimal place, but show at least 1 month if it's less
+            months_until_zero = max(1, round(months_until_zero, 1))
+            
+            # Return error with specific messages
             raise HTTPException(
                 status_code=400,
-                detail=f"Budget cannot exceed 100% of monthly take-home income. Maximum allowed: ${max_allowed_budget:.2f} (Monthly income: ${monthly_income:.2f})"
+                detail={
+                    "error": "This budget is projected to exceed your predicted monthly income",
+                    "message": f"If you proceed with this budget you will have $0 in {months_until_zero:.1f} months",
+                    "monthly_income": monthly_income,
+                    "requested_budget": amount,
+                    "monthly_deficit": monthly_deficit,
+                    "available_funds": available_funds,
+                    "months_until_zero": months_until_zero
+                }
             )
+        
+        # Suggested budget is 80% of monthly income, but user can set up to 100%
+        # No need to cap here - we just validate it doesn't exceed 100%
         
         # Check if budget already exists for this month
         existing_budget = session.query(Budget).filter(
@@ -899,6 +983,45 @@ def generate_budget(
         # Generate suggested budget
         calculator = BudgetCalculator(session)
         suggested_budget = calculator.suggest_budget(user_id, month_date, lookback_months=6)
+        
+        # CRITICAL: Ensure total_budget is 80% of monthly average income
+        # Calculate monthly income to validate and cap if needed
+        accounts = session.query(Account).filter(Account.user_id == user_id).all()
+        depository_accounts = [acc for acc in accounts if acc.type == 'depository']
+        depository_account_ids = [acc.id for acc in depository_accounts]
+        
+        monthly_income = 0.0
+        if depository_account_ids:
+            payroll_start_date = datetime.now() - timedelta(days=180)
+            payroll_transactions = session.query(Transaction).filter(
+                and_(
+                    Transaction.account_id.in_(depository_account_ids),
+                    Transaction.date >= payroll_start_date,
+                    Transaction.amount > 0,
+                    or_(
+                        Transaction.merchant_name.like("%PAYROLL%"),
+                        Transaction.merchant_name.like("%DEPOSIT%"),
+                        Transaction.primary_category == "Transfer In"
+                    ),
+                    Transaction.amount >= 1000
+                )
+            ).all()
+            
+            if payroll_transactions:
+                income_180d = sum(tx.amount for tx in payroll_transactions)
+                yearly_income = (income_180d / 180.0) * 365.0
+                monthly_income = yearly_income / 12.0
+        
+        # Cap total_budget at 80% of monthly_income (budget is 80% of monthly average)
+        if monthly_income > 0:
+            max_budget = monthly_income * 0.80
+            if suggested_budget['total_budget'] > max_budget:
+                # Scale down category budgets proportionally
+                scale_factor = max_budget / suggested_budget['total_budget']
+                suggested_budget['total_budget'] = max_budget
+                if suggested_budget.get('category_budgets'):
+                    for category in suggested_budget['category_budgets']:
+                        suggested_budget['category_budgets'][category] *= scale_factor
         
         # Check if budget already exists for this month
         existing_budget = session.query(Budget).filter(
@@ -1759,6 +1882,143 @@ def generate_custom_recommendation(request: Dict[str, Any] = Body(...)):
         session.close()
 
 
+@app.get("/api/user/{user_id}/recommendations/{recommendation_id}/feedback")
+def get_recommendation_feedback(user_id: str, recommendation_id: str):
+    """Get user feedback for a specific recommendation.
+    
+    Args:
+        user_id: User ID
+        recommendation_id: Recommendation ID
+    
+    Returns:
+        User feedback data
+    """
+    from ingest.schema import UserFeedback
+    from sqlalchemy import and_
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        feedback = session.query(UserFeedback).filter(
+            and_(
+                UserFeedback.user_id == user_id,
+                UserFeedback.insight_id == recommendation_id,
+                UserFeedback.insight_type == 'recommendation'
+            )
+        ).order_by(UserFeedback.created_at.desc()).first()
+        
+        if not feedback:
+            return {"feedback": None}
+        
+        return {
+            "feedback": "agreed" if feedback.feedback_type == "like" else "rejected",
+            "created_at": feedback.created_at.isoformat() if feedback.created_at else None
+        }
+    finally:
+        session.close()
+
+
+@app.post("/api/user/{user_id}/recommendations/{recommendation_id}/feedback")
+async def submit_recommendation_feedback(user_id: str, recommendation_id: str, request: Dict[str, Any] = Body(...)):
+    """Submit user feedback for a recommendation (agree/reject).
+    
+    Args:
+        user_id: User ID
+        recommendation_id: Recommendation ID
+        request: Request body containing feedback ('agreed' or 'rejected')
+    
+    Returns:
+        Confirmation message
+    """
+    from ingest.schema import UserFeedback, Recommendation
+    from sqlalchemy import and_
+    import uuid
+    from datetime import datetime
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Verify recommendation exists and is approved
+        recommendation = session.query(Recommendation).filter(
+            and_(
+                Recommendation.id == recommendation_id,
+                Recommendation.user_id == user_id,
+                Recommendation.approved == True
+            )
+        ).first()
+        
+        if not recommendation:
+            raise HTTPException(status_code=404, detail="Recommendation not found or not approved")
+        
+        feedback_value = request.get('feedback')
+        if feedback_value not in ['agreed', 'rejected']:
+            raise HTTPException(status_code=400, detail="feedback must be 'agreed' or 'rejected'")
+        
+        # Check for existing feedback
+        existing = session.query(UserFeedback).filter(
+            and_(
+                UserFeedback.user_id == user_id,
+                UserFeedback.insight_id == recommendation_id,
+                UserFeedback.insight_type == 'recommendation'
+            )
+        ).first()
+        
+        if existing:
+            # Update existing feedback
+            existing.feedback_type = 'like' if feedback_value == 'agreed' else 'dislike'
+            existing.updated_at = datetime.utcnow()
+        else:
+            # Create new feedback
+            feedback = UserFeedback(
+                id=str(uuid.uuid4()),
+                user_id=user_id,
+                insight_id=recommendation_id,
+                insight_type='recommendation',
+                feedback_type='like' if feedback_value == 'agreed' else 'dislike',
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            session.add(feedback)
+        
+        # If user rejects, mark recommendation as user_rejected (set rejected=True, rejected_by=user_id)
+        # This makes it visible to admin as "user rejected" instead of "pending"
+        if feedback_value == 'rejected':
+            recommendation.rejected = True
+            recommendation.rejected_by = user_id  # Mark as user rejection
+            recommendation.rejected_at = datetime.utcnow()
+            # Clear approved status if it was approved
+            recommendation.approved = False
+            recommendation.approved_at = None
+            recommendation.approved_by = None
+        elif feedback_value == 'agreed':
+            # If user agrees, clear any previous user rejection
+            if recommendation.rejected_by == user_id:
+                recommendation.rejected = False
+                recommendation.rejected_by = None
+                recommendation.rejected_at = None
+        
+        session.commit()
+        
+        # Broadcast feedback update via WebSocket
+        from api.websocket import manager
+        await manager.broadcast_recommendation_feedback(user_id, recommendation_id, feedback_value)
+        
+        return {
+            "user_id": user_id,
+            "recommendation_id": recommendation_id,
+            "feedback": feedback_value,
+            "message": f"Feedback submitted: {feedback_value}"
+        }
+    finally:
+        session.close()
+
+
 @app.get("/api/recommendations/{user_id}/approved")
 def get_approved_recommendations(user_id: str):
     """Get approved recommendations for a user.
@@ -2098,9 +2358,11 @@ def get_recommendation_queue(
     try:
         query = session.query(Recommendation).join(User)
         
-        # Filter by user_id if provided
+        # CRITICAL: Always filter by user_id if provided to ensure recommendations are user-specific
+        # This ensures that when viewing a user's detail page, only their recommendations are shown
         if user_id:
             query = query.filter(Recommendation.user_id == user_id)
+        # If no user_id provided, return empty (should not happen in user-specific views)
         
         if status == "pending":
             query = query.filter(
@@ -2113,7 +2375,14 @@ def get_recommendation_queue(
         elif status == "flagged":
             query = query.filter(Recommendation.flagged == True)
         elif status == "rejected":
+            # Show both admin-rejected and user-rejected recommendations
             query = query.filter(Recommendation.rejected == True)
+        elif status == "user_rejected":
+            # Show only user-rejected recommendations (rejected_by is set to user_id)
+            query = query.filter(
+                Recommendation.rejected == True,
+                Recommendation.rejected_by.isnot(None)
+            )
         # "all" doesn't filter
         
         query = query.order_by(Recommendation.created_at.desc()).limit(limit)
@@ -2167,6 +2436,7 @@ def get_recommendation_queue(
                 "flagged": rec.flagged,
                 "rejected": rec.rejected if hasattr(rec, 'rejected') else False,
                 "rejected_at": rec.rejected_at.isoformat() if hasattr(rec, 'rejected_at') and rec.rejected_at else None,
+                "rejected_by": rec.rejected_by if hasattr(rec, 'rejected_by') else None,
                 "created_at": rec.created_at.isoformat() if rec.created_at else None,
                 "updated_at": rec.updated_at.isoformat() if rec.updated_at else None,
                 "persona_data": persona_data
@@ -2205,6 +2475,8 @@ async def approve_recommendation(recommendation_id: str):
         recommendation.approved = True
         recommendation.approved_at = datetime.utcnow()
         recommendation.rejected = False
+        recommendation.rejected_by = None  # Clear user rejection if re-approving
+        recommendation.rejected_at = None
         recommendation.flagged = False
         recommendation.updated_at = datetime.utcnow()
         
@@ -2505,6 +2777,29 @@ async def websocket_operator_recommendations_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Operator WebSocket error: {e}")
         manager.disconnect_operator(websocket)
+
+
+@app.websocket("/ws/user/{user_id}/recommendations/feedback")
+async def websocket_recommendation_feedback_endpoint(websocket: WebSocket, user_id: str):
+    """WebSocket endpoint for real-time recommendation feedback updates for users.
+    
+    Broadcasts updates when user provides feedback (agree/reject) on recommendations.
+    """
+    await manager.connect(websocket, user_id)
+    try:
+        # Send initial connection confirmation
+        await websocket.send_json({"type": "connected", "message": "Recommendation Feedback WebSocket connected"})
+        
+        while True:
+            # Keep connection alive and listen for messages
+            data = await websocket.receive_text()
+            # Echo back to keep connection alive
+            await websocket.send_json({"type": "ack", "message": "Connection active"})
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
+    except Exception as e:
+        print(f"Recommendation Feedback WebSocket error for user {user_id}: {e}")
+        manager.disconnect(websocket, user_id)
 
 
 if __name__ == "__main__":

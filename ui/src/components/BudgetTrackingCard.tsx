@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchBudgetTracking } from '../services/api'
 import { RadialBarChart, RadialBar, ResponsiveContainer } from 'recharts'
-import { useState } from 'react'
-import { X, CheckCircle, AlertCircle, XCircle } from 'lucide-react'
+import { CheckCircle, AlertCircle, XCircle } from 'lucide-react'
 
 interface BudgetTrackingCardProps {
   userId: string
@@ -10,17 +9,11 @@ interface BudgetTrackingCardProps {
 }
 
 export default function BudgetTrackingCard({ userId, month }: BudgetTrackingCardProps) {
-  const [isClosed, setIsClosed] = useState(false)
-
   const { data: tracking, isLoading, error } = useQuery({
     queryKey: ['budgetTracking', userId, month],
     queryFn: () => fetchBudgetTracking(userId, month),
-    enabled: !!userId && !isClosed,
+    enabled: !!userId,
   })
-
-  if (isClosed) {
-    return null
-  }
 
   if (isLoading) {
     return (
@@ -76,15 +69,6 @@ export default function BudgetTrackingCard({ userId, month }: BudgetTrackingCard
 
       {/* Main Card */}
       <div className="relative bg-white/90 backdrop-blur-md rounded-xl border border-[#D4C4B0]/50 p-6 shadow-xl">
-        {/* Close Button */}
-        <button
-          onClick={() => setIsClosed(true)}
-          className="absolute top-4 right-4 text-[#5D4037] hover:text-[#556B2F] transition-colors z-10"
-          aria-label="Close"
-        >
-          <X size={20} />
-        </button>
-
         {/* Status Badge */}
         <div className="flex items-center gap-2 mb-4">
           <StatusIcon className={`h-5 w-5 ${statusInfo.color === 'red' ? 'text-red-600' : statusInfo.color === 'yellow' ? 'text-[#8B6F47]' : 'text-[#556B2F]'}`} />
