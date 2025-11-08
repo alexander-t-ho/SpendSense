@@ -121,16 +121,49 @@ class PersonaRecommendationGenerator:
         )
         stored_recommendations.extend(spending_recs)
         
-        # Add debt payoff timeline recommendation if user has credit card debt
+        # Add debt payoff timeline recommendation if user has credit card debt OR high utilization
         # Generate this FIRST so it's always included and prioritized
+        # This should always be one of the recommendations for users with high credit card utilization
         try:
-            debt_rec = self._generate_debt_payoff_recommendation(user_id, features)
-            if debt_rec:
-                # Insert at the beginning to prioritize debt payoff recommendation
-                stored_recommendations.insert(0, debt_rec)
-                print(f"✓ Successfully generated debt payoff recommendation for user {user_id}")
+            # Check if user has high credit card utilization
+            credit_features = features.get('credit', {})
+            max_utilization = credit_features.get('max_utilization_percent', 0)
+            has_high_utilization = max_utilization > 30  # High utilization threshold
+            
+            # Check if user has credit card debt
+            from ingest.schema import Account
+            from sqlalchemy import and_
+            credit_card_accounts = self.db.query(Account).filter(
+                and_(
+                    Account.user_id == user_id,
+                    Account.type == 'credit'
+                )
+            ).all()
+            total_debt = sum(abs(acc.current or 0) for acc in credit_card_accounts)
+            has_debt = total_debt > 0
+            
+            # Generate debt payoff recommendation if user has debt OR high utilization
+            if has_debt or has_high_utilization:
+                # Check if debt payoff recommendation already exists for this user
+                existing_debt_rec = self.db.query(Recommendation).filter(
+                    and_(
+                        Recommendation.user_id == user_id,
+                        Recommendation.id.like(f'debt_payoff_timeline_{user_id}%')
+                    )
+                ).first()
+                
+                if not existing_debt_rec:
+                    debt_rec = self._generate_debt_payoff_recommendation(user_id, features)
+                    if debt_rec:
+                        # Insert at the beginning to prioritize debt payoff recommendation
+                        stored_recommendations.insert(0, debt_rec)
+                        print(f"✓ Successfully generated debt payoff recommendation for user {user_id} (debt: ${total_debt:,.2f}, utilization: {max_utilization:.1f}%)")
+                    else:
+                        print(f"⚠️  Debt payoff recommendation returned None for user {user_id}")
+                else:
+                    print(f"✓ Debt payoff recommendation already exists for user {user_id}, skipping generation")
             else:
-                print(f"⚠️  Debt payoff recommendation returned None for user {user_id}")
+                print(f"⚠️  User {user_id} has no credit card debt and low utilization ({max_utilization:.1f}%), skipping debt payoff recommendation")
         except Exception as e:
             print(f"⚠️  Error generating debt payoff recommendation for user {user_id}: {e}")
             import traceback
@@ -262,6 +295,18 @@ class PersonaRecommendationGenerator:
         # Build personalized recommendations
         recommendations = []
         for rec_template in selected_recommendations:
+            # Skip "optimize_financial_habits" if both utilization and monthly_savings are 0
+            if rec_template.id == 'optimize_financial_habits':
+                if data_points.get('_skip_optimize_financial_habits', False):
+                    print(f"⚠️  Skipping recommendation {rec_template.id}: Both utilization and monthly_savings are 0")
+                    continue
+                # Also check if the values would result in zeros
+                utilization = data_points.get('utilization_below_30', 0)
+                monthly_savings = data_points.get('monthly_savings', 0)
+                if utilization == 0 and monthly_savings == 0:
+                    print(f"⚠️  Skipping recommendation {rec_template.id}: Both utilization and monthly_savings are 0")
+                    continue
+            
             # Prepare data points for template
             template_data = {}
             for key in rec_template.data_points_needed:
@@ -372,6 +417,8 @@ class PersonaRecommendationGenerator:
             r'\$\s*0(?:\.00)?',
             r'0(?:\.00)?\s*dollars',
             r'0(?:\.0+)?\s*months?\s*$',  # "0 months" at end of string
+            r'0(?:\.0+)?%',  # "0%" patterns (e.g., "0% credit utilization")
+            r'\b0(?:\.0+)?\s*%',  # "0 %" with space
         ]
         
         text = recommendation.get('recommendation_text', '') or recommendation.get('description', '')
@@ -386,6 +433,12 @@ class PersonaRecommendationGenerator:
         
         # Also check for numeric 0 values that might indicate missing data
         if '0/month' in all_text.lower() or '0/year' in all_text.lower():
+            return True
+        
+        # Check for patterns like "0% credit utilization" or "$0/month in savings"
+        if re.search(r'0(?:\.0+)?%\s+(?:credit|utilization)', all_text, re.IGNORECASE):
+            return True
+        if re.search(r'\$0(?:\.00)?/month\s+in\s+savings', all_text, re.IGNORECASE):
             return True
         
         return False
@@ -787,53 +840,106 @@ class PersonaRecommendationGenerator:
             print(f"⚠️  Monthly payment is 0 or negative for user {user_id}, cannot generate debt payoff recommendation")
             return None
         
-        # Calculate debt payoff timeline
-        try:
-            timeline = budget_calculator.calculate_debt_payoff_timeline(
-                user_id, monthly_payment, estimated_apr=0.20
-            )
-            
-            if timeline['months_to_payoff'] is None or timeline['months_to_payoff'] <= 0:
-                print(f"⚠️  Invalid timeline calculation for user {user_id}: months_to_payoff={timeline.get('months_to_payoff')}")
-                return None
-            
-            print(f"✓ Calculated debt payoff timeline: {timeline['months_to_payoff']} months")
-        except Exception as e:
-            print(f"⚠️  Error calculating debt payoff timeline: {e}")
-            import traceback
-            traceback.print_exc()
+        # Calculate 3 different payment options with different timelines
+        # Option 1: Conservative (20% of income, longer timeline)
+        # Option 2: Moderate (32.5% of income, current budget allocation)
+        # Option 3: Aggressive (45% of income, shorter timeline)
+        estimated_apr = 0.20
+        
+        payment_options = [
+            {
+                'name': 'Conservative',
+                'percentage': 0.20,
+                'payment': monthly_income * 0.20 if monthly_income > 0 else monthly_payment * 0.615
+            },
+            {
+                'name': 'Moderate',
+                'percentage': 0.325,
+                'payment': monthly_payment  # Current budget allocation
+            },
+            {
+                'name': 'Aggressive',
+                'percentage': 0.45,
+                'payment': monthly_income * 0.45 if monthly_income > 0 else monthly_payment * 1.385
+            }
+        ]
+        
+        # Calculate timeline for each option
+        options_with_timelines = []
+        for option in payment_options:
+            if option['payment'] <= 0:
+                continue
+                
+            try:
+                timeline = budget_calculator.calculate_debt_payoff_timeline(
+                    user_id, option['payment'], estimated_apr=estimated_apr
+                )
+                
+                if timeline['months_to_payoff'] is None or timeline['months_to_payoff'] <= 0 or timeline['months_to_payoff'] >= 999:
+                    continue
+                
+                months = timeline['months_to_payoff']
+                years = months / 12.0
+                
+                if months < 12:
+                    timeline_text = f"{months} months"
+                elif months < 24:
+                    timeline_text = f"{years:.1f} years ({months} months)"
+                else:
+                    timeline_text = f"{years:.1f} years"
+                
+                options_with_timelines.append({
+                    'name': option['name'],
+                    'payment': option['payment'],
+                    'months': months,
+                    'timeline_text': timeline_text,
+                    'total_interest': timeline['total_interest']
+                })
+                
+                print(f"✓ {option['name']} option: ${option['payment']:,.2f}/month → {timeline_text}")
+            except Exception as e:
+                print(f"⚠️  Error calculating timeline for {option['name']} option: {e}")
+                continue
+        
+        if not options_with_timelines:
+            print(f"⚠️  Could not calculate any valid payoff options for user {user_id}")
             return None
         
-        # Build recommendation
-        months = timeline['months_to_payoff']
-        years = months / 12.0
+        # Use the moderate option as the primary one (or first available)
+        primary_option = options_with_timelines[1] if len(options_with_timelines) > 1 else options_with_timelines[0]
         
-        if months < 12:
-            timeline_text = f"{months} months"
-        elif months < 24:
-            timeline_text = f"{years:.1f} years ({months} months)"
-        else:
-            timeline_text = f"{years:.1f} years"
+        # Build action items with all 3 options
+        action_items = []
+        for idx, opt in enumerate(options_with_timelines[:3], 1):  # Limit to 3 options
+            action_items.append(
+                f"Option {idx}: Pay ${opt['payment']:,.0f} per month to pay off your credit card debt in {opt['timeline_text']}"
+            )
         
-        title = f"Debt Payoff Timeline: Pay Off ${total_debt:,.0f} in {timeline_text}"
+        # Add strategy recommendations
+        action_items.extend([
+            "Stop using the credit cards - cut them up if necessary",
+            "Attack highest interest rate first while paying minimums on others",
+            "Find extra income if possible (side gig, sell items, overtime)",
+            "No new debt - this is crucial"
+        ])
+        
+        title = f"Pay Off ${total_debt:,.0f} in Credit Card Debt"
         
         description = (
-            f"Based on your current budget allocation of ${monthly_payment:,.2f}/month for debt repayment, "
-            f"you can pay off your ${total_debt:,.2f} in credit card debt in approximately {timeline_text}. "
-            f"This assumes a 20% APR and aggressive repayment strategy."
+            f"You have ${total_debt:,.2f} in credit card debt. Choose a payment plan that fits your budget. "
+            f"Higher monthly payments mean faster payoff and less interest paid."
         )
         
         rationale = (
-            f"At ${monthly_payment:,.2f}/month, you'll pay off ${total_debt:,.2f} in debt in {timeline_text}. "
-            f"Total interest paid will be approximately ${timeline['total_interest']:,.2f}. "
-            f"By following the recommended strategies, you can accelerate your debt payoff and save on interest."
+            f"With ${total_debt:,.2f} in credit card debt at 20% APR, you have several payoff options. "
+            f"Paying more each month will save you thousands in interest and get you debt-free faster. "
+            f"Choose the option that works best for your current financial situation."
         )
         
-        action_items = timeline['strategy_recommendations']
-        
         expected_impact = (
-            f"Paying off ${total_debt:,.2f} in credit card debt will free up ${monthly_payment:,.2f}/month "
-            f"for savings and investments, improve your credit score, and reduce financial stress."
+            f"Paying off ${total_debt:,.2f} in credit card debt will free up monthly cash flow, "
+            f"improve your credit score, and reduce financial stress. "
+            f"The faster you pay it off, the more you'll save in interest."
         )
         
         return {
@@ -847,11 +953,11 @@ class PersonaRecommendationGenerator:
             'priority': 'high',
             'category': 'debt_management',
             'recommendation_type': 'actionable_recommendation',  # Ensure type is set
-            'timeline_months': months,
+            'timeline_months': primary_option['months'],
             'total_debt': total_debt,
-            'monthly_payment': monthly_payment,
-            'total_interest': timeline['total_interest'],
-            'payoff_date': timeline['payoff_date']
+            'monthly_payment': primary_option['payment'],
+            'total_interest': primary_option['total_interest'],
+            'payoff_options': options_with_timelines
         }
     
     def close(self):

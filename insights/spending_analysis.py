@@ -138,23 +138,38 @@ class SpendingAnalysisAnalyzer:
             month_key = tx.date.strftime("%Y-%m")
             monthly_income[month_key] += abs(tx.amount)
         
-        # Create monthly breakdown list
-        monthly_breakdown = []
-        current_date = start_date
-        while current_date <= end_date:
-            month_key = current_date.strftime("%Y-%m")
-            monthly_breakdown.append({
-                "month": month_key,
-                "date": current_date.isoformat(),
-                "spending": monthly_expenses[month_key],
-                "income": monthly_income[month_key],
-                "net": monthly_income[month_key] - monthly_expenses[month_key]
-            })
-            # Move to next month
-            if current_date.month == 12:
-                current_date = current_date.replace(year=current_date.year + 1, month=1, day=1)
-            else:
-                current_date = current_date.replace(month=current_date.month + 1, day=1)
+        # Create monthly breakdown list - get all unique months from the data
+        # Sort them chronologically and take the last N months
+        all_month_keys = sorted(set(list(monthly_expenses.keys()) + list(monthly_income.keys())))
+        
+        # If we have months, take the last N months (most recent)
+        if all_month_keys:
+            # Take the last N months
+            monthly_breakdown = []
+            for month_key in all_month_keys[-months:]:
+                monthly_breakdown.append({
+                    "month": month_key,
+                    "spending": monthly_expenses.get(month_key, 0.0),
+                    "income": monthly_income.get(month_key, 0.0),
+                    "net": monthly_income.get(month_key, 0.0) - monthly_expenses.get(month_key, 0.0)
+                })
+        else:
+            # If no data, create empty entries for the last N months
+            monthly_breakdown = []
+            current_date = end_date.replace(day=1)  # Start from first day of current month
+            for i in range(months):
+                month_key = current_date.strftime("%Y-%m")
+                monthly_breakdown.insert(0, {
+                    "month": month_key,
+                    "spending": 0.0,
+                    "income": 0.0,
+                    "net": 0.0
+                })
+                # Move to previous month
+                if current_date.month == 1:
+                    current_date = current_date.replace(year=current_date.year - 1, month=12, day=1)
+                else:
+                    current_date = current_date.replace(month=current_date.month - 1, day=1)
         
         # Calculate totals and averages
         total_spending = sum(monthly_expenses.values())
@@ -298,7 +313,7 @@ class SpendingAnalysisAnalyzer:
             "period_start": start_date.isoformat(),
             "period_end": end_date.isoformat(),
             "months": months,
-            "monthly_breakdown": monthly_breakdown[:months],  # Limit to requested months
+            "monthly_breakdown": monthly_breakdown,  # Already limited to requested months
             "total_spending": total_spending,
             "average_monthly_spending": average_monthly_spending,
             "total_income": total_income,

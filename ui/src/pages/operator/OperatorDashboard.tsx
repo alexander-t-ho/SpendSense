@@ -79,12 +79,12 @@ export default function OperatorDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#5D4037]">Operator Dashboard</h1>
+          <h1 className="text-3xl font-bold text-[#5D4037]">Dashboard</h1>
           <p className="mt-2 text-[#556B2F]">System overview and user management</p>
         </div>
         
-        {/* User Search - Visible on all tabs */}
-        <div className="w-80">
+        {/* User Search - Visible on all tabs, more prominent */}
+        <div className="w-96">
           <UserSearch
             users={users || []}
             selectedUserId={selectedUserId}
@@ -95,7 +95,7 @@ export default function OperatorDashboard() {
                 navigate(`/user/${userId}`)
               }
             }}
-            placeholder="Search users across all tabs..."
+            placeholder="Search users by name or email..."
           />
         </div>
       </div>
@@ -345,11 +345,13 @@ export default function OperatorDashboard() {
 
 function PendingRecommendationsSection() {
   const queryClient = useQueryClient()
+  const [isExpanded, setIsExpanded] = useState(false)
   const [expandedRecs, setExpandedRecs] = useState<Set<string>>(new Set())
 
   const { data, isLoading } = useQuery({
     queryKey: ['operator-recommendations', 'pending'],
     queryFn: () => fetchRecommendationQueue('pending', undefined, 10), // Limit to 10 for overview
+    enabled: isExpanded, // Only fetch when expanded
   })
 
   const approveMutation = useMutation({
@@ -388,42 +390,63 @@ function PendingRecommendationsSection() {
   const recommendations = data?.recommendations || []
   const pendingCount = recommendations.length
 
-  if (isLoading) {
-    return (
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="text-[#8B6F47]">Loading pending recommendations...</div>
-      </div>
-    )
-  }
-
-  if (pendingCount === 0) {
-    return null
-  }
-
   return (
     <div className="bg-white shadow rounded-lg">
-      <div className="px-6 py-4 border-b border-[#D4C4B0]">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full px-6 py-4 border-b border-[#D4C4B0] hover:bg-[#E8F5E9] transition-colors"
+      >
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-[#5D4037]">
-              Pending Recommendations ({pendingCount})
-            </h2>
-            <p className="text-sm text-[#556B2F] mt-1">
-              Review and approve recommendations from the main dashboard
-            </p>
+          <div className="flex items-center gap-3">
+            {isExpanded ? (
+              <ChevronUp className="h-5 w-5 text-[#556B2F]" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-[#556B2F]" />
+            )}
+            <div className="text-left">
+              <h2 className="text-lg font-semibold text-[#5D4037]">
+                Pending Recommendations
+                {!isExpanded && pendingCount > 0 && (
+                  <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                    {pendingCount}
+                  </span>
+                )}
+              </h2>
+              <p className="text-sm text-[#556B2F] mt-1">
+                {isExpanded 
+                  ? "Review and approve recommendations from the main dashboard"
+                  : "Click to expand and review pending recommendations"
+                }
+              </p>
+            </div>
           </div>
-          <button
-            onClick={() => {
-              const event = new CustomEvent('operator-tab-change', { detail: 'recommendations' })
-              window.dispatchEvent(event)
-            }}
-            className="text-sm text-[#556B2F] hover:text-[#5D4037] underline"
-          >
-            View All →
-          </button>
+          {isExpanded && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                const event = new CustomEvent('operator-tab-change', { detail: 'recommendations' })
+                window.dispatchEvent(event)
+              }}
+              className="text-sm text-[#556B2F] hover:text-[#5D4037] underline"
+            >
+              View All →
+            </button>
+          )}
         </div>
-      </div>
-      <div className="divide-y divide-gray-200">
+      </button>
+      
+      {isExpanded && (
+        <>
+          {isLoading ? (
+            <div className="px-6 py-12 text-center text-[#8B6F47]">
+              Loading pending recommendations...
+            </div>
+          ) : pendingCount === 0 ? (
+            <div className="px-6 py-12 text-center text-[#8B6F47]">
+              No pending recommendations
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
         {recommendations.map((rec: OperatorRecommendation) => {
           const isExpanded = expandedRecs.has(rec.id)
           return (
@@ -524,7 +547,10 @@ function PendingRecommendationsSection() {
             </div>
           )
         })}
-      </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

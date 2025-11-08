@@ -99,14 +99,14 @@ class BudgetTracker:
                 )
             ).all()
         
-        # Calculate total budget
-        total_budget = sum(budget.amount for budget in budgets if budget.category is None)
-        
-        # Calculate category budgets
-        category_budgets = {}
-        for budget in budgets:
-            if budget.category:
-                category_budgets[budget.category] = budget.amount
+        # ALWAYS recalculate budget as 80% of monthly income (ignore saved budgets in database)
+        # This ensures the budget is always based on current monthly average from payroll
+        # Both total_budget and category_budgets are always recalculated for consistency
+        from insights.budget_calculator import BudgetCalculator
+        calculator = BudgetCalculator(self.db)
+        suggested = calculator.suggest_budget(user_id, month_start, lookback_months=6)
+        total_budget = suggested.get('total_budget', 0.0)
+        category_budgets = suggested.get('category_budgets', {})
         
         # Calculate total spent
         total_spent = sum(abs(tx.amount) for tx in transactions)

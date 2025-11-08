@@ -1,7 +1,9 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { useEffect } from 'react'
-import { X, CheckCircle2, CheckCircle, Calendar } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { X, CheckCircle2, CheckCircle, Calendar, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { SubscriptionWebSocket, SubscriptionCancellationUpdate } from '../services/subscriptionWebSocket'
+import { RecommendationFeedbackWebSocket, RecommendationFeedbackUpdate } from '../services/recommendationFeedbackWebSocket'
+import CompanyLogo from './CompanyLogo'
 
 interface Subscription {
   merchant_name: string
@@ -266,16 +268,19 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
                   key={idx}
                   className="flex items-center justify-between p-3 bg-[#E8F5E9] border border-[#D4C4B0] rounded-lg"
                 >
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-[#5D4037]">{subscription.merchant_name}</p>
-                    <p className="text-xs text-[#556B2F] mt-1">
-                      ${subscription.average_amount.toFixed(2)}/{subscription.cadence}
-                      {subscription.cadence === 'monthly' && (
-                        <span className="ml-2">
-                          (${(subscription.average_amount * 12).toFixed(2)}/year)
-                        </span>
-                      )}
-                    </p>
+                  <div className="flex items-center gap-3 flex-1">
+                    <CompanyLogo companyName={subscription.merchant_name} size={48} />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-[#5D4037]">{subscription.merchant_name}</p>
+                      <p className="text-xs text-[#556B2F] mt-1">
+                        ${subscription.average_amount.toFixed(2)}/{subscription.cadence}
+                        {subscription.cadence === 'monthly' && (
+                          <span className="ml-2">
+                            (${(subscription.average_amount * 12).toFixed(2)}/year)
+                          </span>
+                        )}
+                      </p>
+                    </div>
                   </div>
                   <button
                     onClick={() => handleCancel(subscription.merchant_name)}
@@ -348,12 +353,148 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
         </div>
       )}
 
+      {/* Agree/Reject Buttons - Show for all recommendations */}
+      <RecommendationFeedback recommendationId={recommendation.id} userId={userId} />
+
       {/* Disclaimer */}
       <div className="mt-4 pt-3 border-t border-[#D4C4B0]">
         <p className="text-xs text-[#8B6F47] italic">
           This is educational content, not financial advice. Consult a licensed advisor for personalized guidance.
         </p>
       </div>
+    </div>
+  )
+}
+
+// Recommendation Feedback Component
+interface RecommendationFeedbackProps {
+  recommendationId: string
+  userId: string
+}
+
+function RecommendationFeedback({ recommendationId, userId }: RecommendationFeedbackProps) {
+  const queryClient = useQueryClient()
+  const [userFeedback, setUserFeedback] = useState<'agreed' | 'rejected' | null>(null)
+  const wsRef = useRef<RecommendationFeedbackWebSocket | null>(null)
+
+  // Check if user has already provided feedback
+  const { data: feedbackData } = useQuery({
+    queryKey: ['recommendation-feedback', recommendationId, userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/user/${userId}/recommendations/${recommendationId}/feedback`)
+      if (!response.ok) {
+        if (response.status === 404) {
+          return { feedback: null }
+        }
+        throw new Error('Failed to fetch feedback')
+      }
+      return response.json()
+    },
+    enabled: !!recommendationId && !!userId,
+    retry: false,
+  })
+
+  useEffect(() => {
+    if (feedbackData?.feedback) {
+      setUserFeedback(feedbackData.feedback === 'agreed' ? 'agreed' : 'rejected')
+    }
+  }, [feedbackData])
+
+  // Set up WebSocket for real-time feedback updates
+  useEffect(() => {
+    const handleUpdate = (update: RecommendationFeedbackUpdate) => {
+      if (update.recommendation_id === recommendationId) {
+        setUserFeedback(update.feedback)
+        queryClient.invalidateQueries({ queryKey: ['recommendation-feedback', recommendationId, userId] })
+      }
+    }
+
+    wsRef.current = new RecommendationFeedbackWebSocket(userId, handleUpdate)
+    wsRef.current.connect()
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.disconnect()
+      }
+    }
+  }, [recommendationId, userId, queryClient])
+
+  const agreeMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/user/${userId}/recommendations/${recommendationId}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback: 'agreed' }),
+      })
+      if (!response.ok) {
+        throw new Error('Failed to submit feedback')
+      }
+      return response.json()
+    },
+    onSuccess: () => {
+      setUserFeedback('agreed')
+      queryClient.invalidateQueries({ queryKey: ['recommendation-feedback', recommendationId, userId] })
+    },
+  })
+
+  const rejectMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/user/${userId}/recommendations/${recommendationId}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback: 'rejected' }),
+      })
+      if (!response.ok) {
+        throw new Error('Failed to submit feedback')
+      }
+      return response.json()
+    },
+    onSuccess: () => {
+      setUserFeedback('rejected')
+      queryClient.invalidateQueries({ queryKey: ['recommendation-feedback', recommendationId, userId] })
+    },
+  })
+
+  if (userFeedback === 'agreed') {
+    return (
+      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+        <div className="flex items-center gap-2">
+          <CheckCircle className="w-5 h-5 text-green-600" />
+          <p className="text-sm font-medium text-green-900">You agreed to this recommendation</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (userFeedback === 'rejected') {
+    return (
+      <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <div className="flex items-center gap-2">
+          <X className="w-5 h-5 text-red-600" />
+          <p className="text-sm font-medium text-red-900">You rejected this recommendation</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-4 flex gap-3">
+      <button
+        onClick={() => agreeMutation.mutate()}
+        disabled={agreeMutation.isPending || rejectMutation.isPending}
+        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+      >
+        <ThumbsUp size={16} />
+        I agree, let's do it
+      </button>
+      <button
+        onClick={() => rejectMutation.mutate()}
+        disabled={agreeMutation.isPending || rejectMutation.isPending}
+        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+      >
+        <ThumbsDown size={16} />
+        Reject
+      </button>
     </div>
   )
 }

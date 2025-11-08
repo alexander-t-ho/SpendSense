@@ -104,6 +104,20 @@ class ConnectionManager:
             "timestamp": datetime.now().isoformat()
         }
         await self.send_personal_message(message, user_id)
+    
+    async def broadcast_recommendation_feedback(self, user_id: str, recommendation_id: str, feedback: str):
+        """Broadcast recommendation feedback update to user's connections and operators."""
+        message = {
+            "type": "recommendation_feedback",
+            "recommendation_id": recommendation_id,
+            "user_id": user_id,
+            "feedback": feedback,  # "agreed" or "rejected"
+            "timestamp": datetime.now().isoformat()
+        }
+        # Send to user
+        await self.send_personal_message(message, user_id)
+        # Also broadcast to operators so they can see user feedback in real-time
+        await self.broadcast_to_operators(message)
 
 
 # Global connection manager instance

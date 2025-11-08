@@ -521,12 +521,17 @@ Return ONLY the JSON object, no other text or markdown formatting."""
         estimated_category_spending = monthly_income * 0.10  # 10% default
         
         # Replace $0 patterns with estimates
+        # Also handle 0% patterns - replace with realistic percentages
         replacements = [
             (r'\$0(?:\.00)?/month', f'${estimated_category_spending:.0f}/month'),
             (r'\$0(?:\.00)?/year', f'${estimated_category_spending * 12:.0f}/year'),
             (r'Save \$0(?:\.00)?', f'Save ${estimated_category_spending * 0.25:.0f}'),
             (r'\$0(?:\.00)?', f'${estimated_category_spending:.0f}'),
             (r'0(?:\.00)?\s*months?\s*$', '12 months'),
+            # Handle 0% patterns - replace with realistic percentages
+            (r'0(?:\.0+)?%\s+credit\s+utilization', '15% credit utilization'),  # Realistic low utilization
+            (r'0(?:\.0+)?%\s+utilization', '15% utilization'),
+            (r'\b0(?:\.0+)?%\b', '15%'),  # Replace standalone 0% with 15%
         ]
         
         for pattern, replacement in replacements:
