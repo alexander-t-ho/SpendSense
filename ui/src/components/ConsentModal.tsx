@@ -145,7 +145,7 @@ export default function ConsentModal({ userId, isOpen, onClose, onConsentChange 
               <section className="space-y-3">
                 <h4 className="font-semibold text-[#5D4037]">1. Purpose</h4>
                 <p>
-                  By granting consent, you authorize SpendSense to analyze your financial transaction data 
+                  By granting consent, you authorize Leafly to analyze your financial transaction data 
                   to provide personalized financial recommendations and insights. This includes analysis of 
                   spending patterns, income, and account balances.
                 </p>

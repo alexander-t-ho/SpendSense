@@ -1,0 +1,179 @@
+{
+  "user_id": "4d6c0af5-84f6-48e9-9949-f0f8bf8a645c",
+  "timestamp": "2025-11-07T19:29:18.103990",
+  "assigned_personas": [
+    "savings_builder"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 0.0
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 0.0
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 3,
+      "total_criteria": 5,
+      "score": 3,
+      "reasons": [
+        "Criterion 1: Savings growth 4.2% (\u22652%)",
+        "Criterion 3: Max credit utilization 0.0% (<30%)",
+        "Criterion 5: Savings balance $21207.09 (\u2265$5,000)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 0.75
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "4d6c0af5-84f6-48e9-9949-f0f8bf8a645c",
+    "window_days": 180,
+    "start_date": "2025-05-11T19:29:18.023310",
+    "end_date": "2025-11-07T19:29:18.023310",
+    "subscriptions": {
+      "recurring_merchants": 3,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Disney+",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 57.13608578438845,
+          "average_amount": 9.522680964064742,
+          "first_transaction": "2025-06-07 16:08:58.465132",
+          "last_transaction": "2025-11-04 16:08:58.465132"
+        },
+        {
+          "merchant_name": "Dental Office",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 25.5,
+          "total_amount": 64.32306971514626,
+          "average_amount": 21.441023238382087,
+          "first_transaction": "2025-09-04 22:36:05.766651",
+          "last_transaction": "2025-10-26 20:44:13.282212"
+        },
+        {
+          "merchant_name": "Phone Company",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 32.5,
+          "total_amount": 90.76626527137486,
+          "average_amount": 18.153253054274973,
+          "first_transaction": "2025-05-23 00:55:40.040305",
+          "last_transaction": "2025-09-30 19:14:12.231750"
+        }
+      ],
+      "monthly_recurring_spend": 49.116957256721804,
+      "average_subscription_cost": 16.372319085573935,
+      "total_subscription_spend": 212.22542077090958,
+      "subscription_share_of_total": 4.979561694741771,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {
+        "streaming": [
+          "Disney+"
+        ]
+      },
+      "category_duplicates": {},
+      "has_category_duplicates": false,
+      "total_spend": 4261.929739619686
+    },
+    "savings": {
+      "net_inflow": 854.6979506937164,
+      "monthly_net_inflow": 142.44965844895273,
+      "growth_rate_percent": 4.199495558687354,
+      "emergency_fund_coverage_months": 67.32445541275487,
+      "total_savings_balance": 21207.0935836795,
+      "average_monthly_expenses": 314.9983680322758,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 2,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 14.202429171467505,
+      "checking_balance": 3885.419313496744,
+      "average_monthly_expenses": 273.5742784975475,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Savings Builder persona (3/5 criteria matched, 100% match)."
+}

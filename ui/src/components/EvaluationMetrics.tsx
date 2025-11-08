@@ -225,15 +225,23 @@ export default function EvaluationMetrics({ latencySampleSize }: EvaluationMetri
               Target: ≥0.7 (demographic parity in persona distribution)
             </p>
             <p className="text-xs font-medium text-[#556B2F] mt-2">
-              {metrics.fairness?.interpretation || 'N/A'}
+              {metrics.fairness?.fairness_interpretation || metrics.fairness?.interpretation || 'N/A'}
             </p>
-            {metrics.fairness?.persona_distribution && (
+            {metrics.fairness?.persona_distribution && metrics.fairness?.persona_percentages && (
               <div className="text-xs text-[#556B2F] mt-2 space-y-1">
-                {Object.entries(metrics.fairness.persona_distribution).map(([persona, count]: [string, any]) => (
-                  <p key={persona}>
-                    • {persona}: {count.count} users ({count.percentage}%)
-                  </p>
-                ))}
+                {Object.entries(metrics.fairness.persona_distribution).map(([persona, count]: [string, any]) => {
+                  const percentage = metrics.fairness?.persona_percentages?.[persona] || 0;
+                  // Format persona name for display (replace underscores with spaces, capitalize)
+                  const displayName = persona
+                    .split('_')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
+                  return (
+                    <p key={persona}>
+                      • {displayName}: {count} users ({percentage.toFixed(1)}%)
+                    </p>
+                  );
+                })}
               </div>
             )}
           </div>
