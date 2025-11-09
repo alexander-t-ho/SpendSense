@@ -23,22 +23,6 @@ const SoftButton = ({ children, className = "", ...props }: React.ButtonHTMLAttr
   </button>
 );
 
-function _MiniBars() {
-  return (
-    <div className="mt-6 flex h-36 items-end gap-4 rounded-xl bg-gradient-to-b from-[#F5E6D3] to-white p-4">
-      {[18, 48, 72, 96].map((h, i) => (
-        <motion.div
-          key={i}
-          initial={{ height: 0, opacity: 0.6 }}
-          animate={{ height: h }}
-          transition={{ delay: 0.5 + i * 0.15, type: "spring" }}
-          className="w-10 rounded-xl bg-gradient-to-t from-[#8B6F47]/60 to-[#5D4037]/80 shadow-inner"
-        />
-      ))}
-    </div>
-  );
-}
-
 function Planet() {
   return (
     <motion.svg
