@@ -419,6 +419,13 @@ export default function UserDetail() {
           </div>
         )}
       </div>
+
+      {/* Consent Info Modal */}
+      <ConsentInfoModal
+        isOpen={showConsentInfoModal}
+        onClose={() => setShowConsentInfoModal(false)}
+        userName={user?.name}
+      />
     </div>
   )
 }
@@ -690,13 +697,6 @@ function CollapsibleRecommendations({
             })}
         </div>
       )}
-
-      {/* Consent Info Modal */}
-      <ConsentInfoModal
-        isOpen={showConsentInfoModal}
-        onClose={() => setShowConsentInfoModal(false)}
-        userName={user?.name}
-      />
     </div>
   )
 }

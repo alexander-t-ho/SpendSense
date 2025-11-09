@@ -24,12 +24,22 @@ git push origin main
 2. **New Project** → **Deploy from GitHub repo**
 3. **Select your repository**: Choose SpendSense
 4. **Configure Service**:
-   - Root Directory: `/` (root)
-   - Start Command: `uvicorn api.main:app --host 0.0.0.0 --port $PORT`
-5. **Add Environment Variables**:
+   - **Root Directory**: 
+     - Go to your service → **Settings** tab
+     - Find **"Root Directory"** section
+     - Leave it **empty** or set to `/` (forward slash)
+     - This tells Railway to use the repository root
+   - **Start Command**:
+     - In the same Settings page, find **"Start Command"** section
+     - Enter: `uvicorn api.main:app --host 0.0.0.0 --port $PORT`
+     - Click Save (or it auto-saves)
+   - **Note**: Your `railway.json` file already has the start command configured, so Railway may use that automatically
+5. **Add Environment Variables** (Settings → Variables):
    - `CORS_ORIGINS`: `http://localhost:3000` (we'll update after Vercel deploy)
 6. **Deploy**: Railway will auto-detect Python and deploy
 7. **Get URL**: Copy your Railway URL (e.g., `https://spendsense-production.up.railway.app`)
+
+**📖 Detailed Configuration Guide**: See `RAILWAY_CONFIGURATION.md` for step-by-step instructions with troubleshooting tips.
 
 ### Option B: Via Railway CLI
 
