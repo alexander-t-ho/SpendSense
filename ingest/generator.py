@@ -37,12 +37,8 @@ class SyntheticDataGenerator:
         ],
         "Shops": [
             "Amazon", "Target", "Walmart", "Costco", "Home Depot", "Best Buy",
-<<<<<<< HEAD
             "CVS Pharmacy", "Walgreens", "Macy's", "Nike", "Adidas", "Puma",
             "Reebok", "New Balance", "Uniqlo"
-=======
-            "CVS Pharmacy", "Walgreens", "Macy's", "Nike"
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
         ],
         "Gas Stations": [
             "Shell", "Exxon", "BP", "Chevron", "Mobil"
@@ -1194,7 +1190,6 @@ class SyntheticDataGenerator:
     def generate_all(self) -> Dict[str, List[Dict[str, Any]]]:
         """Generate all synthetic data with persona-based distribution.
         
-<<<<<<< HEAD
         Persona distribution for 100 users:
         - High Utilization: ~15-20 users
         - Variable Income Budgeter: ~15-20 users
@@ -1202,29 +1197,15 @@ class SyntheticDataGenerator:
         - Savings Builder: ~15-20 users
         - Balanced & Stable: ~20-25 users
         """
-        # Persona distribution for diverse 100 users
+        # Persona distribution for diverse users (scales with num_users)
+        # Calculate distribution based on num_users
+        total = self.num_users
         persona_distribution = [
-            ("high_utilization", 18),         # 18 users
-            ("variable_income_budgeter", 18),  # 18 users
-            ("subscription_heavy", 18),       # 18 users
-            ("savings_builder", 18),         # 18 users
-            ("balanced_stable", 23),         # 23 users
-=======
-        Persona distribution:
-        - High Utilization: 10% (least common)
-        - Variable Income Budgeter: 20%
-        - Subscription-Heavy: 20%
-        - Savings Builder: 20%
-        - Balanced & Stable: 30% (most common)
-        """
-        # Persona distribution (even distribution: 10 users each for 50 users)
-        persona_distribution = [
-            ("high_utilization", 10),         # 10 users (20%)
-            ("variable_income_budgeter", 10),  # 10 users (20%)
-            ("subscription_heavy", 10),       # 10 users (20%)
-            ("savings_builder", 10),         # 10 users (20%)
-            ("balanced_stable", 10),         # 10 users (20%)
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
+            ("high_utilization", int(total * 0.18)),         # ~18%
+            ("variable_income_budgeter", int(total * 0.18)),  # ~18%
+            ("subscription_heavy", int(total * 0.18)),       # ~18%
+            ("savings_builder", int(total * 0.18)),         # ~18%
+            ("balanced_stable", int(total * 0.23)),         # ~23%
         ]
         
         # Assign personas to users
