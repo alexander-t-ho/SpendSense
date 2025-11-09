@@ -221,7 +221,16 @@ def login(request: LoginRequest):
 @app.post("/api/admin/create-admin")
 def create_admin_user():
     """Temporary endpoint to create admin user in production. Remove after use."""
-    session = get_session()
+    # Get database path from environment or use default
+    db_path = os.environ.get("DATABASE_URL", "data/spendsense.db")
+    # If DATABASE_URL is a full URL (like postgres://), extract path or use as-is
+    # For SQLite, we need just the path
+    if db_path.startswith("sqlite:///"):
+        db_path = db_path.replace("sqlite:///", "")
+    elif db_path.startswith("postgres://") or db_path.startswith("postgresql://"):
+        # For PostgreSQL, we'd need different handling, but for now assume SQLite
+        db_path = "data/spendsense.db"
+    session = get_session(db_path)
     try:
         admin_email = "admin@spendsense.com"
         admin_user = session.query(User).filter(
