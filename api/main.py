@@ -230,6 +230,16 @@ def create_admin_user():
     elif db_path.startswith("postgres://") or db_path.startswith("postgresql://"):
         # For PostgreSQL, we'd need different handling, but for now assume SQLite
         db_path = "data/spendsense.db"
+    
+    # Ensure database directory exists
+    from pathlib import Path
+    db_file = Path(db_path)
+    db_file.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Initialize database if it doesn't exist
+    from ingest.schema import init_db
+    init_db(db_path)
+    
     session = get_session(db_path)
     try:
         admin_email = "admin@spendsense.com"
