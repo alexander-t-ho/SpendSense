@@ -218,10 +218,8 @@ def login(request: LoginRequest):
         session.close()
 
 
-@app.post("/api/admin/create-admin")
-def create_admin_user():
-    """Temporary endpoint to create admin user in production. Remove after use."""
-    # Get database path from environment or use default
+def get_db_path():
+    """Get database path from environment or use default."""
     db_path = os.environ.get("DATABASE_URL", "data/spendsense.db")
     # If DATABASE_URL is a full URL (like postgres://), extract path or use as-is
     # For SQLite, we need just the path
@@ -240,6 +238,13 @@ def create_admin_user():
     from ingest.schema import init_db
     init_db(db_path)
     
+    return db_path
+
+
+@app.post("/api/admin/create-admin")
+def create_admin_user():
+    """Temporary endpoint to create admin user in production. Remove after use."""
+    db_path = get_db_path()
     session = get_session(db_path)
     try:
         admin_email = "admin@spendsense.com"
@@ -278,6 +283,87 @@ def create_admin_user():
         )
     finally:
         session.close()
+
+
+@app.post("/api/admin/generate-users")
+def generate_users_in_production(
+    num_users: int = Query(150, description="Number of users to generate (default 150)")
+):
+    """Temporary endpoint to generate users in production. Remove after use."""
+    from ingest.generator import SyntheticDataGenerator
+    from ingest.loader import DataLoader
+    
+    db_path = get_db_path()
+    
+    try:
+        # Generate users
+        print(f"Generating {num_users} users...")
+        generator = SyntheticDataGenerator(num_users=num_users)
+        data = generator.generate_all()
+        
+        # Load into database
+        print(f"Loading {num_users} users into database...")
+        loader = DataLoader(db_path=db_path)
+        
+        # Convert generated data to DataFrames
+        import pandas as pd
+        
+        users_df = pd.DataFrame(data.get("users", []))
+        accounts_df = pd.DataFrame(data.get("accounts", []))
+        transactions_df = pd.DataFrame(data.get("transactions", []))
+        liabilities_df = pd.DataFrame(data.get("liabilities", []))
+        
+        # Load users
+        if not users_df.empty:
+            loader.load_users(users_df)
+        
+        # Load accounts
+        if not accounts_df.empty:
+            loader.load_accounts(accounts_df)
+        
+        # Load transactions
+        if not transactions_df.empty:
+            loader.load_transactions(transactions_df)
+        
+        # Load liabilities
+        if not liabilities_df.empty:
+            loader.load_liabilities(liabilities_df)
+        
+        loader.close()
+        
+        # Set passwords for all users
+        session = get_session(db_path)
+        try:
+            password_hash = get_password_hash("123456")
+            users = session.query(User).all()
+            updated_count = 0
+            for user in users:
+                if not user.username:
+                    user.username = user.email
+                if not user.password_hash:
+                    user.password_hash = password_hash
+                    updated_count += 1
+            session.commit()
+            
+            return {
+                "message": f"Successfully generated and loaded {num_users} users",
+                "users_created": len(users_df) if not users_df.empty else 0,
+                "accounts_created": len(accounts_df) if not accounts_df.empty else 0,
+                "transactions_created": len(transactions_df) if not transactions_df.empty else 0,
+                "passwords_set": updated_count,
+                "total_users_in_db": len(users)
+            }
+        finally:
+            session.close()
+            
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error generating users: {error_details}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating users: {str(e)}"
+        )
 
 
 @app.post("/api/auth/logout")
