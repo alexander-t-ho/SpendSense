@@ -37,7 +37,8 @@ class SyntheticDataGenerator:
         ],
         "Shops": [
             "Amazon", "Target", "Walmart", "Costco", "Home Depot", "Best Buy",
-            "CVS Pharmacy", "Walgreens", "Macy's", "Nike"
+            "CVS Pharmacy", "Walgreens", "Macy's", "Nike", "Adidas", "Puma",
+            "Reebok", "New Balance", "Uniqlo"
         ],
         "Gas Stations": [
             "Shell", "Exxon", "BP", "Chevron", "Mobil"
@@ -607,6 +608,117 @@ class SyntheticDataGenerator:
                             "pending": False
                         })
                         tx_date += timedelta(days=interval_days)
+                
+                # Recurring transaction patterns for all users
+                # Starbucks: 2-4 transactions per week
+                starbucks_per_week = random.randint(2, 4)
+                days_between_starbucks = 7.0 / starbucks_per_week  # Distribute evenly across week
+                starbucks_date = start_date
+                while starbucks_date <= end_date:
+                    # Randomize time of day (typical coffee shop hours: 6 AM - 10 PM)
+                    hour = random.randint(6, 22)
+                    minute = random.randint(0, 59)
+                    starbucks_datetime = starbucks_date.replace(hour=hour, minute=minute)
+                    if starbucks_datetime <= end_date:
+                        transactions.append({
+                            "id": str(uuid.uuid4()),
+                            "account_id": account["account_id"],
+                            "transaction_id": f"txn_{fake.uuid4()}",
+                            "date": starbucks_datetime,
+                            "amount": -random.uniform(5.0, 8.0),  # Typical coffee price
+                            "merchant_name": "Starbucks",
+                            "merchant_entity_id": None,
+                            "payment_channel": random.choice(["in store", "online"]),
+                            "primary_category": "Food & Drink",
+                            "detailed_category": "Coffee Shop",
+                            "pending": False
+                        })
+                    starbucks_date += timedelta(days=days_between_starbucks)
+                
+                # Athletic retailers: 1 transaction per month per retailer
+                # Each user gets 2-4 different athletic retailers
+                athletic_retailers = ["Nike", "Adidas", "Puma", "Reebok", "New Balance"]
+                num_athletic_retailers = random.randint(2, 4)
+                selected_retailers = random.sample(athletic_retailers, num_athletic_retailers)
+                
+                for retailer in selected_retailers:
+                    # Determine amount range based on retailer
+                    if retailer == "Nike":
+                        amount_range = (50.0, 200.0)
+                    elif retailer == "Adidas":
+                        amount_range = (50.0, 200.0)
+                    elif retailer == "Puma":
+                        amount_range = (40.0, 150.0)
+                    elif retailer == "Reebok":
+                        amount_range = (40.0, 150.0)
+                    elif retailer == "New Balance":
+                        amount_range = (50.0, 180.0)
+                    else:
+                        amount_range = (50.0, 200.0)
+                    
+                    # Generate monthly transactions
+                    retailer_date = start_date.replace(day=1)  # Start from first of month
+                    while retailer_date <= end_date:
+                        # Randomize date within the month (1-28 to avoid month-end issues)
+                        day_of_month = random.randint(1, 28)
+                        try:
+                            retailer_datetime = retailer_date.replace(day=day_of_month)
+                        except ValueError:
+                            # Handle months with fewer days
+                            retailer_datetime = retailer_date.replace(day=28)
+                        
+                        if retailer_datetime >= start_date and retailer_datetime <= end_date:
+                            transactions.append({
+                                "id": str(uuid.uuid4()),
+                                "account_id": account["account_id"],
+                                "transaction_id": f"txn_{fake.uuid4()}",
+                                "date": retailer_datetime,
+                                "amount": -random.uniform(amount_range[0], amount_range[1]),
+                                "merchant_name": retailer,
+                                "merchant_entity_id": None,
+                                "payment_channel": random.choice(["in store", "online"]),
+                                "primary_category": "Shops",
+                                "detailed_category": "Athletic Wear",
+                                "pending": False
+                            })
+                        # Move to next month
+                        if retailer_date.month == 12:
+                            retailer_date = retailer_date.replace(year=retailer_date.year + 1, month=1, day=1)
+                        else:
+                            retailer_date = retailer_date.replace(month=retailer_date.month + 1, day=1)
+                
+                # Uniqlo: 1-2 transactions per month
+                uniqlo_frequency = random.randint(1, 2)  # 1 or 2 times per month
+                uniqlo_date = start_date.replace(day=1)  # Start from first of month
+                while uniqlo_date <= end_date:
+                    for _ in range(uniqlo_frequency):
+                        # Randomize date within the month
+                        day_of_month = random.randint(1, 28)
+                        try:
+                            uniqlo_datetime = uniqlo_date.replace(day=day_of_month)
+                        except ValueError:
+                            # Handle months with fewer days
+                            uniqlo_datetime = uniqlo_date.replace(day=28)
+                        
+                        if uniqlo_datetime >= start_date and uniqlo_datetime <= end_date:
+                            transactions.append({
+                                "id": str(uuid.uuid4()),
+                                "account_id": account["account_id"],
+                                "transaction_id": f"txn_{fake.uuid4()}",
+                                "date": uniqlo_datetime,
+                                "amount": -random.uniform(30.0, 120.0),
+                                "merchant_name": "Uniqlo",
+                                "merchant_entity_id": None,
+                                "payment_channel": random.choice(["in store", "online"]),
+                                "primary_category": "Shops",
+                                "detailed_category": "Clothing",
+                                "pending": False
+                            })
+                    # Move to next month
+                    if uniqlo_date.month == 12:
+                        uniqlo_date = uniqlo_date.replace(year=uniqlo_date.year + 1, month=1, day=1)
+                    else:
+                        uniqlo_date = uniqlo_date.replace(month=uniqlo_date.month + 1, day=1)
             
             # Income transactions (payroll)
             if account_subtype == "checking":
@@ -1075,20 +1187,20 @@ class SyntheticDataGenerator:
     def generate_all(self) -> Dict[str, List[Dict[str, Any]]]:
         """Generate all synthetic data with persona-based distribution.
         
-        Persona distribution:
-        - High Utilization: 10% (least common)
-        - Variable Income Budgeter: 20%
-        - Subscription-Heavy: 20%
-        - Savings Builder: 20%
-        - Balanced & Stable: 30% (most common)
+        Persona distribution for 100 users:
+        - High Utilization: ~15-20 users
+        - Variable Income Budgeter: ~15-20 users
+        - Subscription-Heavy: ~15-20 users
+        - Savings Builder: ~15-20 users
+        - Balanced & Stable: ~20-25 users
         """
-        # Persona distribution (even distribution: 10 users each for 50 users)
+        # Persona distribution for diverse 100 users
         persona_distribution = [
-            ("high_utilization", 10),         # 10 users (20%)
-            ("variable_income_budgeter", 10),  # 10 users (20%)
-            ("subscription_heavy", 10),       # 10 users (20%)
-            ("savings_builder", 10),         # 10 users (20%)
-            ("balanced_stable", 10),         # 10 users (20%)
+            ("high_utilization", 18),         # 18 users
+            ("variable_income_budgeter", 18),  # 18 users
+            ("subscription_heavy", 18),       # 18 users
+            ("savings_builder", 18),         # 18 users
+            ("balanced_stable", 23),         # 23 users
         ]
         
         # Assign personas to users

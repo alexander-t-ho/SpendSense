@@ -1,19 +1,23 @@
-"""FastAPI application for Leafly."""
+"""FastAPI application for SpendSense."""
 
 import os
-from fastapi import FastAPI, HTTPException, Query, Body, WebSocket, WebSocketDisconnect
+import uuid
+from fastapi import FastAPI, HTTPException, Query, Body, WebSocket, WebSocketDisconnect, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
+from pydantic import BaseModel, EmailStr
+import bcrypt
+from jose import JWTError, jwt
 
 from ingest.schema import get_session, User, Account, Transaction, Liability, CancelledSubscription, ApprovedActionPlan, Recommendation
 from features.pipeline import FeaturePipeline
-from features.payroll_utils import PayrollDetector
 from api.websocket import manager
 
-app = FastAPI(title="Leafly API", version="1.0.0")
+app = FastAPI(title="SpendSense API", version="1.0.0")
 
 # CORS middleware
 # Allow origins from environment variable for Lambda, fallback to localhost for local dev
@@ -26,10 +30,209 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Authentication setup
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "your-secret-key-change-in-production")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+
+security = HTTPBearer()
+
+# Pydantic models for authentication
+class LoginRequest(BaseModel):
+    username: str  # Email or username
+    password: str
+
+class RegisterRequest(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user: Dict[str, Any]
+
+class UserResponse(BaseModel):
+    id: str
+    name: str
+    email: str
+    username: Optional[str]
+    is_admin: bool
+
+# Helper functions
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against a hash."""
+    try:
+        password_bytes = plain_password.encode('utf-8')
+        hashed_bytes = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, hashed_bytes)
+    except Exception:
+        return False
+
+def get_password_hash(password: str) -> str:
+    """Hash a password."""
+    password_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """Create a JWT access token."""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """Get the current authenticated user from JWT token."""
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    session = get_session()
+    try:
+        user = session.query(User).filter(
+            (User.username == username) | (User.email == username)
+        ).first()
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return user
+    finally:
+        session.close()
+
 
 @app.get("/")
 def root():
-    return {"message": "Leafly API", "version": "1.0.0"}
+    return {"message": "SpendSense API", "version": "1.0.0"}
+
+
+# Authentication endpoints
+@app.post("/api/auth/register", response_model=TokenResponse)
+def register(request: RegisterRequest):
+    """Register a new user."""
+    session = get_session()
+    try:
+        # Check if user already exists
+        existing_user = session.query(User).filter(
+            (User.email == request.email) | (User.username == request.email)
+        ).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        
+        # Create new user
+        user = User(
+            id=str(uuid.uuid4()),
+            name=request.name,
+            email=request.email,
+            username=request.email,  # Use email as username
+            password_hash=get_password_hash(request.password),
+            is_admin=False
+        )
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        
+        # Create access token
+        access_token = create_access_token(data={"sub": user.username or user.email})
+        
+        return TokenResponse(
+            access_token=access_token,
+            token_type="bearer",
+            user={
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "username": user.username,
+                "is_admin": user.is_admin
+            }
+        )
+    finally:
+        session.close()
+
+
+@app.post("/api/auth/login", response_model=TokenResponse)
+def login(request: LoginRequest):
+    """Login and get access token."""
+    session = get_session()
+    try:
+        # Find user by username (email) or email
+        user = session.query(User).filter(
+            (User.username == request.username) | (User.email == request.username)
+        ).first()
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect username or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Verify password
+        if not user.password_hash or not verify_password(request.password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect username or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Create access token
+        access_token = create_access_token(data={"sub": user.username or user.email})
+        
+        return TokenResponse(
+            access_token=access_token,
+            token_type="bearer",
+            user={
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "username": user.username,
+                "is_admin": user.is_admin
+            }
+        )
+    finally:
+        session.close()
+
+
+@app.post("/api/auth/logout")
+def logout(current_user: User = Depends(get_current_user)):
+    """Logout (client should discard token)."""
+    return {"message": "Successfully logged out"}
+
+
+@app.get("/api/auth/me", response_model=UserResponse)
+def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Get current user information."""
+    return UserResponse(
+        id=current_user.id,
+        name=current_user.name,
+        email=current_user.email,
+        username=current_user.username,
+        is_admin=current_user.is_admin
+    )
 
 
 @app.get("/api/stats")
@@ -368,13 +571,25 @@ def get_user_profile(
             
             # If still no payroll, try all depository accounts
             if not payroll_transactions:
-                # Use PayrollDetector utility (searches all depository accounts)
-                payroll_tx_objects = PayrollDetector.detect_payroll_transactions(
-                    session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
-                )
+                depository_accounts = [acc for acc in accounts if acc.type == 'depository']
+                depository_account_ids = [acc.id for acc in depository_accounts]
                 
-                if payroll_tx_objects:
-                    depository_accounts = [acc for acc in accounts if acc.type == 'depository']
+                if depository_account_ids:
+                    payroll_tx_objects = session.query(Transaction).filter(
+                        and_(
+                            Transaction.account_id.in_(depository_account_ids),
+                            Transaction.date >= payroll_start_date,
+                            Transaction.date <= payroll_end_date,
+                            Transaction.amount > 0,
+                            or_(
+                                Transaction.merchant_name.like("%PAYROLL%"),
+                                Transaction.merchant_name.like("%DEPOSIT%"),
+                                Transaction.primary_category == "Transfer In"
+                            ),
+                            Transaction.amount >= 1000
+                        )
+                    ).all()
+                    
                     account_id_map = {acc.id: acc.account_id for acc in depository_accounts}
                     payroll_transactions = [
                         {
@@ -620,15 +835,34 @@ def get_suggested_budget(
         # Calculate monthly average from 180-day payroll: (180-day total / 180) * 365 / 12
         # This matches the "Monthly Average" shown in the Income Analysis card
         # Budget is 80% of the monthly average
-        # Use shared PayrollDetector utility for consistent payroll detection
-        payroll_start_date = datetime.now() - timedelta(days=180)
-        payroll_end_date = datetime.now()
-        payroll_transactions = PayrollDetector.detect_payroll_transactions(
-            session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
-        )
-        monthly_income = PayrollDetector.calculate_monthly_income_from_payroll(
-            payroll_transactions, days_in_period=180
-        )
+        depository_accounts = [acc for acc in accounts if acc.type == 'depository']
+        depository_account_ids = [acc.id for acc in depository_accounts]
+        
+        monthly_income = 0.0
+        if depository_account_ids:
+            # Get payroll transactions using flexible pattern matching (same as IncomeAnalyzer)
+            # This matches transactions with "PAYROLL" or "DEPOSIT" in merchant name, or "Transfer In" category
+            payroll_start_date = datetime.now() - timedelta(days=180)
+            payroll_transactions = session.query(Transaction).filter(
+                and_(
+                    Transaction.account_id.in_(depository_account_ids),
+                    Transaction.date >= payroll_start_date,
+                    Transaction.amount > 0,  # Only positive amounts (deposits)
+                    or_(
+                        Transaction.merchant_name.like("%PAYROLL%"),
+                        Transaction.merchant_name.like("%DEPOSIT%"),
+                        Transaction.primary_category == "Transfer In"
+                    ),
+                    Transaction.amount >= 1000  # Reasonable minimum for payroll
+                )
+            ).all()
+            
+            # Calculate monthly average from payroll (same as income analysis)
+            # Formula: (180-day payroll total / 180) * 365 / 12
+            if payroll_transactions:
+                income_180d = sum(tx.amount for tx in payroll_transactions)
+                yearly_income = (income_180d / 180.0) * 365.0
+                monthly_income = yearly_income / 12.0
         
         # Fallback to FeaturePipeline if no transaction-based income found
         if monthly_income <= 0:
@@ -779,15 +1013,35 @@ def set_user_budget(
         # Calculate monthly average from 180-day payroll: (180-day total / 180) * 365 / 12
         # This matches the "Monthly Average" shown in the Income Analysis card
         # Budget is 80% of the monthly average
-        # Use shared PayrollDetector utility for consistent payroll detection
-        payroll_start_date = datetime.now() - timedelta(days=180)
-        payroll_end_date = datetime.now()
-        payroll_transactions = PayrollDetector.detect_payroll_transactions(
-            session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
-        )
-        monthly_income = PayrollDetector.calculate_monthly_income_from_payroll(
-            payroll_transactions, days_in_period=180
-        )
+        accounts = session.query(Account).filter(Account.user_id == user_id).all()
+        depository_accounts = [acc for acc in accounts if acc.type == 'depository']
+        depository_account_ids = [acc.id for acc in depository_accounts]
+        
+        monthly_income = 0.0
+        if depository_account_ids:
+            # Get payroll transactions using flexible pattern matching (same as IncomeAnalyzer)
+            # This matches transactions with "PAYROLL" or "DEPOSIT" in merchant name, or "Transfer In" category
+            payroll_start_date = datetime.now() - timedelta(days=180)
+            payroll_transactions = session.query(Transaction).filter(
+                and_(
+                    Transaction.account_id.in_(depository_account_ids),
+                    Transaction.date >= payroll_start_date,
+                    Transaction.amount > 0,  # Only positive amounts (deposits)
+                    or_(
+                        Transaction.merchant_name.like("%PAYROLL%"),
+                        Transaction.merchant_name.like("%DEPOSIT%"),
+                        Transaction.primary_category == "Transfer In"
+                    ),
+                    Transaction.amount >= 1000  # Reasonable minimum for payroll
+                )
+            ).all()
+            
+            # Calculate monthly average from payroll (same as income analysis)
+            # Formula: (180-day payroll total / 180) * 365 / 12
+            if payroll_transactions:
+                income_180d = sum(tx.amount for tx in payroll_transactions)
+                yearly_income = (income_180d / 180.0) * 365.0
+                monthly_income = yearly_income / 12.0
         
         # Fallback to FeaturePipeline if no transaction-based income found
         if monthly_income <= 0:
@@ -936,15 +1190,31 @@ def generate_budget(
         
         # CRITICAL: Ensure total_budget is 80% of monthly average income
         # Calculate monthly income to validate and cap if needed
-        # Use shared PayrollDetector utility for consistent payroll detection
-        payroll_start_date = datetime.now() - timedelta(days=180)
-        payroll_end_date = datetime.now()
-        payroll_transactions = PayrollDetector.detect_payroll_transactions(
-            session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
-        )
-        monthly_income = PayrollDetector.calculate_monthly_income_from_payroll(
-            payroll_transactions, days_in_period=180
-        )
+        accounts = session.query(Account).filter(Account.user_id == user_id).all()
+        depository_accounts = [acc for acc in accounts if acc.type == 'depository']
+        depository_account_ids = [acc.id for acc in depository_accounts]
+        
+        monthly_income = 0.0
+        if depository_account_ids:
+            payroll_start_date = datetime.now() - timedelta(days=180)
+            payroll_transactions = session.query(Transaction).filter(
+                and_(
+                    Transaction.account_id.in_(depository_account_ids),
+                    Transaction.date >= payroll_start_date,
+                    Transaction.amount > 0,
+                    or_(
+                        Transaction.merchant_name.like("%PAYROLL%"),
+                        Transaction.merchant_name.like("%DEPOSIT%"),
+                        Transaction.primary_category == "Transfer In"
+                    ),
+                    Transaction.amount >= 1000
+                )
+            ).all()
+            
+            if payroll_transactions:
+                income_180d = sum(tx.amount for tx in payroll_transactions)
+                yearly_income = (income_180d / 180.0) * 365.0
+                monthly_income = yearly_income / 12.0
         
         # Cap total_budget at 80% of monthly_income (budget is 80% of monthly average)
         if monthly_income > 0:

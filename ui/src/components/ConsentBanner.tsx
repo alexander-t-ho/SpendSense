@@ -26,7 +26,6 @@ export default function ConsentBanner({ userId, onConsentChange, readOnly = fals
     if (!userId || readOnly) return
 
     const handleConsentUpdate = (consented: boolean, data: any) => {
-      console.log('Real-time consent update received:', { consented, data })
       // Update the cache immediately
       queryClient.setQueryData(['consent', userId], data)
       // Invalidate recommendations to refetch
@@ -46,13 +45,10 @@ export default function ConsentBanner({ userId, onConsentChange, readOnly = fals
 
   const grantMutation = useMutation({
     mutationFn: async () => {
-      console.log('Granting consent for user:', userId)
       const result = await grantConsent(userId)
-      console.log('Consent granted:', result)
       return result
     },
     onSuccess: (data) => {
-      console.log('Mutation success, updating UI:', data)
       // Optimistically update the cache immediately
       queryClient.setQueryData(['consent', userId], data)
       // Invalidate and refetch recommendations immediately
@@ -64,7 +60,6 @@ export default function ConsentBanner({ userId, onConsentChange, readOnly = fals
       }, 100)
     },
     onError: (error) => {
-      console.error('Consent grant error:', error)
       alert(`Failed to grant consent: ${error instanceof Error ? error.message : 'Unknown error'}`)
     },
   })
@@ -169,11 +164,10 @@ export default function ConsentBanner({ userId, onConsentChange, readOnly = fals
                   <button
                     onClick={async (e) => {
                       e.preventDefault()
-                      console.log('Button clicked, granting consent...')
                       try {
                         await grantMutation.mutateAsync()
                       } catch (error) {
-                        console.error('Error in button click:', error)
+                        // Error is handled by mutation's onError
                       }
                     }}
                     disabled={grantMutation.isPending || hasConsented}

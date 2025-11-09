@@ -81,3 +81,4 @@ logs/
 ui/dist/
 ui/.vite/
 data/persona_traces/traces_log.jsonl
+data/persona_traces/*.json

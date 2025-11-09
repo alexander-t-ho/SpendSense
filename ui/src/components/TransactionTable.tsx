@@ -43,7 +43,7 @@ function getAccountTypeLabel(accountType: string, accountSubtype: string | null)
 export default function TransactionTable({ transactions }: TransactionTableProps) {
   if (!transactions || transactions.length === 0) {
     return (
-      <div className="bg-white shadow rounded-lg p-6 text-center text-[#8B6F47]">
+      <div className="bg-white shadow-lg rounded-xl p-6 text-center text-[#8B6F47] ring-1 ring-[#D4C4B0]">
         <p>No transactions to display</p>
       </div>
     )
@@ -94,8 +94,8 @@ export default function TransactionTable({ transactions }: TransactionTableProps
       {Object.entries(transactionsByAccount).map(([accountId, accountData]) => {
         const accountTypeLabel = getAccountTypeLabel(accountData.account_type, accountData.account_subtype)
         return (
-        <div key={accountId} className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#D4C4B0] bg-[#E8F5E9]">
+        <div key={accountId} className="bg-white shadow-lg rounded-xl overflow-hidden ring-1 ring-[#D4C4B0]">
+          <div className="px-6 py-4 border-b border-[#D4C4B0] bg-gradient-to-r from-[#F5E6D3] to-white">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-[#5D4037]">
@@ -113,7 +113,7 @@ export default function TransactionTable({ transactions }: TransactionTableProps
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-[#E8F5E9]">
+              <thead className="bg-gradient-to-r from-[#F5E6D3] to-white">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[#8B6F47] uppercase tracking-wider">
                     Date
@@ -135,12 +135,12 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-[#D4C4B0]">
                 {accountData.transactions.map((tx, index) => {
                   const isExpense = tx.amount < 0
                   
                   return (
-                    <tr key={index} className="hover:bg-[#E8F5E9]">
+                    <tr key={index} className="hover:bg-[#F5E6D3]/50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-[#5D4037]">
                         {formatDate(tx.date)}
                       </td>
@@ -168,22 +168,22 @@ export default function TransactionTable({ transactions }: TransactionTableProps
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                         <div className="flex items-center justify-end space-x-1">
                           {isExpense ? (
-                            <ArrowDownCircle className="h-4 w-4 text-red-500" />
+                            <ArrowDownCircle className="h-4 w-4 text-[#5D4037]" />
                           ) : (
-                            <ArrowUpCircle className="h-4 w-4 text-green-500" />
+                            <ArrowUpCircle className="h-4 w-4 text-[#556B2F]" />
                           )}
-                          <span className={isExpense ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}>
+                          <span className={isExpense ? 'text-[#5D4037] font-medium' : 'text-[#556B2F] font-medium'}>
                             {isExpense ? '-' : '+'}{formatCurrency(tx.amount)}
                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         {tx.pending ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#F5E6D3] text-[#8B6F47] border border-[#D4C4B0]">
                             Pending
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#556B2F]/20 text-[#556B2F] border border-[#556B2F]/30">
                             Posted
                           </span>
                         )}
