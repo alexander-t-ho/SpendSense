@@ -1,5 +1,5 @@
 // Use environment variable for production, fallback to relative path for local dev (Vite proxy)
-const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api` : '/api'
 
 export async function fetchUsers() {
   const response = await fetch(`${API_BASE_URL}/users`)
@@ -26,7 +26,7 @@ export async function fetchStats() {
 }
 
 // Insights API functions (using Lambda endpoints)
-const INSIGHTS_API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/insights` : '/api/insights'
+const INSIGHTS_API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api/insights` : '/api/insights'
 
 export async function fetchWeeklyRecap(userId: string, weekStart?: string) {
   const params = weekStart ? `?week_start=${weekStart}` : ''

@@ -3,7 +3,7 @@
  */
 
 // Use environment variable for production, fallback to relative path for local dev (Vite proxy)
-const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api` : '/api'
 
 export interface OperatorRecommendation {
   id: string
