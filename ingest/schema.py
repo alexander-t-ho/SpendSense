@@ -20,9 +20,12 @@ class User(Base):
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
+<<<<<<< HEAD
     username = Column(String, unique=True, nullable=True)  # Use email as username
     password_hash = Column(String, nullable=True)  # Hashed password
     is_admin = Column(Boolean, default=False, nullable=False)  # Admin flag
+=======
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     

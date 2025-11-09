@@ -68,10 +68,14 @@ export default function RecommendationsSection({ userId, windowDays = 180, readO
   
   if (readOnly && allRecs?.recommendations) {
     // Admin view: show only approved recommendations (what users can see)
+<<<<<<< HEAD
     // Also ensure we only show recommendations for this specific user (backend should filter, but double-check)
     const approvedOnly = allRecs.recommendations.filter((rec: any) => 
       rec.approved === true && rec.user_id === userId
     )
+=======
+    const approvedOnly = allRecs.recommendations.filter((rec: any) => rec.approved === true)
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
     displayRecommendations = {
       education_items: approvedOnly.map((rec: any) => ({
         id: rec.id,

@@ -1,11 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+<<<<<<< HEAD
   darkMode: ["class"],
+=======
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+<<<<<<< HEAD
     extend: {
       colors: {
         border: "rgb(var(--border) / <alpha-value>)",
@@ -48,6 +52,9 @@ export default {
         sm: "0.375rem",
       },
     },
+=======
+    extend: {},
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
   },
   plugins: [],
 }

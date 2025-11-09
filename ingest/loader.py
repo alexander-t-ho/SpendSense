@@ -27,6 +27,7 @@ class DataLoader:
     
     def load_users(self, users_df: pd.DataFrame):
         """Load users from DataFrame."""
+<<<<<<< HEAD
         loaded_count = 0
         skipped_count = 0
         for _, row in users_df.iterrows():
@@ -39,6 +40,9 @@ class DataLoader:
                 skipped_count += 1
                 continue
             
+=======
+        for _, row in users_df.iterrows():
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
             user = User(
                 id=row["id"],
                 name=row["name"],
@@ -46,10 +50,16 @@ class DataLoader:
                 created_at=pd.to_datetime(row.get("created_at", datetime.now()))
             )
             self.session.add(user)
+<<<<<<< HEAD
             loaded_count += 1
         
         self.session.commit()
         print(f"Loaded {loaded_count} new users, skipped {skipped_count} existing users")
+=======
+        
+        self.session.commit()
+        print(f"Loaded {len(users_df)} users")
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
     
     def load_from_csv(self, data_dir: str, clear_existing: bool = False):
         """Load all data from CSV files.
@@ -94,6 +104,7 @@ class DataLoader:
     
     def load_accounts(self, accounts_df: pd.DataFrame):
         """Load accounts from DataFrame."""
+<<<<<<< HEAD
         loaded_count = 0
         skipped_count = 0
         for _, row in accounts_df.iterrows():
@@ -106,6 +117,9 @@ class DataLoader:
                 skipped_count += 1
                 continue
             
+=======
+        for _, row in accounts_df.iterrows():
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
             # Helper to handle None/NaN values
             def safe_get(key, default=None):
                 val = row.get(key, default)
@@ -134,6 +148,7 @@ class DataLoader:
                     created_at=pd.to_datetime(row.get("created_at", datetime.now()))
                 )
             self.session.add(account)
+<<<<<<< HEAD
             loaded_count += 1
         
         self.session.commit()
@@ -153,6 +168,15 @@ class DataLoader:
                 skipped_count += 1
                 continue
             
+=======
+        
+        self.session.commit()
+        print(f"Loaded {len(accounts_df)} accounts")
+    
+    def load_transactions(self, transactions_df: pd.DataFrame):
+        """Load transactions from DataFrame."""
+        for _, row in transactions_df.iterrows():
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
             # Get account_id from account_id column (which should map to Account.account_id)
             account_id = row["account_id"]
             
@@ -163,7 +187,10 @@ class DataLoader:
             
             if not account:
                 print(f"Warning: Account {account_id} not found for transaction {row['transaction_id']}")
+<<<<<<< HEAD
                 skipped_count += 1
+=======
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
                 continue
             
             transaction = Transaction(
@@ -181,10 +208,16 @@ class DataLoader:
                 created_at=pd.to_datetime(row.get("created_at", datetime.now()))
             )
             self.session.add(transaction)
+<<<<<<< HEAD
             loaded_count += 1
         
         self.session.commit()
         print(f"Loaded {loaded_count} new transactions, skipped {skipped_count} existing transactions")
+=======
+        
+        self.session.commit()
+        print(f"Loaded {len(transactions_df)} transactions")
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
     
     def load_liabilities(self, liabilities_df: pd.DataFrame):
         """Load liabilities from DataFrame."""

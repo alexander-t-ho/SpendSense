@@ -35,7 +35,12 @@ class PersonaRecommendationGenerator:
         self,
         user_id: str,
         window_days: int = 180,
+<<<<<<< HEAD
         num_recommendations: int = 8
+=======
+        num_recommendations: int = 8,
+        use_rag_enhancement: bool = True
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
     ) -> List[Dict[str, Any]]:
         """Generate persona-based recommendations and store them in the database.
         
@@ -102,7 +107,11 @@ class PersonaRecommendationGenerator:
         if primary_count > 0:
             matched_criteria = persona_matched_criteria.get(primary_persona_id, [])
             primary_recs = self._generate_persona_recommendations(
+<<<<<<< HEAD
                 user_id, primary_persona_id, features, primary_count, window_days, matched_criteria
+=======
+                user_id, primary_persona_id, features, primary_count, window_days, matched_criteria, use_rag_enhancement
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
             )
             stored_recommendations.extend(primary_recs)
         
@@ -110,14 +119,22 @@ class PersonaRecommendationGenerator:
         if secondary_count > 0 and secondary_persona_id:
             matched_criteria = persona_matched_criteria.get(secondary_persona_id, [])
             secondary_recs = self._generate_persona_recommendations(
+<<<<<<< HEAD
                 user_id, secondary_persona_id, features, secondary_count, window_days, matched_criteria
+=======
+                user_id, secondary_persona_id, features, secondary_count, window_days, matched_criteria, use_rag_enhancement
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
             )
             stored_recommendations.extend(secondary_recs)
         
         # Add universal spending pattern recommendations (apply to all users)
         # Add 1-2 spending pattern recommendations if available
         spending_recs = self._generate_spending_pattern_recommendations(
+<<<<<<< HEAD
             user_id, features, window_days, primary_persona_id, max_recommendations=2
+=======
+            user_id, features, window_days, primary_persona_id, max_recommendations=2, use_rag_enhancement=use_rag_enhancement
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
         )
         stored_recommendations.extend(spending_recs)
         
@@ -175,6 +192,11 @@ class PersonaRecommendationGenerator:
             rec_id = str(uuid.uuid4())
             # Use recommendation_type from rec_data if available, otherwise default to "education"
             recommendation_type = rec_data.get('recommendation_type', 'education')
+<<<<<<< HEAD
+=======
+            # Ensure persona_id is always set (fallback to primary_persona_id if missing)
+            persona_id = rec_data.get('persona_id') or primary_persona_id
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
             rec = Recommendation(
                 id=rec_id,
                 user_id=user_id,
@@ -183,7 +205,11 @@ class PersonaRecommendationGenerator:
                 description=rec_data.get('recommendation_text', ''),
                 rationale=rec_data.get('rationale', ''),
                 content_id=rec_data.get('id', rec_data.get('content_id')),
+<<<<<<< HEAD
                 persona_id=rec_data.get('persona_id'),
+=======
+                persona_id=persona_id,  # Always set persona_id (never None)
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
                 action_items=rec_data.get('action_items', []),
                 expected_impact=rec_data.get('expected_impact', ''),
                 priority=rec_data.get('priority', 'medium'),
@@ -372,6 +398,7 @@ class PersonaRecommendationGenerator:
                 'rationale': rationale
             }
             
+<<<<<<< HEAD
             # Option B: Always enhance with RAG (validate and enrich all recommendations)
             try:
                 enhanced_rec = self.rag_enhancer.enhance_recommendation(
@@ -398,6 +425,41 @@ class PersonaRecommendationGenerator:
                     recommendations.append(rec)
                 else:
                     print(f"⚠️  Rejecting recommendation {rec_template.id}: Contains $0 values and RAG enhancement failed")
+=======
+            # Enhance with RAG if enabled and requested
+            if use_rag_enhancement and self.rag_enhancer.enabled:
+                try:
+                    enhanced_rec = self.rag_enhancer.enhance_recommendation(
+                        rec,
+                        data_points=template_data,
+                        features=features,
+                        template_info={'template_id': rec_template.id, 'persona_id': persona_id}
+                    )
+                    
+                    # Post-enhancement validation: Reject recommendations with $0 values
+                    final_validation = self.rag_enhancer.validator.validate(enhanced_rec)
+                    if final_validation['is_valid'] or final_validation['status'] != 'needs_regeneration':
+                        # Check one more time for $0 values even if validation passed
+                        if not self._has_zero_values(enhanced_rec):
+                            recommendations.append(enhanced_rec)
+                        else:
+                            print(f"⚠️  Rejecting recommendation {rec_template.id}: Still contains $0 values after enhancement")
+                    else:
+                        print(f"⚠️  Rejecting recommendation {rec_template.id}: Failed validation after enhancement")
+                except Exception as e:
+                    print(f"⚠️  RAG enhancement failed for recommendation {rec_template.id}: {e}")
+                    # Only add original if it doesn't have $0 values
+                    if not self._has_zero_values(rec):
+                        recommendations.append(rec)
+                    else:
+                        print(f"⚠️  Rejecting recommendation {rec_template.id}: Contains $0 values and RAG enhancement failed")
+            else:
+                # Skip RAG enhancement for faster generation (use original recommendation)
+                if not self._has_zero_values(rec):
+                    recommendations.append(rec)
+                else:
+                    print(f"⚠️  Rejecting recommendation {rec_template.id}: Contains $0 values")
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
         
         return recommendations
     
@@ -655,6 +717,7 @@ class PersonaRecommendationGenerator:
                     'rationale': rationale
                 }
                 
+<<<<<<< HEAD
                 # Option B: Always enhance with RAG
                 try:
                     enhanced_rec = self.rag_enhancer.enhance_recommendation(
@@ -672,6 +735,30 @@ class PersonaRecommendationGenerator:
                 except Exception as e:
                     print(f"⚠️  RAG enhancement failed for merchant recommendation: {e}")
                     # Only add if no $0 values
+=======
+                # Enhance with RAG if enabled and requested
+                if use_rag_enhancement and self.rag_enhancer.enabled:
+                    try:
+                        enhanced_rec = self.rag_enhancer.enhance_recommendation(
+                            rec,
+                            data_points=template_data,
+                            features=features,
+                            template_info={'template_id': merchant_rec_template.id, 'merchant_name': merchant_data['merchant_name']}
+                        )
+                        
+                        # Post-enhancement validation: Reject recommendations with $0 values
+                        if not self._has_zero_values(enhanced_rec):
+                            recommendations.append(enhanced_rec)
+                        else:
+                            print(f"⚠️  Rejecting merchant recommendation: Still contains $0 values after enhancement")
+                    except Exception as e:
+                        print(f"⚠️  RAG enhancement failed for merchant recommendation: {e}")
+                        # Only add if no $0 values
+                        if not self._has_zero_values(rec):
+                            recommendations.append(rec)
+                else:
+                    # Skip RAG enhancement for faster generation
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
                     if not self._has_zero_values(rec):
                         recommendations.append(rec)
                     else:
@@ -727,6 +814,7 @@ class PersonaRecommendationGenerator:
                         'rationale': rationale
                     }
                     
+<<<<<<< HEAD
                     # Option B: Always enhance with RAG
                     try:
                         enhanced_rec = self.rag_enhancer.enhance_recommendation(
@@ -744,6 +832,30 @@ class PersonaRecommendationGenerator:
                     except Exception as e:
                         print(f"⚠️  RAG enhancement failed for category recommendation: {e}")
                         # Only add if no $0 values
+=======
+                    # Enhance with RAG if enabled and requested
+                    if use_rag_enhancement and self.rag_enhancer.enabled:
+                        try:
+                            enhanced_rec = self.rag_enhancer.enhance_recommendation(
+                                rec,
+                                data_points=template_data,
+                                features=features,
+                                template_info={'template_id': category_rec_template.id, 'category': category_data['category']}
+                            )
+                            
+                            # Post-enhancement validation: Reject recommendations with $0 values
+                            if not self._has_zero_values(enhanced_rec):
+                                recommendations.append(enhanced_rec)
+                            else:
+                                print(f"⚠️  Rejecting category recommendation: Still contains $0 values after enhancement")
+                        except Exception as e:
+                            print(f"⚠️  RAG enhancement failed for category recommendation: {e}")
+                            # Only add if no $0 values
+                            if not self._has_zero_values(rec):
+                                recommendations.append(rec)
+                    else:
+                        # Skip RAG enhancement for faster generation
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
                         if not self._has_zero_values(rec):
                             recommendations.append(rec)
                         else:

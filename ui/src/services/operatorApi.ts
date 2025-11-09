@@ -2,8 +2,12 @@
  * API service for operator endpoints
  */
 
+<<<<<<< HEAD
 // Use environment variable for production, fallback to relative path for local dev (Vite proxy)
 const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api'
+=======
+const API_BASE_URL = '/api'
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
 
 export interface OperatorRecommendation {
   id: string

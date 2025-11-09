@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from './components/AuthContext'
@@ -8,10 +9,18 @@ import PreviewPage from './pages/PreviewPage'
 import LandingPage from './pages/LandingPage'
 import Login from './pages/Login'
 import AccountTransactions from './pages/AccountTransactions'
+=======
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import UserDetail from './pages/UserDetail'
+import UserDashboard from './pages/user/UserDashboard'
+import OperatorDashboard from './pages/operator/OperatorDashboard'
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
 import Layout from './components/Layout'
 
 const queryClient = new QueryClient()
 
+<<<<<<< HEAD
 // Protected Route component
 function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) {
   const { user, loading } = useAuth()
@@ -130,6 +139,30 @@ function App() {
           <AppRoutes />
         </Router>
       </AuthProvider>
+=======
+function App() {
+  // TODO: Add authentication/role-based routing
+  // For now, we'll use route-based access
+  // In production, this would check user role from auth context
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Layout>
+          <Routes>
+            {/* Admin/Operator routes - can see all users */}
+            <Route path="/" element={<OperatorDashboard />} />
+            <Route path="/operator" element={<OperatorDashboard />} />
+            <Route path="/user/:userId" element={<UserDetail />} />
+            
+            {/* End-user routes - restricted to own account */}
+            <Route path="/my-dashboard/:userId" element={<UserDashboard />} />
+            {/* TODO: Add route for user's own dashboard without userId param after auth is implemented */}
+            {/* <Route path="/my-dashboard" element={<UserDashboard />} /> */}
+          </Routes>
+        </Layout>
+      </Router>
+>>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
     </QueryClientProvider>
   )
 }
