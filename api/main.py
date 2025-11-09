@@ -248,6 +248,15 @@ def create_admin_user():
             session.add(admin_user)
             session.commit()
             return {"message": "Admin user created", "email": admin_email, "password": "123456"}
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error creating admin user: {error_details}")
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating admin user: {str(e)}"
+        )
     finally:
         session.close()
 
