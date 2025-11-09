@@ -1,0 +1,180 @@
+{
+  "user_id": "33c2d48b-bf60-434b-9345-3954047bbf52",
+  "timestamp": "2025-11-09T01:43:16.091883",
+  "assigned_personas": [
+    "savings_builder",
+    "subscription_heavy"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 0.0
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 2,
+      "total_criteria": 5,
+      "score": 2,
+      "reasons": [
+        "Criterion 4: Subscriptions 15.7% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $302.06 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 1.5
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 4,
+      "total_criteria": 5,
+      "score": 4,
+      "reasons": [
+        "Criterion 1: Savings growth 18.4% (\u22652%)",
+        "Criterion 2: Monthly savings inflow $452.93 (\u2265$200)",
+        "Criterion 3: Max credit utilization 0.0% (<30%)",
+        "Criterion 5: Savings balance $17475.69 (\u2265$5,000)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 1.0
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "33c2d48b-bf60-434b-9345-3954047bbf52",
+    "window_days": 180,
+    "start_date": "2025-05-13T01:43:15.589827",
+    "end_date": "2025-11-09T01:43:15.589827",
+    "subscriptions": {
+      "recurring_merchants": 3,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Reebok",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.4,
+          "total_amount": 453.0246063378862,
+          "average_amount": 75.50410105631437,
+          "first_transaction": "2025-06-07 22:45:33.286285",
+          "last_transaction": "2025-11-06 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Adidas",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 31.8,
+          "total_amount": 883.375176175761,
+          "average_amount": 147.2291960292935,
+          "first_transaction": "2025-05-15 22:45:33.286285",
+          "last_transaction": "2025-10-21 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Uniqlo",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 28.0,
+          "total_amount": 475.9682640439387,
+          "average_amount": 79.32804400732311,
+          "first_transaction": "2025-05-17 03:09:18.996743",
+          "last_transaction": "2025-10-04 22:45:33.286285"
+        }
+      ],
+      "monthly_recurring_spend": 302.061341092931,
+      "average_subscription_cost": 100.68711369764367,
+      "total_subscription_spend": 1812.3680465575858,
+      "subscription_share_of_total": 15.721800576193756,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {},
+      "category_duplicates": {},
+      "has_category_duplicates": false,
+      "total_spend": 11527.738427759396
+    },
+    "savings": {
+      "net_inflow": 2717.5621622243725,
+      "monthly_net_inflow": 452.9270270373954,
+      "growth_rate_percent": 18.41400627090301,
+      "emergency_fund_coverage_months": 27.22643977005628,
+      "total_savings_balance": 17475.68770125247,
+      "average_monthly_expenses": 641.8645937127734,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 5.740192892293819,
+      "checking_balance": 4087.914730709798,
+      "average_monthly_expenses": 712.1563347109474,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Savings Builder (4/5 criteria, 67%) and Subscription-Heavy (2/5 criteria, 33%) personas based on financial behavior patterns."
+}

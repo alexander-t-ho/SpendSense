@@ -1,0 +1,269 @@
+{
+  "user_id": "392059a0-12b1-4d4c-9c5a-58eb72808889",
+  "timestamp": "2025-11-09T01:48:16.984696",
+  "assigned_personas": [
+    "subscription_heavy",
+    "variable_income_budgeter"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 5: 4 different income sources (\u22653)"
+      ],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 1.0
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 4,
+      "total_criteria": 5,
+      "score": 4,
+      "reasons": [
+        "Criterion 1: Has 2+ subscriptions in same category: streaming (Apple Music, HBO Max, Amazon Prime)",
+        "Criterion 2: 10 recurring subscriptions (\u22655)",
+        "Criterion 4: Subscriptions 10.3% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $328.69 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 3.0
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 3: Max credit utilization 0.0% (<30%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 0.25
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "392059a0-12b1-4d4c-9c5a-58eb72808889",
+    "window_days": 180,
+    "start_date": "2025-05-13T01:48:16.760998",
+    "end_date": "2025-11-09T01:48:16.760998",
+    "subscriptions": {
+      "recurring_merchants": 10,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Microsoft 365",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 128.57764474357495,
+          "average_amount": 21.42960745726249,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Apple Music",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 72.5176890234035,
+          "average_amount": 12.086281503900585,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "HBO Max",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 89.28340076522747,
+          "average_amount": 14.880566794204578,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Amazon Prime",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 87.53480256134505,
+          "average_amount": 14.589133760224174,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Uniqlo",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 31.0,
+          "total_amount": 489.09163414214527,
+          "average_amount": 81.51527235702422,
+          "first_transaction": "2025-05-22 22:45:33.286285",
+          "last_transaction": "2025-10-24 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Delta Airlines",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 31.25,
+          "total_amount": 264.9377298531243,
+          "average_amount": 52.987545970624865,
+          "first_transaction": "2025-06-21 00:01:06.361048",
+          "last_transaction": "2025-10-25 23:44:14.095531"
+        },
+        {
+          "merchant_name": "Metro Transit",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 34.75,
+          "total_amount": 229.109885329833,
+          "average_amount": 45.8219770659666,
+          "first_transaction": "2025-05-25 19:05:01.645446",
+          "last_transaction": "2025-10-13 05:57:48.392089"
+        },
+        {
+          "merchant_name": "Uber",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 30.666666666666668,
+          "total_amount": 113.28706694966777,
+          "average_amount": 28.321766737416944,
+          "first_transaction": "2025-05-31 19:18:00.460090",
+          "last_transaction": "2025-09-01 23:37:35.357855"
+        },
+        {
+          "merchant_name": "Walgreens Pharmacy",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 31.333333333333332,
+          "total_amount": 153.8434651507655,
+          "average_amount": 38.460866287691374,
+          "first_transaction": "2025-05-31 15:57:28.546488",
+          "last_transaction": "2025-09-03 13:08:12.876597"
+        },
+        {
+          "merchant_name": "Cable Company",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 25.0,
+          "total_amount": 111.6036659142309,
+          "average_amount": 18.60061098570515,
+          "first_transaction": "2025-05-21 03:11:55.601495",
+          "last_transaction": "2025-09-25 22:35:43.513918"
+        }
+      ],
+      "monthly_recurring_spend": 328.69362892002096,
+      "average_subscription_cost": 32.869362892002094,
+      "total_subscription_spend": 1739.7869844333181,
+      "subscription_share_of_total": 10.251749944594573,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {
+        "cloud_storage": [
+          "Microsoft 365"
+        ],
+        "streaming": [
+          "Apple Music",
+          "HBO Max",
+          "Amazon Prime"
+        ],
+        "food_delivery": [
+          "Uber"
+        ]
+      },
+      "category_duplicates": {
+        "streaming": [
+          "Apple Music",
+          "HBO Max",
+          "Amazon Prime"
+        ]
+      },
+      "has_category_duplicates": true,
+      "total_spend": 16970.634221825254
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 3.1840517495894036,
+      "total_savings_balance": 3503.161848471379,
+      "average_monthly_expenses": 1100.2213921061823,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 4,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 2.7149295143988286,
+      "checking_balance": 2911.529016947736,
+      "average_monthly_expenses": 1072.4142197822182,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Subscription-Heavy (4/5 criteria, 80%) and Variable Income Budgeter (1/5 criteria, 20%) personas based on financial behavior patterns."
+}

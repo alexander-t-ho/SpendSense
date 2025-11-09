@@ -1,0 +1,277 @@
+{
+  "user_id": "63e19897-e51f-429d-9810-8c8e448591be",
+  "timestamp": "2025-11-09T01:50:16.111130",
+  "assigned_personas": [
+    "subscription_heavy",
+    "savings_builder"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 0.0
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 3,
+      "total_criteria": 5,
+      "score": 3,
+      "reasons": [
+        "Criterion 2: 7 recurring subscriptions (\u22655)",
+        "Criterion 4: Subscriptions 20.5% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $392.99 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 2.25
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 2,
+      "total_criteria": 5,
+      "score": 2,
+      "reasons": [
+        "Criterion 1: Savings growth 14.3% (\u22652%)",
+        "Criterion 3: Max credit utilization 11.3% (<30%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 0.5
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "63e19897-e51f-429d-9810-8c8e448591be",
+    "window_days": 180,
+    "start_date": "2025-05-13T01:50:15.841497",
+    "end_date": "2025-11-09T01:50:15.841497",
+    "subscriptions": {
+      "recurring_merchants": 7,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Adobe Creative Cloud",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 75.81524703049757,
+          "average_amount": 12.63587450508293,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Spotify",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 34.25,
+          "total_amount": 150.82282624812055,
+          "average_amount": 30.16456524962411,
+          "first_transaction": "2025-06-23 05:29:02.651335",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Nike",
+          "occurrences": 7,
+          "cadence": "monthly",
+          "average_interval_days": 26.166666666666668,
+          "total_amount": 931.0002248717378,
+          "average_amount": 133.000032124534,
+          "first_transaction": "2025-05-19 22:45:33.286285",
+          "last_transaction": "2025-10-24 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Water Utility",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 31.0,
+          "total_amount": 255.9548074287689,
+          "average_amount": 51.19096148575378,
+          "first_transaction": "2025-06-02 04:11:11.133139",
+          "last_transaction": "2025-10-05 16:34:48.598673"
+        },
+        {
+          "merchant_name": "Whole Foods",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 25.0,
+          "total_amount": 237.3483710803377,
+          "average_amount": 59.337092770084425,
+          "first_transaction": "2025-06-23 08:22:54.479811",
+          "last_transaction": "2025-09-07 21:33:04.710979"
+        },
+        {
+          "merchant_name": "Best Buy",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 26.0,
+          "total_amount": 146.4052508899625,
+          "average_amount": 48.80175029665417,
+          "first_transaction": "2025-07-15 20:10:34.098266",
+          "last_transaction": "2025-09-07 07:26:11.130419"
+        },
+        {
+          "merchant_name": "Adidas",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 34.333333333333336,
+          "total_amount": 231.42116520463054,
+          "average_amount": 57.855291301157635,
+          "first_transaction": "2025-06-20 10:17:18.948794",
+          "last_transaction": "2025-10-03 09:18:00.448980"
+        }
+      ],
+      "monthly_recurring_spend": 392.98556773289107,
+      "average_subscription_cost": 56.14079539041301,
+      "total_subscription_spend": 2028.7678927540555,
+      "subscription_share_of_total": 20.487728937842462,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {
+        "software": [
+          "Adobe Creative Cloud"
+        ],
+        "streaming": [
+          "Spotify"
+        ],
+        "fitness": [
+          "Nike"
+        ],
+        "food_delivery": [
+          "Whole Foods"
+        ]
+      },
+      "category_duplicates": {},
+      "has_category_duplicates": false,
+      "total_spend": 9902.356180663637
+    },
+    "savings": {
+      "net_inflow": 417.92583931600876,
+      "monthly_net_inflow": 69.65430655266813,
+      "growth_rate_percent": 14.32633052545025,
+      "emergency_fund_coverage_months": 5.310557668176117,
+      "total_savings_balance": 3335.112753114888,
+      "average_monthly_expenses": 628.0155421530927,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 2,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "832318297168",
+          "name": "Visa Credit Card #1",
+          "utilization": {
+            "account_id": "832318297168",
+            "utilization_percent": 11.320556870338477,
+            "balance": 1132.0556870338478,
+            "limit": 10000.0,
+            "available": 8867.944312966152,
+            "is_high_utilization_30": false,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": false,
+            "total_interest_charges": 0,
+            "monthly_interest_estimate": 0.0,
+            "interest_transactions": 0
+          },
+          "minimum_payment_only": false,
+          "is_overdue": false
+        },
+        {
+          "account_id": "100015291137",
+          "name": "Visa Credit Card #2",
+          "utilization": {
+            "account_id": "100015291137",
+            "utilization_percent": 10.898803554424521,
+            "balance": 1634.8205331636782,
+            "limit": 15000.0,
+            "available": 13365.179466836322,
+            "is_high_utilization_30": false,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": false,
+            "total_interest_charges": 0,
+            "monthly_interest_estimate": 0.0,
+            "interest_transactions": 0
+          },
+          "minimum_payment_only": false,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 2,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 6.074808397694336,
+      "checking_balance": 3442.897464692649,
+      "average_monthly_expenses": 566.749967949505,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Subscription-Heavy (3/5 criteria, 60%) and Savings Builder (2/5 criteria, 40%) personas based on financial behavior patterns."
+}

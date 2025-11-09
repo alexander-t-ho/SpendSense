@@ -1,0 +1,236 @@
+{
+  "user_id": "206f005e-08b5-41c3-abc1-3cae841d1289",
+  "timestamp": "2025-11-09T01:45:43.026650",
+  "assigned_personas": [
+    "subscription_heavy",
+    "savings_builder"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 5: 3 different income sources (\u22653)"
+      ],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 1.0
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 4,
+      "total_criteria": 5,
+      "score": 4,
+      "reasons": [
+        "Criterion 1: Has 2+ subscriptions in same category: streaming (YouTube Premium, MoviePass)",
+        "Criterion 2: 7 recurring subscriptions (\u22655)",
+        "Criterion 4: Subscriptions 23.4% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $379.37 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 3.0
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 3,
+      "total_criteria": 5,
+      "score": 3,
+      "reasons": [
+        "Criterion 1: Savings growth 5.3% (\u22652%)",
+        "Criterion 3: Max credit utilization 0.0% (<30%)",
+        "Criterion 5: Savings balance $15082.52 (\u2265$5,000)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 0.75
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "206f005e-08b5-41c3-abc1-3cae841d1289",
+    "window_days": 180,
+    "start_date": "2025-05-13T01:45:42.082466",
+    "end_date": "2025-11-09T01:45:42.082466",
+    "subscriptions": {
+      "recurring_merchants": 7,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "YouTube Premium",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 70.6473547139013,
+          "average_amount": 11.774559118983548,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "BP",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 29.4,
+          "total_amount": 243.70736218068816,
+          "average_amount": 40.61789369678136,
+          "first_transaction": "2025-06-06 20:49:08.317750",
+          "last_transaction": "2025-11-03 15:40:05.676895"
+        },
+        {
+          "merchant_name": "Lyft",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 27.5,
+          "total_amount": 186.11427741112539,
+          "average_amount": 37.22285548222508,
+          "first_transaction": "2025-07-18 00:18:15.969160",
+          "last_transaction": "2025-11-06 15:30:05.842865"
+        },
+        {
+          "merchant_name": "MoviePass",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 25.0,
+          "total_amount": 283.60959817976993,
+          "average_amount": 70.90239954494248,
+          "first_transaction": "2025-08-03 01:49:02.139611",
+          "last_transaction": "2025-10-19 14:00:15.711658"
+        },
+        {
+          "merchant_name": "Mobil",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 26.0,
+          "total_amount": 146.01270025970825,
+          "average_amount": 48.67090008656942,
+          "first_transaction": "2025-05-13 15:39:57.069233",
+          "last_transaction": "2025-07-05 20:11:06.331747"
+        },
+        {
+          "merchant_name": "Chipotle",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 32.333333333333336,
+          "total_amount": 155.11784633736482,
+          "average_amount": 38.779461584341206,
+          "first_transaction": "2025-05-15 04:47:15.728661",
+          "last_transaction": "2025-08-22 13:32:00.425659"
+        },
+        {
+          "merchant_name": "Nike",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 31.0,
+          "total_amount": 525.594079465892,
+          "average_amount": 131.398519866473,
+          "first_transaction": "2025-05-17 23:42:47.501551",
+          "last_transaction": "2025-08-19 23:17:48.784657"
+        }
+      ],
+      "monthly_recurring_spend": 379.3665893803161,
+      "average_subscription_cost": 54.19522705433087,
+      "total_subscription_spend": 1610.8032185484499,
+      "subscription_share_of_total": 23.361605864043263,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {
+        "streaming": [
+          "YouTube Premium",
+          "MoviePass"
+        ],
+        "fitness": [
+          "Nike"
+        ]
+      },
+      "category_duplicates": {
+        "streaming": [
+          "YouTube Premium",
+          "MoviePass"
+        ]
+      },
+      "has_category_duplicates": true,
+      "total_spend": 6895.087726086923
+    },
+    "savings": {
+      "net_inflow": 764.4679422098955,
+      "monthly_net_inflow": 127.41132370164924,
+      "growth_rate_percent": 5.33918955522749,
+      "emergency_fund_coverage_months": 13.12457851812857,
+      "total_savings_balance": 15082.5200417354,
+      "average_monthly_expenses": 1149.181287681154,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 3,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 6.318017738015575,
+      "checking_balance": 7583.733509859059,
+      "average_monthly_expenses": 1200.3343175546438,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Subscription-Heavy (4/5 criteria, 57%) and Savings Builder (3/5 criteria, 43%) personas based on financial behavior patterns."
+}

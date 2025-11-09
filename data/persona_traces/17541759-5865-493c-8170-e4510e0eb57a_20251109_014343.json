@@ -1,0 +1,262 @@
+{
+  "user_id": "17541759-5865-493c-8170-e4510e0eb57a",
+  "timestamp": "2025-11-09T01:43:43.337890",
+  "assigned_personas": [
+    "subscription_heavy",
+    "savings_builder"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 0.0
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 4,
+      "total_criteria": 5,
+      "score": 4,
+      "reasons": [
+        "Criterion 1: Has 2+ subscriptions in same category: streaming (HBO Max, YouTube Premium), fitness (Gym Membership, Fitness App, Nike)",
+        "Criterion 2: 9 recurring subscriptions (\u22655)",
+        "Criterion 4: Subscriptions 12.0% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $399.10 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 3.0
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 3: Max credit utilization 0.0% (<30%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 0.25
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "17541759-5865-493c-8170-e4510e0eb57a",
+    "window_days": 180,
+    "start_date": "2025-05-13T01:43:42.983600",
+    "end_date": "2025-11-09T01:43:42.983600",
+    "subscriptions": {
+      "recurring_merchants": 9,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "HBO Max",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 62.202377687157465,
+          "average_amount": 10.367062947859578,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Adobe Creative Cloud",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 113.06050485995767,
+          "average_amount": 18.843417476659614,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "YouTube Premium",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 87.05267358835115,
+          "average_amount": 14.50877893139186,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Gym Membership",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 247.05841284905355,
+          "average_amount": 41.17640214150892,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Fitness App",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 172.73555862488587,
+          "average_amount": 28.78925977081431,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Reebok",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 26.8,
+          "total_amount": 669.3390763100376,
+          "average_amount": 111.5565127183396,
+          "first_transaction": "2025-05-26 22:45:33.286285",
+          "last_transaction": "2025-10-07 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Nike",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 33.4,
+          "total_amount": 746.3137618540377,
+          "average_amount": 124.38562697567295,
+          "first_transaction": "2025-05-14 22:45:33.286285",
+          "last_transaction": "2025-10-28 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Amtrak",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 35.0,
+          "total_amount": 42.58163630658029,
+          "average_amount": 14.193878768860097,
+          "first_transaction": "2025-06-06 04:53:22.473219",
+          "last_transaction": "2025-08-16 19:21:33.694434"
+        },
+        {
+          "merchant_name": "Internet Provider",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 32.333333333333336,
+          "total_amount": 141.11458214649542,
+          "average_amount": 35.278645536623856,
+          "first_transaction": "2025-05-13 05:52:04.557807",
+          "last_transaction": "2025-08-19 17:09:49.408119"
+        }
+      ],
+      "monthly_recurring_spend": 399.0995852677308,
+      "average_subscription_cost": 44.3443983630812,
+      "total_subscription_spend": 2281.458584226557,
+      "subscription_share_of_total": 11.961417716651335,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {
+        "streaming": [
+          "HBO Max",
+          "YouTube Premium"
+        ],
+        "software": [
+          "Adobe Creative Cloud"
+        ],
+        "fitness": [
+          "Gym Membership",
+          "Fitness App",
+          "Nike"
+        ]
+      },
+      "category_duplicates": {
+        "streaming": [
+          "HBO Max",
+          "YouTube Premium"
+        ],
+        "fitness": [
+          "Gym Membership",
+          "Fitness App",
+          "Nike"
+        ]
+      },
+      "has_category_duplicates": true,
+      "total_spend": 19073.479735186975
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 2.8800842120699426,
+      "total_savings_balance": 3592.1113159366782,
+      "average_monthly_expenses": 1247.2244043707997,
+      "has_emergency_fund": false
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 1,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 3.6530439829197743,
+      "checking_balance": 4897.574006189194,
+      "average_monthly_expenses": 1340.6830109597263,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Subscription-Heavy (4/5 criteria, 80%) and Savings Builder (1/5 criteria, 20%) personas based on financial behavior patterns."
+}

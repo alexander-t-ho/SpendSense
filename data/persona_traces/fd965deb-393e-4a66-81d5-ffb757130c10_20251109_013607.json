@@ -1,0 +1,214 @@
+{
+  "user_id": "fd965deb-393e-4a66-81d5-ffb757130c10",
+  "timestamp": "2025-11-09T01:36:07.529615",
+  "assigned_personas": [
+    "savings_builder",
+    "subscription_heavy"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 0.0
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 2,
+      "total_criteria": 5,
+      "score": 2,
+      "reasons": [
+        "Criterion 2: 6 recurring subscriptions (\u22655)",
+        "Criterion 5: Monthly subscription spend $162.57 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 1.5
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 4,
+      "total_criteria": 5,
+      "score": 4,
+      "reasons": [
+        "Criterion 1: Savings growth 35.5% (\u22652%)",
+        "Criterion 2: Monthly savings inflow $479.46 (\u2265$200)",
+        "Criterion 3: Max credit utilization 0.0% (<30%)",
+        "Criterion 5: Savings balance $10972.84 (\u2265$5,000)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 1.0
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "fd965deb-393e-4a66-81d5-ffb757130c10",
+    "window_days": 180,
+    "start_date": "2025-05-13T01:36:07.327365",
+    "end_date": "2025-11-09T01:36:07.327365",
+    "subscriptions": {
+      "recurring_merchants": 6,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Adobe Creative Cloud",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 123.16186454658649,
+          "average_amount": 20.52697742443108,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Amtrak",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 34.25,
+          "total_amount": 82.91633385721398,
+          "average_amount": 16.583266771442798,
+          "first_transaction": "2025-05-31 00:03:01.430166",
+          "last_transaction": "2025-10-16 12:24:59.898402"
+        },
+        {
+          "merchant_name": "Cable Company",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 30.333333333333332,
+          "total_amount": 150.7621706259925,
+          "average_amount": 37.690542656498124,
+          "first_transaction": "2025-06-28 19:32:34.526654",
+          "last_transaction": "2025-09-29 08:28:22.935223"
+        },
+        {
+          "merchant_name": "BP",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 25.666666666666668,
+          "total_amount": 66.55494505007178,
+          "average_amount": 16.638736262517945,
+          "first_transaction": "2025-06-13 07:32:37.348224",
+          "last_transaction": "2025-08-31 10:13:15.523637"
+        },
+        {
+          "merchant_name": "Phone Company",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 203.23671363676004,
+          "average_amount": 50.80917840919001,
+          "first_transaction": "2025-07-29 23:09:19.825656",
+          "last_transaction": "2025-10-29 08:44:22.052420"
+        },
+        {
+          "merchant_name": "Delta Airlines",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 30.333333333333332,
+          "total_amount": 81.28402866957714,
+          "average_amount": 20.321007167394285,
+          "first_transaction": "2025-06-06 00:46:44.456501",
+          "last_transaction": "2025-09-06 09:34:33.482314"
+        }
+      ],
+      "monthly_recurring_spend": 162.5697086914742,
+      "average_subscription_cost": 27.094951448579035,
+      "total_subscription_spend": 707.916056386202,
+      "subscription_share_of_total": 4.541953486195852,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {
+        "software": [
+          "Adobe Creative Cloud"
+        ]
+      },
+      "category_duplicates": {},
+      "has_category_duplicates": false,
+      "total_spend": 15586.158214471776
+    },
+    "savings": {
+      "net_inflow": 2876.745735927719,
+      "monthly_net_inflow": 479.45762265461985,
+      "growth_rate_percent": 35.532502465229435,
+      "emergency_fund_coverage_months": 9.234114089565871,
+      "total_savings_balance": 10972.842369545851,
+      "average_monthly_expenses": 1188.2940001731909,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 1,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 2.1117231701411403,
+      "checking_balance": 2647.3426458304584,
+      "average_monthly_expenses": 1253.640952215114,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Savings Builder (4/5 criteria, 67%) and Subscription-Heavy (2/5 criteria, 33%) personas based on financial behavior patterns."
+}

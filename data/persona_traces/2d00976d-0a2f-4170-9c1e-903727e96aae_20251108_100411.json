@@ -1,0 +1,159 @@
+{
+  "user_id": "2d00976d-0a2f-4170-9c1e-903727e96aae",
+  "timestamp": "2025-11-08T10:04:11.930944",
+  "assigned_personas": [
+    "savings_builder"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 0.0
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 0.0
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 3,
+      "total_criteria": 5,
+      "score": 3,
+      "reasons": [
+        "Criterion 1: Savings growth 4.7% (\u22652%)",
+        "Criterion 3: Max credit utilization 0.0% (<30%)",
+        "Criterion 5: Savings balance $17808.22 (\u2265$5,000)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 0.75
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "2d00976d-0a2f-4170-9c1e-903727e96aae",
+    "window_days": 180,
+    "start_date": "2025-05-12T10:04:11.852173",
+    "end_date": "2025-11-08T10:04:11.852173",
+    "subscriptions": {
+      "recurring_merchants": 1,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Adobe Creative Cloud",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 63.64897318156126,
+          "average_amount": 10.608162196926877,
+          "first_transaction": "2025-06-07 16:08:58.465132",
+          "last_transaction": "2025-11-04 16:08:58.465132"
+        }
+      ],
+      "monthly_recurring_spend": 10.608162196926877,
+      "average_subscription_cost": 10.608162196926877,
+      "total_subscription_spend": 63.64897318156126,
+      "subscription_share_of_total": 4.890550349581087,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {
+        "software": [
+          "Adobe Creative Cloud"
+        ]
+      },
+      "category_duplicates": {},
+      "has_category_duplicates": false,
+      "total_spend": 1301.4685185076007
+    },
+    "savings": {
+      "net_inflow": 797.4299150633351,
+      "monthly_net_inflow": 132.9049858438892,
+      "growth_rate_percent": 4.687789161896574,
+      "emergency_fund_coverage_months": 82.09903731279081,
+      "total_savings_balance": 17808.21874372968,
+      "average_monthly_expenses": 216.91141975126678,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 1,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 9.974646237052575,
+      "checking_balance": 2107.4894103707206,
+      "average_monthly_expenses": 211.28462707199392,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Savings Builder persona (3/5 criteria matched, 100% match)."
+}

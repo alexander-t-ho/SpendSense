@@ -1,0 +1,220 @@
+{
+  "user_id": "3d1b7c5e-e1a7-449c-865a-00a786889ac3",
+  "timestamp": "2025-11-09T01:53:02.380388",
+  "assigned_personas": [
+    "subscription_heavy",
+    "savings_builder"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 0.0
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 3,
+      "total_criteria": 5,
+      "score": 3,
+      "reasons": [
+        "Criterion 2: 7 recurring subscriptions (\u22655)",
+        "Criterion 4: Subscriptions 25.6% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $413.06 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 2.25
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 3,
+      "total_criteria": 5,
+      "score": 3,
+      "reasons": [
+        "Criterion 1: Savings growth 6.6% (\u22652%)",
+        "Criterion 3: Max credit utilization 0.0% (<30%)",
+        "Criterion 5: Savings balance $12774.15 (\u2265$5,000)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 0.75
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "3d1b7c5e-e1a7-449c-865a-00a786889ac3",
+    "window_days": 180,
+    "start_date": "2025-05-13T01:53:02.243247",
+    "end_date": "2025-11-09T01:53:02.243247",
+    "subscriptions": {
+      "recurring_merchants": 7,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "New Balance",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 30.5,
+          "total_amount": 557.6564639188541,
+          "average_amount": 111.53129278377082,
+          "first_transaction": "2025-06-17 22:45:33.286285",
+          "last_transaction": "2025-10-17 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Target",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 33.0,
+          "total_amount": 206.4594944086552,
+          "average_amount": 68.81983146955173,
+          "first_transaction": "2025-05-17 07:25:37.249721",
+          "last_transaction": "2025-07-23 04:08:00.981109"
+        },
+        {
+          "merchant_name": "Amtrak",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 30.333333333333332,
+          "total_amount": 247.8793982024843,
+          "average_amount": 61.96984955062108,
+          "first_transaction": "2025-05-20 01:29:50.227179",
+          "last_transaction": "2025-08-20 06:24:15.398768"
+        },
+        {
+          "merchant_name": "Internet Provider",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 31.0,
+          "total_amount": 143.72773223567316,
+          "average_amount": 35.93193305891829,
+          "first_transaction": "2025-07-02 17:05:30.721340",
+          "last_transaction": "2025-10-05 02:37:38.040459"
+        },
+        {
+          "merchant_name": "Exxon",
+          "occurrences": 7,
+          "cadence": "monthly",
+          "average_interval_days": 28.0,
+          "total_amount": 401.7095371608132,
+          "average_amount": 57.38707673725903,
+          "first_transaction": "2025-05-17 00:47:50.635826",
+          "last_transaction": "2025-11-04 11:59:46.605680"
+        },
+        {
+          "merchant_name": "Electric Company",
+          "occurrences": 4,
+          "cadence": "monthly",
+          "average_interval_days": 27.666666666666668,
+          "total_amount": 170.8502542916575,
+          "average_amount": 42.71256357291438,
+          "first_transaction": "2025-05-28 05:37:02.224539",
+          "last_transaction": "2025-08-21 04:26:59.327188"
+        },
+        {
+          "merchant_name": "Delta Airlines",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 27.5,
+          "total_amount": 104.13539474776735,
+          "average_amount": 34.711798249255786,
+          "first_transaction": "2025-05-30 17:12:45.081468",
+          "last_transaction": "2025-07-26 04:05:04.271674"
+        }
+      ],
+      "monthly_recurring_spend": 413.06434542229107,
+      "average_subscription_cost": 59.00919220318444,
+      "total_subscription_spend": 1832.4182749659049,
+      "subscription_share_of_total": 25.630778712621595,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {},
+      "category_duplicates": {},
+      "has_category_duplicates": false,
+      "total_spend": 7149.288343953243
+    },
+    "savings": {
+      "net_inflow": 789.5707840435504,
+      "monthly_net_inflow": 131.59513067392507,
+      "growth_rate_percent": 6.588221778558469,
+      "emergency_fund_coverage_months": 10.720635088968155,
+      "total_savings_balance": 12774.15191355603,
+      "average_monthly_expenses": 1191.5480573255406,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 2,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 3.5417363328979863,
+      "checking_balance": 3754.185211104788,
+      "average_monthly_expenses": 1059.984385690554,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Subscription-Heavy (3/5 criteria, 50%) and Savings Builder (3/5 criteria, 50%) personas based on financial behavior patterns."
+}

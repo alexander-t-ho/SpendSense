@@ -1,0 +1,247 @@
+{
+  "user_id": "cdf3b11f-f901-4e09-902b-e7bd1f03974d",
+  "timestamp": "2025-11-09T01:36:08.540866",
+  "assigned_personas": [
+    "subscription_heavy",
+    "variable_income_budgeter"
+  ],
+  "primary_persona": "subscription_heavy",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 2: Cash-flow buffer 0.3 months (<1)"
+      ],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 1.0
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 4,
+      "total_criteria": 5,
+      "score": 4,
+      "reasons": [
+        "Criterion 1: Has 2+ subscriptions in same category: streaming (Disney+, YouTube Premium)",
+        "Criterion 2: 6 recurring subscriptions (\u22655)",
+        "Criterion 4: Subscriptions 28.8% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $409.93 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 3.0
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 1: Savings growth 3.6% (\u22652%)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 0.25
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "cdf3b11f-f901-4e09-902b-e7bd1f03974d",
+    "window_days": 180,
+    "start_date": "2025-05-13T01:36:08.330206",
+    "end_date": "2025-11-09T01:36:08.330206",
+    "subscriptions": {
+      "recurring_merchants": 6,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "Disney+",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 64.21565657615525,
+          "average_amount": 10.702609429359208,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "YouTube Premium",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 88.43028912998422,
+          "average_amount": 14.738381521664037,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Nike",
+          "occurrences": 7,
+          "cadence": "monthly",
+          "average_interval_days": 28.5,
+          "total_amount": 719.2645027047172,
+          "average_amount": 102.75207181495959,
+          "first_transaction": "2025-05-19 22:45:33.286285",
+          "last_transaction": "2025-11-06 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Adidas",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 29.8,
+          "total_amount": 999.5937517381005,
+          "average_amount": 166.59895862301676,
+          "first_transaction": "2025-05-18 22:45:33.286285",
+          "last_transaction": "2025-10-14 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Uniqlo",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 28.8,
+          "total_amount": 449.51223643296817,
+          "average_amount": 74.91870607216136,
+          "first_transaction": "2025-05-19 15:23:12.883753",
+          "last_transaction": "2025-10-10 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Dental Office",
+          "occurrences": 3,
+          "cadence": "monthly",
+          "average_interval_days": 35.0,
+          "total_amount": 120.64953644178675,
+          "average_amount": 40.21651214726225,
+          "first_transaction": "2025-06-17 07:34:10.868713",
+          "last_transaction": "2025-08-27 21:10:15.100323"
+        }
+      ],
+      "monthly_recurring_spend": 409.9272396084232,
+      "average_subscription_cost": 68.32120660140386,
+      "total_subscription_spend": 2441.6659730237125,
+      "subscription_share_of_total": 28.839069098458964,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {
+        "streaming": [
+          "Disney+",
+          "YouTube Premium"
+        ],
+        "fitness": [
+          "Nike"
+        ]
+      },
+      "category_duplicates": {
+        "streaming": [
+          "Disney+",
+          "YouTube Premium"
+        ]
+      },
+      "has_category_duplicates": true,
+      "total_spend": 8466.521456319077
+    },
+    "savings": {
+      "net_inflow": 100.17257220636736,
+      "monthly_net_inflow": 16.69542870106123,
+      "growth_rate_percent": 3.6352012571555283,
+      "emergency_fund_coverage_months": 3.1885358802738413,
+      "total_savings_balance": 2855.799155719119,
+      "average_monthly_expenses": 895.6459211849466,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 1,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "386074852986",
+          "name": "Discover Credit Card",
+          "utilization": {
+            "account_id": "386074852986",
+            "utilization_percent": 37.149704119383074,
+            "balance": 9287.426029845768,
+            "limit": 25000.0,
+            "available": 15712.573970154232,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": false,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": false,
+            "total_interest_charges": 0,
+            "monthly_interest_estimate": 0.0,
+            "interest_transactions": 0
+          },
+          "minimum_payment_only": false,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 0,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 0.26079547897775257,
+      "checking_balance": 202.8137845291961,
+      "average_monthly_expenses": 777.6736978883647,
+      "has_sufficient_buffer": false,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Subscription-Heavy (4/5 criteria, 80%) and Variable Income Budgeter (1/5 criteria, 20%) personas based on financial behavior patterns."
+}

@@ -1,0 +1,146 @@
+{
+  "user_id": "433f8b87-b737-48e3-a0d1-89ad5879505b",
+  "timestamp": "2025-11-08T00:02:37.168918",
+  "assigned_personas": [
+    "savings_builder"
+  ],
+  "primary_persona": "savings_builder",
+  "matching_results": {
+    "high_utilization": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 0.0
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 0.0
+    },
+    "subscription_heavy": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 0.0
+    },
+    "savings_builder": {
+      "matched": true,
+      "matched_criteria": 5,
+      "total_criteria": 5,
+      "score": 5,
+      "reasons": [
+        "Criterion 1: Savings growth 50.0% (\u22652%)",
+        "Criterion 2: Monthly savings inflow $659.10 (\u2265$200)",
+        "Criterion 3: Max credit utilization 0.0% (<30%)",
+        "Criterion 4: Monthly savings inflow $659.10 (\u2265$500)",
+        "Criterion 5: Savings balance $11871.44 (\u2265$5,000)"
+      ],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 1.25
+    },
+    "fee_accumulator": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.0
+    }
+  },
+  "features_snapshot": {
+    "user_id": "433f8b87-b737-48e3-a0d1-89ad5879505b",
+    "window_days": 180,
+    "start_date": "2025-05-12T00:02:37.130533",
+    "end_date": "2025-11-08T00:02:37.130533",
+    "subscriptions": {
+      "recurring_merchants": 0,
+      "recurring_merchant_details": [],
+      "monthly_recurring_spend": 0,
+      "average_subscription_cost": 0.0,
+      "total_subscription_spend": 0,
+      "subscription_share_of_total": 0.0,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {},
+      "category_duplicates": {},
+      "has_category_duplicates": false,
+      "total_spend": 1866.1024264192831
+    },
+    "savings": {
+      "net_inflow": 3954.5710202404775,
+      "monthly_net_inflow": 659.0951700400796,
+      "growth_rate_percent": 49.951212045240354,
+      "emergency_fund_coverage_months": 38.16973124613588,
+      "total_savings_balance": 11871.438015697682,
+      "average_monthly_expenses": 311.0170710698805,
+      "has_emergency_fund": true
+    },
+    "credit": {
+      "has_credit_cards": false,
+      "total_cards": 0,
+      "any_high_utilization_50": false,
+      "any_high_utilization_80": false,
+      "any_interest_charges": false,
+      "any_minimum_payment_only": false,
+      "any_overdue": false,
+      "card_details": []
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 2,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 6.044746392907153,
+      "checking_balance": 2626.9505378097374,
+      "average_monthly_expenses": 434.58407798417744,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 0.0,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to Savings Builder persona (5/5 criteria matched, 100% match)."
+}

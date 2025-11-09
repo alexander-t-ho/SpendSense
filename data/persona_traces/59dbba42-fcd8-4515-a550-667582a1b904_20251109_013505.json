@@ -1,0 +1,249 @@
+{
+  "user_id": "59dbba42-fcd8-4515-a550-667582a1b904",
+  "timestamp": "2025-11-09T01:35:05.718216",
+  "assigned_personas": [
+    "high_utilization",
+    "subscription_heavy"
+  ],
+  "primary_persona": "high_utilization",
+  "matching_results": {
+    "high_utilization": {
+      "matched": true,
+      "matched_criteria": 3,
+      "total_criteria": 5,
+      "score": 3,
+      "reasons": [
+        "Criterion 1: Credit utilization 58.6% (\u226550%)",
+        "Criterion 3: Interest charges detected",
+        "Criterion 4: Making only minimum payments"
+      ],
+      "risk": 5,
+      "risk_level": "CRITICAL",
+      "points_per_criterion": 1.25,
+      "total_points": 3.75
+    },
+    "variable_income_budgeter": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 4,
+      "risk_level": "HIGH",
+      "points_per_criterion": 1.0,
+      "total_points": 0.0
+    },
+    "subscription_heavy": {
+      "matched": true,
+      "matched_criteria": 3,
+      "total_criteria": 5,
+      "score": 3,
+      "reasons": [
+        "Criterion 2: 7 recurring subscriptions (\u22655)",
+        "Criterion 4: Subscriptions 23.5% of total (\u226510%)",
+        "Criterion 5: Monthly subscription spend $546.78 (\u2265$100)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.75,
+      "total_points": 2.25
+    },
+    "savings_builder": {
+      "matched": false,
+      "matched_criteria": 0,
+      "total_criteria": 5,
+      "score": 0,
+      "reasons": [],
+      "risk": 2,
+      "risk_level": "LOW",
+      "points_per_criterion": 0.25,
+      "total_points": 0.0
+    },
+    "fee_accumulator": {
+      "matched": true,
+      "matched_criteria": 1,
+      "total_criteria": 5,
+      "score": 1,
+      "reasons": [
+        "Criterion 2: Total fees $198.87 in last month (\u2265$50)"
+      ],
+      "risk": 3,
+      "risk_level": "MEDIUM",
+      "points_per_criterion": 0.85,
+      "total_points": 0.85
+    }
+  },
+  "features_snapshot": {
+    "user_id": "59dbba42-fcd8-4515-a550-667582a1b904",
+    "window_days": 180,
+    "start_date": "2025-05-13T01:35:05.401623",
+    "end_date": "2025-11-09T01:35:05.401623",
+    "subscriptions": {
+      "recurring_merchants": 7,
+      "recurring_merchant_details": [
+        {
+          "merchant_name": "HBO Max",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 29.5,
+          "total_amount": 97.8269594061818,
+          "average_amount": 19.56539188123636,
+          "first_transaction": "2025-07-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Puma",
+          "occurrences": 7,
+          "cadence": "monthly",
+          "average_interval_days": 25.166666666666668,
+          "total_amount": 701.9696761243426,
+          "average_amount": 100.28138230347751,
+          "first_transaction": "2025-05-21 07:19:17.516766",
+          "last_transaction": "2025-10-20 22:45:33.286285"
+        },
+        {
+          "merchant_name": "Subway",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 29.6,
+          "total_amount": 283.08827998819066,
+          "average_amount": 47.18137999803178,
+          "first_transaction": "2025-05-27 22:20:42.546154",
+          "last_transaction": "2025-10-25 10:55:30.797841"
+        },
+        {
+          "merchant_name": "Chevron",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 34.75,
+          "total_amount": 236.95139739112562,
+          "average_amount": 47.390279478225125,
+          "first_transaction": "2025-05-25 10:00:38.836320",
+          "last_transaction": "2025-10-12 23:11:41.497912"
+        },
+        {
+          "merchant_name": "BP",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 32.0,
+          "total_amount": 326.3108357472514,
+          "average_amount": 65.26216714945028,
+          "first_transaction": "2025-06-12 22:26:28.218356",
+          "last_transaction": "2025-10-20 06:25:41.388444"
+        },
+        {
+          "merchant_name": "Lyft",
+          "occurrences": 5,
+          "cadence": "monthly",
+          "average_interval_days": 30.25,
+          "total_amount": 341.16877388806347,
+          "average_amount": 68.23375477761269,
+          "first_transaction": "2025-05-30 10:32:19.642642",
+          "last_transaction": "2025-09-30 22:10:07.035291"
+        },
+        {
+          "merchant_name": "INTEREST CHARGE",
+          "occurrences": 6,
+          "cadence": "monthly",
+          "average_interval_days": 30.0,
+          "total_amount": 1193.1922158671784,
+          "average_amount": 198.86536931119642,
+          "first_transaction": "2025-06-11 22:45:33.286285",
+          "last_transaction": "2025-11-08 22:45:33.286285"
+        }
+      ],
+      "monthly_recurring_spend": 546.7797248992302,
+      "average_subscription_cost": 78.1113892713186,
+      "total_subscription_spend": 3180.508138412334,
+      "subscription_share_of_total": 23.47434016061548,
+      "subscription_to_income_ratio": 0.0,
+      "subscription_categories": {
+        "streaming": [
+          "HBO Max"
+        ]
+      },
+      "category_duplicates": {},
+      "has_category_duplicates": false,
+      "total_spend": 13548.871306502118
+    },
+    "savings": {
+      "net_inflow": 0.0,
+      "monthly_net_inflow": 0.0,
+      "growth_rate_percent": 0.0,
+      "emergency_fund_coverage_months": 0.0,
+      "total_savings_balance": 0,
+      "average_monthly_expenses": 1016.6629246192851,
+      "has_emergency_fund": false
+    },
+    "credit": {
+      "has_credit_cards": true,
+      "total_cards": 1,
+      "any_high_utilization_50": true,
+      "any_high_utilization_80": false,
+      "any_interest_charges": true,
+      "any_minimum_payment_only": true,
+      "any_overdue": false,
+      "card_details": [
+        {
+          "account_id": "868329876816",
+          "name": "Visa Credit Card",
+          "utilization": {
+            "account_id": "868329876816",
+            "utilization_percent": 58.60369738897364,
+            "balance": 8790.554608346047,
+            "limit": 15000.0,
+            "available": 6209.445391653953,
+            "is_high_utilization_30": true,
+            "is_high_utilization_50": true,
+            "is_high_utilization_80": false
+          },
+          "interest_charges": {
+            "has_interest_charges": true,
+            "total_interest_charges": 1193.1922158671784,
+            "monthly_interest_estimate": 198.86536931119642,
+            "interest_transactions": 6
+          },
+          "minimum_payment_only": true,
+          "is_overdue": false
+        }
+      ]
+    },
+    "income": {
+      "has_payroll_detected": false,
+      "total_payroll_transactions": 0,
+      "average_income_per_pay": 0.0,
+      "minimum_monthly_income": 0.0,
+      "distinct_income_sources_90d": 2,
+      "payment_frequency": {
+        "frequency": "unknown",
+        "average_days_between": 0.0,
+        "median_days_between": 0.0,
+        "frequency_variability": 0.0,
+        "is_regular": false
+      },
+      "median_pay_gap_days": 0.0,
+      "cash_flow_buffer_months": 1.1936519068391398,
+      "checking_balance": 1251.5652383931854,
+      "average_monthly_expenses": 1048.517772411057,
+      "has_sufficient_buffer": true,
+      "is_variable_income": false
+    },
+    "fees": {
+      "overdraft_nsf_fees_90d": 0,
+      "total_fees_last_month": 198.8653693111964,
+      "atm_fees_90d": 0,
+      "accounts_with_late_fees": 0,
+      "has_maintenance_fees": false,
+      "maintenance_fees_90d": 0,
+      "total_fees_90d": 0,
+      "overdraft_fees": 0,
+      "nsf_fees": 0,
+      "atm_fees": 0,
+      "late_payment_fees": 0,
+      "maintenance_fees": 0,
+      "total_fees": 0,
+      "fee_transactions": []
+    }
+  },
+  "rationale": "Assigned to High Utilization (3/5 criteria, 50%) and Subscription-Heavy (3/5 criteria, 50%) personas based on financial behavior patterns."
+}
