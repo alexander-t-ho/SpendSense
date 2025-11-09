@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """FastAPI application for SpendSense."""
 
 import os
@@ -6,36 +5,20 @@ import uuid
 from fastapi import FastAPI, HTTPException, Query, Body, WebSocket, WebSocketDisconnect, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-=======
-"""FastAPI application for Leafly."""
-
-import os
-from fastapi import FastAPI, HTTPException, Query, Body, WebSocket, WebSocketDisconnect
-from fastapi.middleware.cors import CORSMiddleware
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
-<<<<<<< HEAD
 from pydantic import BaseModel, EmailStr
 import bcrypt
 from jose import JWTError, jwt
 
 from ingest.schema import get_session, User, Account, Transaction, Liability, CancelledSubscription, ApprovedActionPlan, Recommendation
 from features.pipeline import FeaturePipeline
-from api.websocket import manager
-
-app = FastAPI(title="SpendSense API", version="1.0.0")
-=======
-
-from ingest.schema import get_session, User, Account, Transaction, Liability, CancelledSubscription, ApprovedActionPlan, Recommendation
-from features.pipeline import FeaturePipeline
 from features.payroll_utils import PayrollDetector
 from api.websocket import manager
 
-app = FastAPI(title="Leafly API", version="1.0.0")
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
+app = FastAPI(title="SpendSense API", version="1.0.0")
 
 # CORS middleware
 # Allow origins from environment variable for Lambda, fallback to localhost for local dev
