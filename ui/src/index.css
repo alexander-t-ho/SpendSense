@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-<<<<<<< HEAD
 @layer base {
   :root {
     --background: 245 230 211; /* #F5E6D3 */
@@ -27,8 +26,6 @@
   }
 }
 
-=======
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -36,11 +33,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-<<<<<<< HEAD
   background-color: rgb(var(--background));
   color: rgb(var(--foreground));
-=======
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
 }
 
 code {
