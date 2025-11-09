@@ -16,6 +16,7 @@ export default function UserDetail() {
   const [windowDays, setWindowDays] = useState<number>(30)
   const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'recommendations'>('overview')
   const [activeSubTab, setActiveSubTab] = useState<'accounts' | 'transactions'>('accounts')
+  const [showConsentInfoModal, setShowConsentInfoModal] = useState(false)
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['user', userId, windowDays],

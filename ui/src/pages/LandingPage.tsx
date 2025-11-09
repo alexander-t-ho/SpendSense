@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { useAuth } from '../components/AuthContext'
 import { useEffect } from 'react'
-import { ShieldCheck, ArrowUpRight, LogIn, UserPlus, Leaf } from "lucide-react"
+import { ShieldCheck, ArrowUpRight, Leaf } from "lucide-react"
 
 /** Leafly Fintech Landing Page */
 

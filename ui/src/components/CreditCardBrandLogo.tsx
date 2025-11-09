@@ -1,5 +1,3 @@
-import React from 'react'
-
 interface CreditCardBrandLogoProps {
   brand: 'visa' | 'mastercard' | 'amex' | 'discover' | null
   className?: string

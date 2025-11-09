@@ -10,13 +10,6 @@ import CreditCardBrandLogo, { detectCreditCardBrand } from "../CreditCardBrandLo
 
 /** Leafly Fintech Landing Page (no browser chrome) */
 
-const Stat = ({ label, value }: { label: string; value: string }) => (
-  <div className="space-y-1">
-    <div className="text-3xl font-semibold tracking-tight text-[#5D4037]">{value}</div>
-    <div className="text-sm text-[#8B6F47]">{label}</div>
-  </div>
-);
-
 const SoftButton = ({ children, className = "", ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode; className?: string }) => (
   <button
     className={
@@ -30,7 +23,7 @@ const SoftButton = ({ children, className = "", ...props }: React.ButtonHTMLAttr
   </button>
 );
 
-function MiniBars() {
+function _MiniBars() {
   return (
     <div className="mt-6 flex h-36 items-end gap-4 rounded-xl bg-gradient-to-b from-[#F5E6D3] to-white p-4">
       {[18, 48, 72, 96].map((h, i) => (
