@@ -235,12 +235,6 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
         username=current_user.username,
         is_admin=current_user.is_admin
     )
-=======
-
-@app.get("/")
-def root():
-    return {"message": "Leafly API", "version": "1.0.0"}
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
 
 
 @app.get("/api/stats")
@@ -579,27 +573,6 @@ def get_user_profile(
             
             # If still no payroll, try all depository accounts
             if not payroll_transactions:
-<<<<<<< HEAD
-                depository_accounts = [acc for acc in accounts if acc.type == 'depository']
-                depository_account_ids = [acc.id for acc in depository_accounts]
-                
-                if depository_account_ids:
-                    payroll_tx_objects = session.query(Transaction).filter(
-                        and_(
-                            Transaction.account_id.in_(depository_account_ids),
-                            Transaction.date >= payroll_start_date,
-                            Transaction.date <= payroll_end_date,
-                            Transaction.amount > 0,
-                            or_(
-                                Transaction.merchant_name.like("%PAYROLL%"),
-                                Transaction.merchant_name.like("%DEPOSIT%"),
-                                Transaction.primary_category == "Transfer In"
-                            ),
-                            Transaction.amount >= 1000
-                        )
-                    ).all()
-                    
-=======
                 # Use PayrollDetector utility (searches all depository accounts)
                 payroll_tx_objects = PayrollDetector.detect_payroll_transactions(
                     session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
@@ -607,7 +580,6 @@ def get_user_profile(
                 
                 if payroll_tx_objects:
                     depository_accounts = [acc for acc in accounts if acc.type == 'depository']
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
                     account_id_map = {acc.id: acc.account_id for acc in depository_accounts}
                     payroll_transactions = [
                         {
@@ -853,36 +825,6 @@ def get_suggested_budget(
         # Calculate monthly average from 180-day payroll: (180-day total / 180) * 365 / 12
         # This matches the "Monthly Average" shown in the Income Analysis card
         # Budget is 80% of the monthly average
-<<<<<<< HEAD
-        depository_accounts = [acc for acc in accounts if acc.type == 'depository']
-        depository_account_ids = [acc.id for acc in depository_accounts]
-        
-        monthly_income = 0.0
-        if depository_account_ids:
-            # Get payroll transactions using flexible pattern matching (same as IncomeAnalyzer)
-            # This matches transactions with "PAYROLL" or "DEPOSIT" in merchant name, or "Transfer In" category
-            payroll_start_date = datetime.now() - timedelta(days=180)
-            payroll_transactions = session.query(Transaction).filter(
-                and_(
-                    Transaction.account_id.in_(depository_account_ids),
-                    Transaction.date >= payroll_start_date,
-                    Transaction.amount > 0,  # Only positive amounts (deposits)
-                    or_(
-                        Transaction.merchant_name.like("%PAYROLL%"),
-                        Transaction.merchant_name.like("%DEPOSIT%"),
-                        Transaction.primary_category == "Transfer In"
-                    ),
-                    Transaction.amount >= 1000  # Reasonable minimum for payroll
-                )
-            ).all()
-            
-            # Calculate monthly average from payroll (same as income analysis)
-            # Formula: (180-day payroll total / 180) * 365 / 12
-            if payroll_transactions:
-                income_180d = sum(tx.amount for tx in payroll_transactions)
-                yearly_income = (income_180d / 180.0) * 365.0
-                monthly_income = yearly_income / 12.0
-=======
         # Use shared PayrollDetector utility for consistent payroll detection
         payroll_start_date = datetime.now() - timedelta(days=180)
         payroll_end_date = datetime.now()
@@ -892,7 +834,6 @@ def get_suggested_budget(
         monthly_income = PayrollDetector.calculate_monthly_income_from_payroll(
             payroll_transactions, days_in_period=180
         )
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
         
         # Fallback to FeaturePipeline if no transaction-based income found
         if monthly_income <= 0:
@@ -1043,37 +984,6 @@ def set_user_budget(
         # Calculate monthly average from 180-day payroll: (180-day total / 180) * 365 / 12
         # This matches the "Monthly Average" shown in the Income Analysis card
         # Budget is 80% of the monthly average
-<<<<<<< HEAD
-        accounts = session.query(Account).filter(Account.user_id == user_id).all()
-        depository_accounts = [acc for acc in accounts if acc.type == 'depository']
-        depository_account_ids = [acc.id for acc in depository_accounts]
-        
-        monthly_income = 0.0
-        if depository_account_ids:
-            # Get payroll transactions using flexible pattern matching (same as IncomeAnalyzer)
-            # This matches transactions with "PAYROLL" or "DEPOSIT" in merchant name, or "Transfer In" category
-            payroll_start_date = datetime.now() - timedelta(days=180)
-            payroll_transactions = session.query(Transaction).filter(
-                and_(
-                    Transaction.account_id.in_(depository_account_ids),
-                    Transaction.date >= payroll_start_date,
-                    Transaction.amount > 0,  # Only positive amounts (deposits)
-                    or_(
-                        Transaction.merchant_name.like("%PAYROLL%"),
-                        Transaction.merchant_name.like("%DEPOSIT%"),
-                        Transaction.primary_category == "Transfer In"
-                    ),
-                    Transaction.amount >= 1000  # Reasonable minimum for payroll
-                )
-            ).all()
-            
-            # Calculate monthly average from payroll (same as income analysis)
-            # Formula: (180-day payroll total / 180) * 365 / 12
-            if payroll_transactions:
-                income_180d = sum(tx.amount for tx in payroll_transactions)
-                yearly_income = (income_180d / 180.0) * 365.0
-                monthly_income = yearly_income / 12.0
-=======
         # Use shared PayrollDetector utility for consistent payroll detection
         payroll_start_date = datetime.now() - timedelta(days=180)
         payroll_end_date = datetime.now()
@@ -1083,7 +993,6 @@ def set_user_budget(
         monthly_income = PayrollDetector.calculate_monthly_income_from_payroll(
             payroll_transactions, days_in_period=180
         )
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
         
         # Fallback to FeaturePipeline if no transaction-based income found
         if monthly_income <= 0:
@@ -1232,33 +1141,6 @@ def generate_budget(
         
         # CRITICAL: Ensure total_budget is 80% of monthly average income
         # Calculate monthly income to validate and cap if needed
-<<<<<<< HEAD
-        accounts = session.query(Account).filter(Account.user_id == user_id).all()
-        depository_accounts = [acc for acc in accounts if acc.type == 'depository']
-        depository_account_ids = [acc.id for acc in depository_accounts]
-        
-        monthly_income = 0.0
-        if depository_account_ids:
-            payroll_start_date = datetime.now() - timedelta(days=180)
-            payroll_transactions = session.query(Transaction).filter(
-                and_(
-                    Transaction.account_id.in_(depository_account_ids),
-                    Transaction.date >= payroll_start_date,
-                    Transaction.amount > 0,
-                    or_(
-                        Transaction.merchant_name.like("%PAYROLL%"),
-                        Transaction.merchant_name.like("%DEPOSIT%"),
-                        Transaction.primary_category == "Transfer In"
-                    ),
-                    Transaction.amount >= 1000
-                )
-            ).all()
-            
-            if payroll_transactions:
-                income_180d = sum(tx.amount for tx in payroll_transactions)
-                yearly_income = (income_180d / 180.0) * 365.0
-                monthly_income = yearly_income / 12.0
-=======
         # Use shared PayrollDetector utility for consistent payroll detection
         payroll_start_date = datetime.now() - timedelta(days=180)
         payroll_end_date = datetime.now()
@@ -1268,7 +1150,6 @@ def generate_budget(
         monthly_income = PayrollDetector.calculate_monthly_income_from_payroll(
             payroll_transactions, days_in_period=180
         )
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
         
         # Cap total_budget at 80% of monthly_income (budget is 80% of monthly average)
         if monthly_income > 0:
