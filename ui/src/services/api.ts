@@ -26,11 +26,7 @@ export async function fetchStats() {
 }
 
 // Insights API functions (using Lambda endpoints)
-<<<<<<< HEAD
 const INSIGHTS_API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/insights` : '/api/insights'
-=======
-const INSIGHTS_API_BASE = '/api/insights'
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
 
 export async function fetchWeeklyRecap(userId: string, weekStart?: string) {
   const params = weekStart ? `?week_start=${weekStart}` : ''

@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import { useParams } from 'react-router-dom'
-import LeaflyLandingPage from '../../components/ui/fin-tech-landing-page'
-
-/**
- * User Dashboard - End-user view
- * Uses the preview format (LeaflyLandingPage) with account banners and monthly spending
-=======
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
 import { fetchUserDetail } from '../../services/api'
@@ -21,15 +13,10 @@ import { getConsentStatus } from '../../services/api'
 
 /**
  * User Dashboard - End-user view
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
  * User can only see their own account data
  */
 export default function UserDashboard() {
   const { userId } = useParams<{ userId: string }>()
-<<<<<<< HEAD
-
-  return <LeaflyLandingPage userId={userId} />
-=======
   const [windowDays, setWindowDays] = useState<number>(30)
   const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'recommendations'>('overview')
   const [activeSubTab, setActiveSubTab] = useState<'accounts' | 'transactions'>('accounts')
@@ -244,5 +231,4 @@ export default function UserDashboard() {
       )}
     </div>
   )
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
 }

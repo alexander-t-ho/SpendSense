@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Leaf, CreditCard, Wallet, Building2, Settings, CheckCircle, XCircle } from "lucide-react";
+import { Leaf, CreditCard, Wallet, Building2, Settings, CheckCircle, XCircle, Info } from "lucide-react";
 import { fetchUserDetail, getConsentStatus } from "../../services/api";
 import FinancialInsightsCarousel from "../FinancialInsightsCarousel";
 import RecommendationsSection from "../RecommendationsSection";
 import CreditCardBrandLogo, { detectCreditCardBrand } from "../CreditCardBrandLogo";
 import PersonaPieChart from "../PersonaPieChart";
 import CustomRecommendationGenerator from "../admin/CustomRecommendationGenerator";
+import ConsentInfoModal from "../admin/ConsentInfoModal";
 
 // Planet component for green account cards
 function Planet() {
@@ -262,6 +263,7 @@ export default function AdminLandingPage({ userId }: AdminLandingPageProps) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'recommendations'>('overview');
   const [windowDays] = useState<number>(30);
+  const [showConsentInfoModal, setShowConsentInfoModal] = useState(false);
 
   const { data: consent } = useQuery({
     queryKey: ['consent', userId],
@@ -401,10 +403,15 @@ export default function AdminLandingPage({ userId }: AdminLandingPageProps) {
                     <span className="text-sm font-medium">Consented</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-800 rounded-full border border-red-300">
+                  <button
+                    onClick={() => setShowConsentInfoModal(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-800 rounded-full border border-red-300 hover:bg-red-200 transition-colors cursor-pointer group"
+                    title="Click to see what data is visible"
+                  >
                     <XCircle size={16} />
                     <span className="text-sm font-medium">Not Consented</span>
-                  </div>
+                    <Info size={14} className="opacity-60 group-hover:opacity-100 transition-opacity" />
+                  </button>
                 )}
               </div>
             </div>
@@ -647,6 +654,13 @@ export default function AdminLandingPage({ userId }: AdminLandingPageProps) {
       <footer className="mx-auto w-full max-w-[1180px] px-4 pb-10 text-center text-xs text-[#8B6F47]/70 md:px-0">
         © {new Date().getFullYear()} Leafly, Inc. All rights reserved.
       </footer>
+
+      {/* Consent Info Modal */}
+      <ConsentInfoModal
+        isOpen={showConsentInfoModal}
+        onClose={() => setShowConsentInfoModal(false)}
+        userName={user?.name}
+      />
     </div>
   );
 }

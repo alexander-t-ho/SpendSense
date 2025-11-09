@@ -1,15 +1,3 @@
-<<<<<<< HEAD
-import { useParams } from 'react-router-dom'
-import AdminLandingPage from '../components/ui/admin-landing-page'
-
-export default function UserDetail() {
-  const { userId } = useParams<{ userId: string }>()
-
-  if (!userId) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-[#8B6F47]">User ID is required</p>
-=======
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -20,7 +8,8 @@ import FinancialInsightsCarousel from '../components/FinancialInsightsCarousel'
 import PersonaPieChart from '../components/PersonaPieChart'
 import CustomRecommendationGenerator from '../components/admin/CustomRecommendationGenerator'
 import RecommendationsSection from '../components/RecommendationsSection'
-import { BarChart3, Settings, CheckCircle, XCircle, MessageSquare } from 'lucide-react'
+import ConsentInfoModal from '../components/admin/ConsentInfoModal'
+import { BarChart3, Settings, CheckCircle, XCircle, MessageSquare, Info } from 'lucide-react'
 
 export default function UserDetail() {
   const { userId } = useParams<{ userId: string }>()
@@ -52,15 +41,9 @@ export default function UserDetail() {
     return (
       <div className="text-center py-12">
         <p className="text-[#8B6F47]">User not found</p>
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
       </div>
     )
   }
-
-<<<<<<< HEAD
-  return <AdminLandingPage userId={userId} />
-}
-=======
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel?.toUpperCase()) {
       case 'CRITICAL':
@@ -97,10 +80,15 @@ export default function UserDetail() {
                   <span className="text-sm font-medium">Consented</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-800 rounded-full border border-red-300">
+                <button
+                  onClick={() => setShowConsentInfoModal(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-800 rounded-full border border-red-300 hover:bg-red-200 transition-colors cursor-pointer group"
+                  title="Click to see what data is visible"
+                >
                   <XCircle size={16} />
                   <span className="text-sm font-medium">Not Consented</span>
-                </div>
+                  <Info size={14} className="opacity-60 group-hover:opacity-100 transition-opacity" />
+                </button>
               )}
             </div>
           </div>
@@ -701,8 +689,13 @@ function CollapsibleRecommendations({
             })}
         </div>
       )}
+
+      {/* Consent Info Modal */}
+      <ConsentInfoModal
+        isOpen={showConsentInfoModal}
+        onClose={() => setShowConsentInfoModal(false)}
+        userName={user?.name}
+      />
     </div>
   )
 }
-
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
