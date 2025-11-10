@@ -19,7 +19,7 @@ if ! railway status &> /dev/null; then
     echo ""
     echo "Please link your Railway project first:"
     echo "  1. Run: railway link"
-    echo "  2. Select your project (likely 'content-elegance' or the one with your backend)"
+    echo "  2. Select your project: 'respectful-surprise' (SpendSense backend)"
     echo "  3. Then run this script again: ./setup_railway_cors.sh"
     echo ""
     exit 1
