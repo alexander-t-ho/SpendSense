@@ -608,7 +608,6 @@ class SyntheticDataGenerator:
                             "pending": False
                         })
                         tx_date += timedelta(days=interval_days)
-<<<<<<< HEAD
                 
                 # Recurring transaction patterns for all users
                 # Starbucks: 2-4 transactions per week
@@ -720,8 +719,6 @@ class SyntheticDataGenerator:
                         uniqlo_date = uniqlo_date.replace(year=uniqlo_date.year + 1, month=1, day=1)
                     else:
                         uniqlo_date = uniqlo_date.replace(month=uniqlo_date.month + 1, day=1)
-=======
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
             
             # Income transactions (payroll)
             if account_subtype == "checking":
