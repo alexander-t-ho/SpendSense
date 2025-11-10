@@ -32,12 +32,12 @@ fi
 
 # Get current CORS_ORIGINS
 echo "📋 Current CORS_ORIGINS:"
-railway variables get CORS_ORIGINS 2>&1 || echo "  (not set)"
+railway variables 2>&1 | grep CORS_ORIGINS || echo "  (not set)"
 echo ""
 
 # Update CORS_ORIGINS
 echo "🔄 Updating CORS_ORIGINS..."
-railway variables set CORS_ORIGINS="http://localhost:3004,${VERCEL_FULL_URL}"
+railway variables --set "CORS_ORIGINS=http://localhost:3004,${VERCEL_FULL_URL}"
 
 echo ""
 echo "✅ CORS updated successfully!"
