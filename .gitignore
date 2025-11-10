@@ -89,3 +89,4 @@ data/persona_traces/traces_log.jsonl
 data/persona_traces/*.json
 data/persona_traces/**/*.json
 data/transactions_final.csv
+.vercel

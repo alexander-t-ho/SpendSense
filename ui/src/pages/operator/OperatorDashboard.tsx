@@ -44,7 +44,7 @@ export default function OperatorDashboard() {
     queryKey: ['users'],
     queryFn: () => fetchUsers(0, 50, false), // Fast: no persona computation
     staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
-    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   })
 
   // Load persona data in background after users are loaded
@@ -54,7 +54,7 @@ export default function OperatorDashboard() {
     queryFn: () => fetchUsers(0, 20, true), // Only compute personas for first 20 users
     enabled: !!users && users.length > 0, // Only fetch after users are loaded
     staleTime: 5 * 60 * 1000, // Cache persona data for 5 minutes
-    cacheTime: 10 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false, // Don't refetch on window focus
   })
 

@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
-import { fetchUserDetail, getConsentStatus, revokeConsent, grantConsent } from '../../services/api'
+import { fetchUserDetail, getConsentStatus } from '../../services/api'
 import AccountCard from '../../components/AccountCard'
 import TransactionTable from '../../components/TransactionTable'
 import FinancialInsightsCarousel from '../../components/FinancialInsightsCarousel'
@@ -16,7 +16,6 @@ import { FileText, BarChart3, Settings, MessageSquare } from 'lucide-react'
  */
 export default function UserDashboard() {
   const { userId } = useParams<{ userId: string }>()
-  const queryClient = useQueryClient()
   const [windowDays, setWindowDays] = useState<number>(30)
   const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'recommendations' | 'settings'>('overview')
   const [activeSubTab, setActiveSubTab] = useState<'accounts' | 'transactions'>('accounts')
@@ -263,7 +262,7 @@ export default function UserDashboard() {
             setConsentModalOpen(false)
             // User stays on Settings tab, can reopen modal by clicking button or Settings tab again
           }}
-          onConsentChange={(consented) => {
+          onConsentChange={() => {
             // If consent is revoked, the useEffect will auto-show modal next time user visits
             // The modal will stay open so user can see the updated state
           }}

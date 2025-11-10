@@ -281,7 +281,6 @@ export default function LeaflyLandingPage({ userId, hideMonthlySpending = false 
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'home' | 'insights' | 'recommendations'>('home');
   const [showConsentModal, setShowConsentModal] = useState(false);
-  const [consentStatus, setConsentStatus] = useState<any>(null);
 
   const handleLogout = () => {
     logout();
@@ -325,7 +324,6 @@ export default function LeaflyLandingPage({ userId, hideMonthlySpending = false 
         if (isViewingOwnData) {
           try {
             const consent = await getConsentStatus(targetUserId);
-            setConsentStatus(consent);
             // Show consent modal if user hasn't consented
             if (!consent?.consented) {
               setShowConsentModal(true);

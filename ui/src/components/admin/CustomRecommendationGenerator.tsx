@@ -15,7 +15,6 @@ export default function CustomRecommendationGenerator({
   contextData,
   onRecommendationGenerated
 }: CustomRecommendationGeneratorProps) {
-  const queryClient = useQueryClient()
   const [isOpen, setIsOpen] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [recommendationType, setRecommendationType] = useState<'actionable_recommendation' | 'readings'>('actionable_recommendation')

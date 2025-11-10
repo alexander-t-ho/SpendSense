@@ -25,7 +25,7 @@ export default function RecommendationsSection({ userId, windowDays = 180, readO
     enabled: !!userId && readOnly,
     retry: false,
     staleTime: 30000, // Cache for 30 seconds
-    cacheTime: 300000, // Keep in cache for 5 minutes
+    gcTime: 300000, // Keep in cache for 5 minutes
   })
 
   // For regular users, get approved recommendations
@@ -41,7 +41,7 @@ export default function RecommendationsSection({ userId, windowDays = 180, readO
     enabled: !!userId && !readOnly,
     retry: false,
     staleTime: 30000, // Cache for 30 seconds
-    cacheTime: 300000, // Keep in cache for 5 minutes
+    gcTime: 300000, // Keep in cache for 5 minutes
     refetchOnWindowFocus: false, // Don't refetch on window focus
   })
 
@@ -54,7 +54,7 @@ export default function RecommendationsSection({ userId, windowDays = 180, readO
     enabled: !!userId && !readOnly && !isLoadingApproved && !hasApprovedRecs,
     retry: false,
     staleTime: 60000, // Cache for 1 minute (generated recommendations are expensive)
-    cacheTime: 600000, // Keep in cache for 10 minutes
+    gcTime: 600000, // Keep in cache for 10 minutes
   })
 
   // Listen for consent changes and refetch recommendations
