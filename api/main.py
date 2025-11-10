@@ -360,10 +360,13 @@ def generate_users_in_production(
         import traceback
         error_details = traceback.format_exc()
         print(f"Error generating users: {error_details}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error generating users: {str(e)}"
-        )
+        # Return detailed error for debugging
+        return {
+            "error": "Failed to generate users",
+            "message": str(e),
+            "traceback": error_details,
+            "db_path": db_path
+        }
 
 
 @app.post("/api/auth/logout")
