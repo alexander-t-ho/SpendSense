@@ -1396,7 +1396,7 @@ def generate_budget(
         # CRITICAL: Ensure total_budget is 80% of monthly average income
         # Calculate monthly income to validate and cap if needed
         # Use shared PayrollDetector utility for consistent payroll detection
-            payroll_start_date = datetime.now() - timedelta(days=180)
+        payroll_start_date = datetime.now() - timedelta(days=180)
         payroll_end_date = datetime.now()
         payroll_transactions = PayrollDetector.detect_payroll_transactions(
             session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
