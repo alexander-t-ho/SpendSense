@@ -287,30 +287,34 @@ def create_admin_user():
 
 @app.post("/api/admin/generate-users")
 def generate_users_in_production(
-    num_users: int = Query(10, description="Number of users to generate per batch (default 10, max 20)")
+    num_users: int = Query(1, description="Number of users to generate per batch (default 1, max 2)")
 ):
     """Temporary endpoint to generate users in production. Remove after use.
     
-    Note: Generate in batches of 10-20 users at a time to avoid timeouts.
+    Note: Generate in very small batches (1-2 users) to avoid timeouts.
     Call this endpoint multiple times to generate more users.
+    
+    Example: Call 150 times with ?num_users=1 to generate 150 users.
     """
     from ingest.generator import SyntheticDataGenerator
     from ingest.loader import DataLoader
     
-    # Limit batch size to avoid timeouts
-    if num_users > 20:
-        num_users = 20
+    # Limit batch size to very small to avoid timeouts
+    if num_users > 2:
+        num_users = 2
+    if num_users < 1:
+        num_users = 1
     
     db_path = get_db_path()
     
     try:
-        # Generate users
-        print(f"Generating {num_users} users...")
+        # Generate users (small batch)
+        print(f"Generating {num_users} user(s)...")
         generator = SyntheticDataGenerator(num_users=num_users)
         data = generator.generate_all()
         
         # Load into database
-        print(f"Loading {num_users} users into database...")
+        print(f"Loading {num_users} user(s) into database...")
         loader = DataLoader(db_path=db_path)
         
         # Convert generated data to DataFrames
@@ -322,20 +326,28 @@ def generate_users_in_production(
         liabilities_df = pd.DataFrame(data.get("liabilities", []))
         
         # Load users
+        users_loaded = 0
         if not users_df.empty:
             loader.load_users(users_df)
+            users_loaded = len(users_df)
         
         # Load accounts
+        accounts_loaded = 0
         if not accounts_df.empty:
             loader.load_accounts(accounts_df)
+            accounts_loaded = len(accounts_df)
         
         # Load transactions
+        transactions_loaded = 0
         if not transactions_df.empty:
             loader.load_transactions(transactions_df)
+            transactions_loaded = len(transactions_df)
         
         # Load liabilities
+        liabilities_loaded = 0
         if not liabilities_df.empty:
             loader.load_liabilities(liabilities_df)
+            liabilities_loaded = len(liabilities_df)
         
         loader.close()
         
@@ -356,13 +368,17 @@ def generate_users_in_production(
             total_users = session.query(func.count(User.id)).scalar()
             
             return {
-                "message": f"Successfully generated and loaded {num_users} users",
-                "users_created": len(users_df) if not users_df.empty else 0,
-                "accounts_created": len(accounts_df) if not accounts_df.empty else 0,
-                "transactions_created": len(transactions_df) if not transactions_df.empty else 0,
+                "success": True,
+                "message": f"Successfully generated and loaded {num_users} user(s)",
+                "batch_size": num_users,
+                "users_created": users_loaded,
+                "accounts_created": accounts_loaded,
+                "transactions_created": transactions_loaded,
+                "liabilities_created": liabilities_loaded,
                 "passwords_set": updated_count,
                 "total_users_in_db": total_users,
-                "next_batch": f"Call again with ?num_users=10 to generate more users"
+                "next_batch": f"Call again with ?num_users=1 to generate more users",
+                "remaining_to_150": max(0, 150 - total_users)
             }
         finally:
             session.close()
@@ -373,9 +389,10 @@ def generate_users_in_production(
         print(f"Error generating users: {error_details}")
         # Return detailed error for debugging
         return {
+            "success": False,
             "error": "Failed to generate users",
             "message": str(e),
-            "traceback": error_details,
+            "traceback": error_details[:500] if error_details else "No traceback available",  # Limit traceback size
             "db_path": db_path
         }
 
