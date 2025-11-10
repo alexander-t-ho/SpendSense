@@ -287,11 +287,19 @@ def create_admin_user():
 
 @app.post("/api/admin/generate-users")
 def generate_users_in_production(
-    num_users: int = Query(150, description="Number of users to generate (default 150)")
+    num_users: int = Query(10, description="Number of users to generate per batch (default 10, max 20)")
 ):
-    """Temporary endpoint to generate users in production. Remove after use."""
+    """Temporary endpoint to generate users in production. Remove after use.
+    
+    Note: Generate in batches of 10-20 users at a time to avoid timeouts.
+    Call this endpoint multiple times to generate more users.
+    """
     from ingest.generator import SyntheticDataGenerator
     from ingest.loader import DataLoader
+    
+    # Limit batch size to avoid timeouts
+    if num_users > 20:
+        num_users = 20
     
     db_path = get_db_path()
     
@@ -331,19 +339,21 @@ def generate_users_in_production(
         
         loader.close()
         
-        # Set passwords for all users
+        # Set passwords for newly created users
         session = get_session(db_path)
         try:
             password_hash = get_password_hash("123456")
-            users = session.query(User).all()
+            # Only update users that don't have passwords (newly created)
+            new_users = session.query(User).filter(User.password_hash == None).all()
             updated_count = 0
-            for user in users:
+            for user in new_users:
                 if not user.username:
                     user.username = user.email
-                if not user.password_hash:
-                    user.password_hash = password_hash
-                    updated_count += 1
+                user.password_hash = password_hash
+                updated_count += 1
             session.commit()
+            
+            total_users = session.query(func.count(User.id)).scalar()
             
             return {
                 "message": f"Successfully generated and loaded {num_users} users",
@@ -351,7 +361,8 @@ def generate_users_in_production(
                 "accounts_created": len(accounts_df) if not accounts_df.empty else 0,
                 "transactions_created": len(transactions_df) if not transactions_df.empty else 0,
                 "passwords_set": updated_count,
-                "total_users_in_db": len(users)
+                "total_users_in_db": total_users,
+                "next_batch": f"Call again with ?num_users=10 to generate more users"
             }
         finally:
             session.close()
@@ -976,7 +987,7 @@ def get_suggested_budget(
         # This matches the "Monthly Average" shown in the Income Analysis card
         # Budget is 80% of the monthly average
         # Use shared PayrollDetector utility for consistent payroll detection
-        payroll_start_date = datetime.now() - timedelta(days=180)
+            payroll_start_date = datetime.now() - timedelta(days=180)
         payroll_end_date = datetime.now()
         payroll_transactions = PayrollDetector.detect_payroll_transactions(
             session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
@@ -1135,7 +1146,7 @@ def set_user_budget(
         # This matches the "Monthly Average" shown in the Income Analysis card
         # Budget is 80% of the monthly average
         # Use shared PayrollDetector utility for consistent payroll detection
-        payroll_start_date = datetime.now() - timedelta(days=180)
+            payroll_start_date = datetime.now() - timedelta(days=180)
         payroll_end_date = datetime.now()
         payroll_transactions = PayrollDetector.detect_payroll_transactions(
             session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
@@ -1292,7 +1303,7 @@ def generate_budget(
         # CRITICAL: Ensure total_budget is 80% of monthly average income
         # Calculate monthly income to validate and cap if needed
         # Use shared PayrollDetector utility for consistent payroll detection
-        payroll_start_date = datetime.now() - timedelta(days=180)
+            payroll_start_date = datetime.now() - timedelta(days=180)
         payroll_end_date = datetime.now()
         payroll_transactions = PayrollDetector.detect_payroll_transactions(
             session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
