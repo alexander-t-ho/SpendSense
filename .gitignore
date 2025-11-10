@@ -90,3 +90,4 @@ data/persona_traces/*.json
 data/persona_traces/**/*.json
 data/transactions_final.csv
 .vercel
+.env*.local

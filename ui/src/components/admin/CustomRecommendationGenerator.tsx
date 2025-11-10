@@ -20,9 +20,12 @@ export default function CustomRecommendationGenerator({
   const [recommendationType, setRecommendationType] = useState<'actionable_recommendation' | 'readings'>('actionable_recommendation')
   const [generatedRec, setGeneratedRec] = useState<any>(null)
 
+  // Use environment variable for production, fallback to relative path for local dev (Vite proxy)
+  const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api` : '/api'
+
   const generateMutation = useMutation({
     mutationFn: async (data: { prompt: string; type: string }) => {
-      const response = await fetch('/api/operator/recommendations/generate-custom', {
+      const response = await fetch(`${API_BASE_URL}/operator/recommendations/generate-custom`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
