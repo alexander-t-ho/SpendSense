@@ -407,8 +407,11 @@ async def upload_database(file: UploadFile = File(...)):
     Usage:
         curl -X POST https://web-production-ebdc6.up.railway.app/api/admin/upload-database \
           -F "file=@data/spendsense.db"
+    
+    Note: This streams the file to avoid memory issues with large files.
     """
     db_path = get_db_path()
+    file_size = 0
     
     try:
         # Ensure directory exists
@@ -416,12 +419,21 @@ async def upload_database(file: UploadFile = File(...)):
         db_file = Path(db_path)
         db_file.parent.mkdir(parents=True, exist_ok=True)
         
-        # Read uploaded file
-        contents = await file.read()
-        
-        # Write to database path
+        # Stream file in chunks to avoid memory issues
+        CHUNK_SIZE = 1024 * 1024  # 1MB chunks
         with open(db_path, 'wb') as f:
-            f.write(contents)
+            while True:
+                chunk = await file.read(CHUNK_SIZE)
+                if not chunk:
+                    break
+                f.write(chunk)
+                file_size += len(chunk)
+                # Safety limit: 50MB max
+                if file_size > 50 * 1024 * 1024:
+                    raise HTTPException(
+                        status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                        detail="File too large. Maximum size is 50MB."
+                    )
         
         # Verify the database
         session = get_session(db_path)
@@ -434,7 +446,7 @@ async def upload_database(file: UploadFile = File(...)):
                 "success": True,
                 "message": "Database uploaded successfully",
                 "database_path": db_path,
-                "file_size_bytes": len(contents),
+                "file_size_bytes": file_size,
                 "users": user_count,
                 "accounts": account_count,
                 "transactions": transaction_count
@@ -442,10 +454,19 @@ async def upload_database(file: UploadFile = File(...)):
         finally:
             session.close()
             
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
         print(f"Error uploading database: {error_details}")
+        # Clean up partial file if it exists
+        try:
+            from pathlib import Path
+            if Path(db_path).exists():
+                Path(db_path).unlink()
+        except:
+            pass
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error uploading database: {str(e)}"
