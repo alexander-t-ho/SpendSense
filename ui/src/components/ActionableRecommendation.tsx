@@ -335,13 +335,17 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
         recommendation.content_id === 'build_emergency_fund' ||
         recommendation.content_id?.startsWith('reduce_frequent_merchant_spending') ||
         recommendation.content_id?.startsWith('reduce_category_spending') ||
+        recommendation.content_id?.startsWith('debt_payoff_timeline') ||
         recommendation.title.toLowerCase().includes('payment plan') ||
         recommendation.title.toLowerCase().includes('savings plan') ||
-        recommendation.title.toLowerCase().includes('reduce spending')) && (
+        recommendation.title.toLowerCase().includes('reduce spending') ||
+        recommendation.title.toLowerCase().includes('pay off') ||
+        recommendation.title.toLowerCase().includes('credit card debt')) && (
         <ActionPlanApproval 
           recommendationId={recommendation.id}
           userId={userId}
           actionItems={recommendation.action_items}
+          recommendationTitle={recommendation.title}
         />
       )}
 
@@ -354,7 +358,29 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
       )}
 
       {/* Agree/Reject Buttons - Show for all recommendations */}
-      <RecommendationFeedback recommendationId={recommendation.id} userId={userId} />
+      {/* Check if this recommendation has options (debt payoff, payment plans, etc.) */}
+      {(() => {
+        const hasOptions = recommendation.action_items && recommendation.action_items.length > 0 && 
+          (recommendation.content_id === 'reduce_utilization_specific_card' || 
+           recommendation.content_id === 'stop_minimum_payments' ||
+           recommendation.content_id === 'build_emergency_fund' ||
+           recommendation.content_id?.startsWith('reduce_frequent_merchant_spending') ||
+           recommendation.content_id?.startsWith('reduce_category_spending') ||
+           recommendation.content_id?.startsWith('debt_payoff_timeline') ||
+           recommendation.title.toLowerCase().includes('payment plan') ||
+           recommendation.title.toLowerCase().includes('savings plan') ||
+           recommendation.title.toLowerCase().includes('reduce spending') ||
+           recommendation.title.toLowerCase().includes('pay off') ||
+           recommendation.title.toLowerCase().includes('credit card debt'))
+        
+        return (
+          <RecommendationFeedback 
+            recommendationId={recommendation.id} 
+            userId={userId}
+            hasOptions={hasOptions}
+          />
+        )
+      })()}
 
       {/* Disclaimer */}
       <div className="mt-4 pt-3 border-t border-[#D4C4B0]">
@@ -370,9 +396,10 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
 interface RecommendationFeedbackProps {
   recommendationId: string
   userId: string
+  hasOptions?: boolean // If true, hide "I agree" button (user must choose an option instead)
 }
 
-function RecommendationFeedback({ recommendationId, userId }: RecommendationFeedbackProps) {
+function RecommendationFeedback({ recommendationId, userId, hasOptions = false }: RecommendationFeedbackProps) {
   const queryClient = useQueryClient()
   const [userFeedback, setUserFeedback] = useState<'agreed' | 'rejected' | null>(null)
   const wsRef = useRef<RecommendationFeedbackWebSocket | null>(null)
@@ -434,6 +461,7 @@ function RecommendationFeedback({ recommendationId, userId }: RecommendationFeed
     onSuccess: () => {
       setUserFeedback('agreed')
       queryClient.invalidateQueries({ queryKey: ['recommendation-feedback', recommendationId, userId] })
+      alert('We will implement this!')
     },
   })
 
@@ -445,13 +473,20 @@ function RecommendationFeedback({ recommendationId, userId }: RecommendationFeed
         body: JSON.stringify({ feedback: 'rejected' }),
       })
       if (!response.ok) {
-        throw new Error('Failed to submit feedback')
+        const errorText = await response.text()
+        throw new Error(`Failed to submit feedback: ${errorText}`)
       }
       return response.json()
     },
     onSuccess: () => {
       setUserFeedback('rejected')
       queryClient.invalidateQueries({ queryKey: ['recommendation-feedback', recommendationId, userId] })
+      // Invalidate approved recommendations so rejected ones are removed from user's view
+      queryClient.invalidateQueries({ queryKey: ['approved-recommendations', userId] })
+      queryClient.invalidateQueries({ queryKey: ['recommendations', userId] })
+      // Also invalidate operator queue so admin can see the user-rejected recommendation
+      queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+      alert('We will let your financial advisor know')
     },
   })
 
@@ -479,6 +514,8 @@ function RecommendationFeedback({ recommendationId, userId }: RecommendationFeed
 
   return (
     <div className="mt-4 flex gap-3">
+      {/* Only show "I agree" button if recommendation doesn't have options */}
+      {!hasOptions && (
       <button
         onClick={() => agreeMutation.mutate()}
         disabled={agreeMutation.isPending || rejectMutation.isPending}
@@ -487,10 +524,11 @@ function RecommendationFeedback({ recommendationId, userId }: RecommendationFeed
         <ThumbsUp size={16} />
         I agree, let's do it
       </button>
+      )}
       <button
         onClick={() => rejectMutation.mutate()}
         disabled={agreeMutation.isPending || rejectMutation.isPending}
-        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+        className={`${hasOptions ? 'w-full' : 'flex-1'} flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium`}
       >
         <ThumbsDown size={16} />
         Reject
@@ -504,10 +542,15 @@ interface ActionPlanApprovalProps {
   recommendationId: string
   userId: string
   actionItems: string[]
+  recommendationTitle?: string
 }
 
-function ActionPlanApproval({ recommendationId, userId, actionItems }: ActionPlanApprovalProps) {
+function ActionPlanApproval({ recommendationId, userId, actionItems, recommendationTitle = '' }: ActionPlanApprovalProps) {
   const queryClient = useQueryClient()
+  
+  // All hooks must be called before any conditional returns
+  // For debt payoff, extract options and make them selectable
+  const [selectedOption, setSelectedOption] = useState<number | null>(null)
   
   // Check if plan is already approved
   const { data: approvedPlan, isLoading: isLoadingPlan } = useQuery({
@@ -525,6 +568,22 @@ function ActionPlanApproval({ recommendationId, userId, actionItems }: ActionPla
     enabled: !!userId && !!recommendationId,
     retry: false,
   })
+
+  // Check if this is a debt payoff recommendation with payment options
+  const isDebtPayoff = recommendationTitle.toLowerCase().includes('pay off') || 
+                       recommendationTitle.toLowerCase().includes('credit card debt') ||
+                       actionItems.some(item => item.toLowerCase().includes('pay off') && item.toLowerCase().includes('credit card'))
+  
+  // Check if this is a spending pattern recommendation with multiple options
+  const isSpendingPattern = actionItems.some(item => item.toLowerCase().startsWith('option 1')) && !isDebtPayoff
+  
+  const debtPayoffOptions = isDebtPayoff 
+    ? actionItems.filter(item => item.toLowerCase().startsWith('option'))
+    : []
+  
+  const otherActionItems = isDebtPayoff
+    ? actionItems.filter(item => !item.toLowerCase().startsWith('option'))
+    : actionItems
 
   // Approve plan mutation
   const approveMutation = useMutation({
@@ -562,6 +621,33 @@ function ActionPlanApproval({ recommendationId, userId, actionItems }: ActionPla
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['approved-action-plan', userId, recommendationId] })
+    },
+  })
+  
+  // Approve with selected option for debt payoff
+  const approveWithOptionMutation = useMutation({
+    mutationFn: async () => {
+      if (isDebtPayoff && selectedOption === null) {
+        throw new Error('Please select a payment option')
+      }
+      const response = await fetch(`/api/user/${userId}/action-plans/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          recommendation_id: recommendationId,
+          selected_option: isDebtPayoff ? selectedOption : undefined
+        }),
+      })
+      if (!response.ok) {
+        throw new Error('Failed to approve action plan')
+      }
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['approved-action-plan', userId, recommendationId] })
+      alert('We will implement this recommendation!')
     },
   })
 
@@ -606,9 +692,6 @@ function ActionPlanApproval({ recommendationId, userId, actionItems }: ActionPla
       </div>
     )
   }
-
-  // Check if this is a spending pattern recommendation with multiple options
-  const isSpendingPattern = actionItems.some(item => item.toLowerCase().startsWith('option 1'))
   
   return (
     <div className="mt-4 p-4 bg-[#E8F5E9] border border-[#D4C4B0] rounded-lg">
@@ -616,15 +699,68 @@ function ActionPlanApproval({ recommendationId, userId, actionItems }: ActionPla
         <Calendar className="w-5 h-5 text-[#556B2F] mt-0.5 flex-shrink-0" />
         <div className="flex-1">
           <h4 className="text-sm font-semibold text-[#5D4037] mb-2">
-            {isSpendingPattern ? 'Choose Your Savings Plan' : 'Action Plan'}
+            {isDebtPayoff 
+              ? 'Choose Your Payment Plan' 
+              : isSpendingPattern 
+                ? 'Choose Your Savings Plan' 
+                : 'Action Plan'}
           </h4>
           <p className="text-xs text-[#556B2F] mb-3">
-            {isSpendingPattern 
+            {isDebtPayoff
+              ? 'Please choose one of the payment options below:'
+              : isSpendingPattern 
               ? 'Review the options below and choose the one that best fits your lifestyle:'
               : 'Review the plan below and approve it to start tracking your progress:'}
           </p>
           <div className="space-y-2 mb-4">
-            {isSpendingPattern ? (
+            {isDebtPayoff ? (
+              // Display debt payoff options as selectable radio buttons
+              <div className="space-y-3">
+                {debtPayoffOptions.map((item, idx) => {
+                  const optionNum = idx + 1
+                  const isSelected = selectedOption === optionNum
+                  
+                  return (
+                    <label
+                      key={idx}
+                      className={`flex items-start gap-3 p-3 bg-white border-2 rounded-lg cursor-pointer transition-colors ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-[#D4C4B0] hover:border-blue-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`debt-option-${recommendationId}`}
+                        value={optionNum}
+                        checked={isSelected}
+                        onChange={() => setSelectedOption(optionNum)}
+                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-bold text-[#556B2F]">Option {optionNum}</span>
+                        </div>
+                        <p className="text-sm text-[#556B2F]">{item.replace(/^Option \d+:\s*/i, '')}</p>
+                      </div>
+                    </label>
+                  )
+                })}
+                {otherActionItems.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-[#D4C4B0]">
+                    <p className="text-xs font-semibold text-[#5D4037] mb-2">Additional Recommendations:</p>
+                    <ul className="space-y-1">
+                      {otherActionItems.map((item, idx) => (
+                        <li key={idx} className="text-xs text-[#556B2F] flex items-start">
+                          <span className="text-[#556B2F] mr-2 mt-0.5 font-bold">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : isSpendingPattern ? (
               // Display options as selectable cards
               <div className="space-y-3">
                 {actionItems
@@ -677,12 +813,22 @@ function ActionPlanApproval({ recommendationId, userId, actionItems }: ActionPla
             )}
           </div>
           <button
-            onClick={() => approveMutation.mutate()}
-            disabled={approveMutation.isPending}
+            onClick={() => {
+              if (isDebtPayoff) {
+                approveWithOptionMutation.mutate()
+              } else {
+                approveMutation.mutate()
+              }
+            }}
+            disabled={approveMutation.isPending || approveWithOptionMutation.isPending || (isDebtPayoff && selectedOption === null)}
             className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {approveMutation.isPending 
+            {(approveMutation.isPending || approveWithOptionMutation.isPending)
               ? 'Approving...' 
+              : isDebtPayoff
+                ? selectedOption === null
+                  ? 'Please Select an Option'
+                  : '✓ Choose This Payment Plan'
               : isSpendingPattern 
                 ? '✓ Approve & Start This Savings Plan' 
                 : '✓ Approve & Start This Plan'}

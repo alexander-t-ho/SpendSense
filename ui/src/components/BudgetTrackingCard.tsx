@@ -13,6 +13,13 @@ export default function BudgetTrackingCard({ userId, month }: BudgetTrackingCard
     queryKey: ['budgetTracking', userId, month],
     queryFn: () => fetchBudgetTracking(userId, month),
     enabled: !!userId,
+    retry: (failureCount, error: any) => {
+      // Don't retry on 403 errors (consent issues)
+      if (error?.status === 403 || error?.isConsentError) {
+        return false
+      }
+      return failureCount < 3
+    },
   })
 
   if (isLoading) {
@@ -23,12 +30,19 @@ export default function BudgetTrackingCard({ userId, month }: BudgetTrackingCard
     )
   }
 
-  if (error || !tracking) {
+  // Don't show error UI for 403 consent errors (expected when user hasn't consented)
+  const isConsentError = (error as any)?.status === 403 || (error as any)?.isConsentError === true
+  if ((error || !tracking) && !isConsentError) {
     return (
       <div className="relative bg-gradient-to-b from-[#F5E6D3] via-white to-[#F5E6D3] rounded-2xl overflow-hidden p-8">
         <div className="text-red-600">Failed to load budget tracking</div>
       </div>
     )
+  }
+  
+  // Return null for consent errors (user hasn't consented, so don't show the card)
+  if (isConsentError || !tracking) {
+    return null
   }
 
   const percentageUsed = tracking.percentage_used || 0

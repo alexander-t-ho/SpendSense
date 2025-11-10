@@ -13,14 +13,14 @@ import UserSearch from './UserSearch'
 import { RecommendationWebSocket, RecommendationUpdate } from '../../services/recommendationWebSocket'
 
 export default function RecommendationQueue() {
-  const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'flagged' | 'rejected' | 'all'>('pending')
+  const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'flagged' | 'rejected' | 'user_rejected' | 'all'>('pending')
   const [selectedUserId, setSelectedUserId] = useState<string>('')
   const queryClient = useQueryClient()
   const wsRef = useRef<RecommendationWebSocket | null>(null)
 
   const { data: users } = useQuery({
     queryKey: ['users'],
-    queryFn: fetchUsers,
+    queryFn: () => fetchUsers(0, 50, false), // Fast: no persona computation, paginated
   })
 
   const { data, isLoading, error } = useQuery({
@@ -72,6 +72,8 @@ export default function RecommendationQueue() {
     mutationFn: approveRecommendation,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['approved-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['all-recommendations'] })
     },
   })
 
@@ -174,6 +176,16 @@ export default function RecommendationQueue() {
               }`}
             >
               Rejected
+            </button>
+            <button
+              onClick={() => setStatusFilter('user_rejected')}
+              className={`px-4 py-2 text-sm rounded-md ${
+                statusFilter === 'user_rejected'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-[#F5E6D3] text-[#556B2F] hover:bg-gray-200'
+              }`}
+            >
+              User Rejected
             </button>
             <button
               onClick={() => setStatusFilter('all')}
@@ -297,9 +309,13 @@ function RecommendationCard({
               </span>
             )}
             {recommendation.rejected && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                recommendation.rejected_by 
+                  ? 'bg-red-100 text-red-800' 
+                  : 'bg-orange-100 text-orange-800'
+              }`}>
                 <AlertCircle className="h-3 w-3 mr-1" />
-                Rejected
+                {recommendation.rejected_by ? 'User Rejected' : 'Rejected'}
               </span>
             )}
             {recommendation.priority && (

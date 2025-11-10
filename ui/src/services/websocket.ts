@@ -2,7 +2,8 @@
  * WebSocket service for real-time consent updates
  */
 
-const WS_BASE_URL = (import.meta as any).env?.VITE_WS_BASE_URL || 'ws://localhost:8000'
+// Use Vite proxy for local dev (relative path), or explicit URL for production
+const WS_BASE_URL = (import.meta as any).env?.VITE_WS_BASE_URL || ''
 
 export class ConsentWebSocket {
   private ws: WebSocket | null = null
@@ -19,7 +20,10 @@ export class ConsentWebSocket {
 
   connect(): void {
     try {
-      const wsUrl = `${WS_BASE_URL}/ws/consent/${this.userId}`
+      // Use relative path for Vite proxy, or full URL if VITE_WS_BASE_URL is set
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const wsHost = WS_BASE_URL || `${wsProtocol}//${window.location.host}`
+      const wsUrl = `${wsHost}/ws/consent/${this.userId}`
       console.log('Connecting to WebSocket:', wsUrl)
       this.ws = new WebSocket(wsUrl)
 

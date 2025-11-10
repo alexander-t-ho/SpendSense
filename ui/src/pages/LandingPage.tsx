@@ -101,11 +101,7 @@ export default function LandingPage() {
           </div>
           <span className="font-jakarta text-xl font-semibold tracking-tight text-[#5D4037]">Leafly</span>
         </div>
-        <div className="hidden items-center gap-8 md:flex">
-          {['Solutions', 'Product', 'Company', 'Insight'].map((item) => (
-            <a key={item} href="#" className="text-sm text-[#8B6F47] hover:text-[#5D4037]">{item}</a>
-          ))}
-        </div>
+        {/* Navigation items removed */}
         <div className="hidden gap-2 md:flex">
           <Link to="/login" className="rounded-full px-4 py-2 text-sm text-[#5D4037] hover:bg-white/50">Login</Link>
           <Link to="/login">
@@ -140,9 +136,7 @@ export default function LandingPage() {
           <div className="mt-6 flex items-center gap-8 opacity-70">
             <span className="text-xs text-[#8B6F47]">TRUSTED BY THE BEST</span>
             <div className="flex items-center gap-6 text-[#8B6F47]">
-              <span className="font-semibold">TechCorp</span>
-              <span className="font-semibold">FinanceHub</span>
-              <span className="font-semibold">MoneyWise</span>
+              <span className="font-semibold">Alex Ho</span>
             </div>
           </div>
         </div>
@@ -178,8 +172,7 @@ export default function LandingPage() {
                 <span className="text-xs uppercase tracking-wider text-white/80">Extra Secure</span>
               </div>
               <div className="mt-6 text-xl leading-snug text-white/95">
-                Fraud and security
-                <br /> keep your money safe
+                We will try to keep your money safe
               </div>
               <motion.div
                 className="absolute right-6 top-6 h-12 w-12 rounded-full bg-white/20"
@@ -214,8 +207,7 @@ export default function LandingPage() {
             className="col-span-1 rounded-xl bg-white p-6 text-[#5D4037] shadow-lg ring-1 ring-[#D4C4B0]"
           >
             <div className="text-sm text-[#8B6F47]">Growth Revenue</div>
-            <div className="mt-2 text-3xl font-semibold tracking-tight">$50,240 <span className="text-sm font-medium text-[#8B6F47] align-middle">USD</span></div>
-            <div className="mt-1 text-xs text-[#556B2F]">↑ 0.024%</div>
+            <div className="mt-2 text-3xl font-semibold tracking-tight">$5 <span className="text-sm font-medium text-[#8B6F47] align-middle">USD</span>, <span className="text-[#556B2F]">↑ 240%</span></div>
             <MiniBars />
           </motion.div>
 

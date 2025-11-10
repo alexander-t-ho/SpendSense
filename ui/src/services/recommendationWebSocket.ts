@@ -11,7 +11,7 @@
 //   // In production, this would be the actual backend URL
 //   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
 //   const host = window.location.hostname === 'localhost' 
-//     ? 'localhost:8000' 
+//     ? 'localhost:8001' 
 //     : window.location.host
 //   return `${protocol}//${host}`
 // }
@@ -47,7 +47,7 @@ export class RecommendationWebSocket {
   connect(): void {
     try {
       // Use WebSocket URL that works with Vite proxy
-      // Vite will proxy /ws/* to ws://localhost:8000/ws/*
+      // Vite will proxy /ws/* to ws://127.0.0.1:8001/ws/*
       const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
       const wsUrl = `${wsProtocol}//${window.location.host}/ws/operator/recommendations`
       console.log('Connecting to Recommendation WebSocket:', wsUrl)

@@ -22,7 +22,7 @@ app = FastAPI(title="SpendSense API", version="1.0.0")
 
 # CORS middleware
 # Allow origins from environment variable for Lambda, fallback to localhost for local dev
-allowed_origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")
+allowed_origins = os.environ.get("CORS_ORIGINS", "http://localhost:3004").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -37,6 +37,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)
 
 # Pydantic models for authentication
 class LoginRequest(BaseModel):
@@ -181,9 +182,18 @@ def login(request: LoginRequest):
     session = get_session()
     try:
         # Find user by username (email) or email
-        user = session.query(User).filter(
-            (User.username == request.username) | (User.email == request.username)
-        ).first()
+        # Use a simple query with timeout handling
+        try:
+            user = session.query(User).filter(
+                (User.username == request.username) | (User.email == request.username)
+            ).first()
+        except Exception as db_error:
+            session.rollback()
+            print(f"Database error during login: {db_error}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database temporarily unavailable. Please try again.",
+            )
         
         if not user:
             raise HTTPException(
@@ -213,6 +223,17 @@ def login(request: LoginRequest):
                 "username": user.username,
                 "is_admin": user.is_admin
             }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        print(f"Unexpected error during login: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred during login. Please try again.",
         )
     finally:
         session.close()
@@ -512,52 +533,77 @@ def get_stats():
 
 
 @app.get("/api/users")
-def get_users():
-    """Get all users with account counts and persona information (admin only)."""
+def get_users(
+    skip: int = Query(0, description="Number of users to skip for pagination"),
+    limit: int = Query(50, description="Maximum number of users to return"),
+    include_persona: bool = Query(False, description="Include persona computation (slower)")
+):
+    """Get users with account counts and optional persona information (admin only).
+    
+    Performance: By default, persona computation is disabled. Enable with include_persona=true
+    for slower but more detailed results.
+    Optimized: Uses a single JOIN query instead of N+1 queries for account counts.
+    Uses sequential processing for persona computation (SQLite doesn't handle concurrent access well).
+    """
     from personas.assigner import PersonaAssigner
     
     session = get_session()
     try:
-        users = session.query(User).all()
-        assigner = PersonaAssigner(session)
+        # Get paginated users with account counts in a single query (optimized - no N+1 problem)
+        users_with_counts = session.query(
+            User,
+            func.count(Account.id).label('account_count')
+        ).outerjoin(
+            Account, User.id == Account.user_id
+        ).group_by(User.id).offset(skip).limit(limit).all()
+        
         result = []
         
-        for user in users:
-            account_count = session.query(func.count(Account.id)).filter(
-                Account.user_id == user.id
-            ).scalar()
-            
-            # Get persona assignment (always compute fresh to get dual personas)
-            persona_assignment_data = assigner.assign_persona(user.id)
-            
-            # Build persona object with dual persona support
-            persona_obj = {
-                "id": persona_assignment_data.get('primary_persona'),
-                "name": persona_assignment_data.get('primary_persona_name'),
-                "risk": persona_assignment_data.get('primary_persona_risk', 0),
-                "risk_level": persona_assignment_data.get('risk_level', persona_assignment_data.get('primary_persona_risk_level', 'VERY_LOW')),
-                "total_risk_points": persona_assignment_data.get('total_risk_points', 0.0),
-                "top_personas": persona_assignment_data.get('top_personas', []),
-                "all_matching_personas": persona_assignment_data.get('all_matching_personas', []),
-                "primary_persona": persona_assignment_data.get('primary_persona'),
-                "primary_persona_name": persona_assignment_data.get('primary_persona_name'),
-                "primary_persona_percentage": persona_assignment_data.get('primary_persona_percentage', 100),
-                "secondary_persona": persona_assignment_data.get('secondary_persona'),
-                "secondary_persona_name": persona_assignment_data.get('secondary_persona_name'),
-                "secondary_persona_percentage": persona_assignment_data.get('secondary_persona_percentage', 0),
-                "rationale": persona_assignment_data.get('rationale')
-            }
-            
-            result.append({
+        # Build base user data first
+        for user, account_count in users_with_counts:
+            user_data = {
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
                 "created_at": user.created_at.isoformat() if user.created_at else None,
                 "account_count": account_count or 0,
-                "persona": persona_obj
-            })
+            }
+            result.append(user_data)
         
-        assigner.close()
+        # Compute personas if requested
+        # Note: Using sequential processing because SQLite doesn't handle concurrent access well
+        if include_persona and len(users_with_counts) > 0:
+            db_path = get_db_path()
+            # Use a single shared assigner for better performance
+            assigner = PersonaAssigner(session, db_path)
+            try:
+                for user_data in result:
+                    try:
+                        persona_assignment_data = assigner.assign_persona(user_data["id"])
+                        persona_obj = {
+                            "id": persona_assignment_data.get('primary_persona'),
+                            "name": persona_assignment_data.get('primary_persona_name'),
+                            "risk": persona_assignment_data.get('primary_persona_risk', 0),
+                            "risk_level": persona_assignment_data.get('risk_level', persona_assignment_data.get('primary_persona_risk_level', 'VERY_LOW')),
+                            "total_risk_points": persona_assignment_data.get('total_risk_points', 0.0),
+                            "top_personas": persona_assignment_data.get('top_personas', []),
+                            "all_matching_personas": persona_assignment_data.get('all_matching_personas', []),
+                            "primary_persona": persona_assignment_data.get('primary_persona'),
+                            "primary_persona_name": persona_assignment_data.get('primary_persona_name'),
+                            "primary_persona_percentage": persona_assignment_data.get('primary_persona_percentage', 100),
+                            "secondary_persona": persona_assignment_data.get('secondary_persona'),
+                            "secondary_persona_name": persona_assignment_data.get('secondary_persona_name'),
+                            "secondary_persona_percentage": persona_assignment_data.get('secondary_persona_percentage', 0),
+                            "rationale": persona_assignment_data.get('rationale')
+                        }
+                        user_data["persona"] = persona_obj
+                    except Exception as e:
+                        print(f"Error computing persona for user {user_data['id']}: {e}")
+                        # Continue with next user even if one fails
+                        continue
+            finally:
+                assigner.close()
+            
         return result
     finally:
         session.close()
@@ -677,20 +723,54 @@ def get_group_correlations():
 @app.get("/api/profile/{user_id}")
 def get_user_profile(
     user_id: str,
-    transaction_window: int = Query(30, description="Transaction window in days (30 or 180)")
+    transaction_window: int = Query(30, description="Transaction window in days (30 or 180)"),
+    include_features: bool = Query(True, description="Include feature computation (slower)"),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional)
 ):
     """Get detailed user profile with accounts and features.
     
     Args:
         user_id: User ID
         transaction_window: Number of days for transaction history (30 or 180)
+    
+    Note: Users can always view their own data regardless of consent. Admins viewing other users' data require consent.
     """
+    # Import directly to avoid circular import issues
+    from guardrails.consent import ConsentManager
+    
     session = get_session()
     try:
         user = session.query(User).filter(User.id == user_id).first()
         
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check if user is viewing their own data
+        current_user = None
+        is_viewing_own_data = False
+        if credentials:
+            try:
+                token = credentials.credentials
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                username = payload.get("sub")
+                if username:
+                    current_user = session.query(User).filter(
+                        (User.username == username) | (User.email == username)
+                    ).first()
+                    if current_user and current_user.id == user_id:
+                        is_viewing_own_data = True
+            except (JWTError, Exception):
+                # JWT decode failed or other auth error - continue without current_user
+                # This allows unauthenticated access (fail open)
+                pass
+        
+        # Check consent status
+        consent_manager = ConsentManager(session)
+        has_consent = consent_manager.has_consent(user_id)
+        
+        # Users can always see their own data, even without consent
+        # But transactions/features are only shown if they have consent OR are viewing own data
+        show_sensitive_data = has_consent or is_viewing_own_data
         
         # Get accounts
         accounts = session.query(Account).filter(Account.user_id == user_id).all()
@@ -742,133 +822,169 @@ def get_user_profile(
             
             accounts_data.append(account_dict)
         
-        # Get transactions for all accounts (support both 30 and 180 days)
-        from datetime import datetime, timedelta
-        # Use query parameter for transaction window
-        start_date = datetime.now() - timedelta(days=transaction_window)
-        transactions = session.query(Transaction).join(Account).filter(
-            and_(
-                Account.user_id == user_id,
-                Transaction.date >= start_date
-            )
-        ).order_by(
-            Transaction.pending.desc(),  # Pending transactions first (True before False)
-            Transaction.date.desc()  # Then by date descending
-        ).all()
-        
+        # Only get transactions if user has consented OR is viewing own data
         transactions_data = []
-        for tx in transactions:
-            transactions_data.append({
-                "account_id": tx.account.account_id,  # Use account's 12-digit ID
-                "account_type": tx.account.type,  # checking, credit, etc.
-                "account_subtype": tx.account.subtype,  # checking, credit_card, etc.
-                "account_name": tx.account.name,  # Account name for reference
-                "date": tx.date.isoformat(),
-                "amount": tx.amount,
-                "merchant_name": tx.merchant_name,
-                "merchant_entity_id": tx.merchant_entity_id,
-                "payment_channel": tx.payment_channel,
-                "primary_category": tx.primary_category,
-                "detailed_category": tx.detailed_category,
-                "pending": tx.pending,
-            })
+        if show_sensitive_data:
+            # Get transactions for all accounts (support both 30 and 180 days)
+            from datetime import datetime, timedelta
+            # Use query parameter for transaction window
+            start_date = datetime.now() - timedelta(days=transaction_window)
+            transactions = session.query(Transaction).join(Account).filter(
+                and_(
+                    Account.user_id == user_id,
+                    Transaction.date >= start_date
+                )
+            ).order_by(
+                Transaction.pending.desc(),  # Pending transactions first (True before False)
+                Transaction.date.desc()  # Then by date descending
+            ).all()
+            
+            for tx in transactions:
+                transactions_data.append({
+                    "account_id": tx.account.account_id,  # Use account's 12-digit ID
+                    "account_type": tx.account.type,  # checking, credit, etc.
+                    "account_subtype": tx.account.subtype,  # checking, credit_card, etc.
+                    "account_name": tx.account.name,  # Account name for reference
+                    "date": tx.date.isoformat(),
+                    "amount": tx.amount,
+                    "merchant_name": tx.merchant_name,
+                    "merchant_entity_id": tx.merchant_entity_id,
+                    "payment_channel": tx.payment_channel,
+                    "primary_category": tx.primary_category,
+                    "detailed_category": tx.detailed_category,
+                    "pending": tx.pending,
+                })
         
-        # Get features (30-day and 180-day)
+        # Get features (30-day and 180-day) - only if user has consented OR is viewing own data
         features_30d = None
         features_180d = None
         
+        # Only compute features if user has consented OR is viewing own data, and explicitly requested
+        if show_sensitive_data and include_features:
+            try:
+                db_path = get_db_path()
+                pipeline = FeaturePipeline(db_path)
+                features_30d = pipeline.compute_features_for_user(user_id, 30)
+                features_180d = pipeline.compute_features_for_user(user_id, 180)
+                pipeline.close()
+            except Exception as e:
+                print(f"Error computing features: {e}")
+                import traceback
+                traceback.print_exc()
+                # Features will be None if computation fails
+        
+        # Get persona/risk analysis - ALWAYS available to admins (even without consent)
+        # This is important for admin decision-making
+        persona_obj = {
+            "id": None,
+            "name": None,
+            "risk": 0,
+            "risk_level": "VERY_LOW",
+            "total_risk_points": 0.0,
+            "top_personas": [],
+            "all_matching_personas": [],
+            "primary_persona": None,
+            "primary_persona_name": None,
+            "primary_persona_percentage": 100,
+            "secondary_persona": None,
+            "secondary_persona_name": None,
+            "secondary_persona_percentage": 0,
+            "rationale": "Persona analysis not available",
+            "all_matched_personas": [],
+            "decision_trace": {}
+        }
+        
         try:
-            pipeline = FeaturePipeline()
-            features_30d = pipeline.compute_features_for_user(user_id, 30)
-            features_180d = pipeline.compute_features_for_user(user_id, 180)
-            pipeline.close()
+            from personas.assigner import PersonaAssigner
+            db_path = get_db_path()
+            assigner = PersonaAssigner(session, db_path)
+            persona_data = assigner.assign_persona(user_id, 180)
+            assigner.close()
+            
+            # Build persona object with dual persona support
+            persona_obj = {
+                "id": persona_data.get("primary_persona"),
+                "name": persona_data.get("primary_persona_name"),
+                "risk": persona_data.get("primary_persona_risk", 0),
+                "risk_level": persona_data.get("risk_level", persona_data.get("primary_persona_risk_level", "VERY_LOW")),
+                "total_risk_points": persona_data.get("total_risk_points", 0.0),
+                "top_personas": persona_data.get("top_personas", []),
+                "all_matching_personas": persona_data.get("all_matching_personas", []),
+                "primary_persona": persona_data.get("primary_persona"),
+                "primary_persona_name": persona_data.get("primary_persona_name"),
+                "primary_persona_percentage": persona_data.get("primary_persona_percentage", 100),
+                "secondary_persona": persona_data.get("secondary_persona"),
+                "secondary_persona_name": persona_data.get("secondary_persona_name"),
+                "secondary_persona_percentage": persona_data.get("secondary_persona_percentage", 0),
+                "rationale": persona_data.get("rationale"),
+                "all_matched_personas": persona_data.get("assigned_personas", []),
+                "decision_trace": persona_data.get("decision_trace", {})
+            }
         except Exception as e:
-            print(f"Error computing features: {e}")
-            # Features will be None if computation fails
+            print(f"Error computing persona for user {user_id}: {e}")
+            import traceback
+            traceback.print_exc()
+            # Continue with default persona_obj (already set above)
         
-        # Get persona/risk analysis
-        from personas.assigner import PersonaAssigner
-        assigner = PersonaAssigner(session)
-        persona_data = assigner.assign_persona(user_id, 180)
-        assigner.close()
-        
-        # Calculate income from payroll transactions over 180 days
-        # Use FeaturePipeline's income features which already computed this for features_180d
+        # Calculate income from payroll transactions - only if user has consented OR is viewing own data
         income_180d = 0.0
         yearly_income = 0.0
         payroll_count = 0
-        use_feature_pipeline_data = False
         
-        if features_180d and features_180d.get('income'):
-            income_features = features_180d['income']
-            # Calculate 180-day total from payroll transactions
-            if income_features.get('has_payroll_detected', False):
-                avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
-                total_payroll_transactions = income_features.get('total_payroll_transactions', 0)
+        if show_sensitive_data:
+            from datetime import datetime, timedelta
+            use_feature_pipeline_data = False
+            
+            if features_180d and features_180d.get('income'):
+                income_features = features_180d['income']
+                # Calculate 180-day total from payroll transactions
+                if income_features.get('has_payroll_detected', False):
+                    avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
+                    total_payroll_transactions = income_features.get('total_payroll_transactions', 0)
+                    
+                    # Only use FeaturePipeline data if we have valid values
+                    if avg_income_per_pay > 0 and total_payroll_transactions > 0:
+                        payroll_count = total_payroll_transactions
+                        # Calculate 180-day total: average per pay * number of pays
+                        income_180d = avg_income_per_pay * total_payroll_transactions
+                        # Scale to yearly: (180-day income / 180) * 365
+                        yearly_income = (income_180d / 180.0) * 365.0
+                        use_feature_pipeline_data = True
+            
+            # Fallback: if FeaturePipeline didn't find payroll OR returned zero/invalid values, try direct query
+            if not use_feature_pipeline_data or income_180d == 0.0:
+                from features.income import IncomeAnalyzer
+                income_analyzer = IncomeAnalyzer(session)
+                payroll_start_date = datetime.now() - timedelta(days=180)
+                payroll_end_date = datetime.now()
                 
-                # Only use FeaturePipeline data if we have valid values
-                if avg_income_per_pay > 0 and total_payroll_transactions > 0:
-                    payroll_count = total_payroll_transactions
-                    # Calculate 180-day total: average per pay * number of pays
-                    income_180d = avg_income_per_pay * total_payroll_transactions
-                    # Scale to yearly: (180-day income / 180) * 365
+                # Use IncomeAnalyzer to detect payroll
+                payroll_transactions = income_analyzer.detect_payroll_ach(user_id, payroll_start_date, payroll_end_date)
+                
+                # If still no payroll, try all depository accounts
+                if not payroll_transactions:
+                    # Use PayrollDetector utility (searches all depository accounts)
+                    payroll_tx_objects = PayrollDetector.detect_payroll_transactions(
+                        session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
+                    )
+                    
+                    if payroll_tx_objects:
+                        depository_accounts = [acc for acc in accounts if acc.type == 'depository']
+                        account_id_map = {acc.id: acc.account_id for acc in depository_accounts}
+                        payroll_transactions = [
+                            {
+                                "date": tx.date,
+                                "amount": tx.amount,
+                                "account_id": account_id_map.get(tx.account_id, tx.account_id),
+                                "transaction_id": tx.transaction_id
+                            }
+                            for tx in payroll_tx_objects
+                        ]
+                
+                if payroll_transactions:
+                    payroll_count = len(payroll_transactions)
+                    income_180d = sum(tx["amount"] for tx in payroll_transactions)
                     yearly_income = (income_180d / 180.0) * 365.0
-                    use_feature_pipeline_data = True
-        
-        # Fallback: if FeaturePipeline didn't find payroll OR returned zero/invalid values, try direct query
-        if not use_feature_pipeline_data or income_180d == 0.0:
-            from features.income import IncomeAnalyzer
-            income_analyzer = IncomeAnalyzer(session)
-            payroll_start_date = datetime.now() - timedelta(days=180)
-            payroll_end_date = datetime.now()
-            
-            # Use IncomeAnalyzer to detect payroll
-            payroll_transactions = income_analyzer.detect_payroll_ach(user_id, payroll_start_date, payroll_end_date)
-            
-            # If still no payroll, try all depository accounts
-            if not payroll_transactions:
-                # Use PayrollDetector utility (searches all depository accounts)
-                payroll_tx_objects = PayrollDetector.detect_payroll_transactions(
-                    session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
-                )
-                
-                if payroll_tx_objects:
-                    depository_accounts = [acc for acc in accounts if acc.type == 'depository']
-                    account_id_map = {acc.id: acc.account_id for acc in depository_accounts}
-                    payroll_transactions = [
-                        {
-                            "date": tx.date,
-                            "amount": tx.amount,
-                            "account_id": account_id_map.get(tx.account_id, tx.account_id),
-                            "transaction_id": tx.transaction_id
-                        }
-                        for tx in payroll_tx_objects
-                    ]
-            
-            if payroll_transactions:
-                payroll_count = len(payroll_transactions)
-                income_180d = sum(tx["amount"] for tx in payroll_transactions)
-                yearly_income = (income_180d / 180.0) * 365.0
-        
-        # Build persona object with dual persona support
-        persona_obj = {
-            "id": persona_data.get("primary_persona"),
-            "name": persona_data.get("primary_persona_name"),
-            "risk": persona_data.get("primary_persona_risk", 0),
-            "risk_level": persona_data.get("risk_level", persona_data.get("primary_persona_risk_level", "VERY_LOW")),
-            "total_risk_points": persona_data.get("total_risk_points", 0.0),
-            "top_personas": persona_data.get("top_personas", []),
-            "all_matching_personas": persona_data.get("all_matching_personas", []),
-            "primary_persona": persona_data.get("primary_persona"),
-            "primary_persona_name": persona_data.get("primary_persona_name"),
-            "primary_persona_percentage": persona_data.get("primary_persona_percentage", 100),
-            "secondary_persona": persona_data.get("secondary_persona"),
-            "secondary_persona_name": persona_data.get("secondary_persona_name"),
-            "secondary_persona_percentage": persona_data.get("secondary_persona_percentage", 0),
-            "rationale": persona_data.get("rationale"),
-            "all_matched_personas": persona_data.get("assigned_personas", []),
-            "decision_trace": persona_data.get("decision_trace", {})
-        }
         
         return {
             "id": user.id,
@@ -876,16 +992,28 @@ def get_user_profile(
             "email": user.email,
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "accounts": accounts_data,
-            "transactions": transactions_data,
-            "features_30d": features_30d,
-            "features_180d": features_180d,
-            "persona": persona_obj,
+            "transactions": transactions_data,  # Empty array if no consent
+            "features_30d": features_30d,  # None if no consent
+            "features_180d": features_180d,  # None if no consent
+            "persona": persona_obj,  # Always available to admins (even without consent)
             "income": {
                 "180_day_total": round(income_180d, 2),
                 "yearly_estimated": round(yearly_income, 2),
                 "payroll_count_180d": payroll_count
-            }
+            },
+            "has_consent": has_consent,  # Include consent status for frontend
+            "is_viewing_own_data": is_viewing_own_data  # Include flag for frontend
         }
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions (404, etc.)
+    except Exception as e:
+        print(f"Unexpected error in get_user_profile for user {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
     finally:
         session.close()
 
@@ -941,15 +1069,26 @@ def get_weekly_recap(
     
     Returns:
         Weekly recap data with daily breakdown and insights
+    
+    Note: Requires user consent. Returns 403 if user has not consented.
     """
     from insights.weekly_recap import WeeklyRecapAnalyzer
     from datetime import datetime
+    from guardrails.consent import ConsentManager
     
     session = get_session()
     try:
         user = session.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check consent - admins cannot see financial insights without consent
+        consent_manager = ConsentManager(session)
+        if not consent_manager.has_consent(user_id):
+            raise HTTPException(
+                status_code=403,
+                detail="User has not consented to data processing. Financial insights are not available."
+            )
         
         # Parse week_start if provided
         week_start_date = None
@@ -983,11 +1122,21 @@ def get_spending_analysis(
     """
     from insights.spending_analysis import SpendingAnalysisAnalyzer
     
+    from guardrails.consent import ConsentManager
+    
     session = get_session()
     try:
         user = session.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check consent - admins cannot see financial insights without consent
+        consent_manager = ConsentManager(session)
+        if not consent_manager.has_consent(user_id):
+            raise HTTPException(
+                status_code=403,
+                detail="User has not consented to data processing. Financial insights are not available."
+            )
         
         if months < 1 or months > 12:
             raise HTTPException(status_code=400, detail="Months must be between 1 and 12")
@@ -1004,7 +1153,8 @@ def get_spending_analysis(
 def get_suggested_budget(
     user_id: str,
     month: Optional[str] = Query(None, description="Month in YYYY-MM format (defaults to next month)"),
-    lookback_months: int = Query(6, description="Number of months to analyze (default 6)")
+    lookback_months: int = Query(6, description="Number of months to analyze (default 6)"),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional)
 ):
     """Get AI-suggested monthly budget for a user.
     
@@ -1015,15 +1165,56 @@ def get_suggested_budget(
     
     Returns:
         Suggested budget with category breakdown
+    
+    Note: Users can always view their own budget data. Admins viewing other users' data require consent.
     """
     from insights.budget_calculator import BudgetCalculator
     from datetime import datetime
+    
+    from guardrails.consent import ConsentManager
     
     session = get_session()
     try:
         user = session.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Simplified auth logic: Allow access by default, only block specific cases
+        # Users can ALWAYS view their own data regardless of consent
+        # Only block if admin viewing another user's data without consent
+        current_user = None
+        is_viewing_own_data = False
+        
+        if credentials:
+            try:
+                token = credentials.credentials
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                username = payload.get("sub")
+                if username:
+                    current_user = session.query(User).filter(
+                        (User.username == username) | (User.email == username)
+                    ).first()
+                    # Check if viewing own data
+                    if current_user and current_user.id == user_id:
+                        is_viewing_own_data = True
+            except (JWTError, Exception):
+                # JWT decode failed or other auth error - continue without current_user
+                # This allows unauthenticated access (fail open)
+                pass
+        
+        # If user is viewing their own data, always allow access
+        if is_viewing_own_data:
+            # User viewing own data - always allow regardless of consent
+            pass
+        elif current_user and current_user.is_admin and current_user.id != user_id:
+            # Admin viewing another user's data - require consent
+                            consent_manager = ConsentManager(session)
+                            if not consent_manager.has_consent(user_id):
+                                raise HTTPException(
+                                    status_code=403,
+                                    detail="User has not consented to data processing. Financial insights are not available."
+                                )
+        # All other cases (no auth, non-admin viewing other user, etc.) - allow access (fail open)
         
         month_date = None
         if month:
@@ -1080,7 +1271,7 @@ def get_suggested_budget(
         # This matches the "Monthly Average" shown in the Income Analysis card
         # Budget is 80% of the monthly average
         # Use shared PayrollDetector utility for consistent payroll detection
-            payroll_start_date = datetime.now() - timedelta(days=180)
+        payroll_start_date = datetime.now() - timedelta(days=180)
         payroll_end_date = datetime.now()
         payroll_transactions = PayrollDetector.detect_payroll_transactions(
             session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
@@ -1142,11 +1333,21 @@ def get_budget_history(
     from insights.budget_calculator import BudgetCalculator
     from datetime import datetime, timedelta
     
+    from guardrails.consent import ConsentManager
+    
     session = get_session()
     try:
         user = session.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check consent - admins cannot see financial insights without consent
+        consent_manager = ConsentManager(session)
+        if not consent_manager.has_consent(user_id):
+            raise HTTPException(
+                status_code=403,
+                detail="User has not consented to data processing. Financial insights are not available."
+            )
         
         calculator = BudgetCalculator(session)
         history = []
@@ -1214,12 +1415,21 @@ def set_user_budget(
     from ingest.schema import Budget
     from datetime import datetime
     import uuid
+    from guardrails.consent import ConsentManager
     
     session = get_session()
     try:
         user = session.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check consent - admins cannot set budgets without consent
+        consent_manager = ConsentManager(session)
+        if not consent_manager.has_consent(user_id):
+            raise HTTPException(
+                status_code=403,
+                detail="User has not consented to data processing. Budget operations are not available."
+            )
         
         # Parse month
         try:
@@ -1239,7 +1449,7 @@ def set_user_budget(
         # This matches the "Monthly Average" shown in the Income Analysis card
         # Budget is 80% of the monthly average
         # Use shared PayrollDetector utility for consistent payroll detection
-            payroll_start_date = datetime.now() - timedelta(days=180)
+        payroll_start_date = datetime.now() - timedelta(days=180)
         payroll_end_date = datetime.now()
         payroll_transactions = PayrollDetector.detect_payroll_transactions(
             session, user_id, payroll_start_date, payroll_end_date, min_amount=1000.0
@@ -1367,11 +1577,21 @@ def generate_budget(
     from datetime import datetime, timedelta
     import uuid
     
+    from guardrails.consent import ConsentManager
+    
     session = get_session()
     try:
         user = session.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check consent - admins cannot generate budgets without consent
+        consent_manager = ConsentManager(session)
+        if not consent_manager.has_consent(user_id):
+            raise HTTPException(
+                status_code=403,
+                detail="User has not consented to data processing. Budget operations are not available."
+            )
         
         # Parse month or use current month
         if month:
@@ -1493,7 +1713,8 @@ def generate_budget(
 @app.get("/api/insights/{user_id}/budget-tracking")
 def get_budget_tracking(
     user_id: str,
-    month: Optional[str] = Query(None, description="Month in YYYY-MM format (defaults to current month)")
+    month: Optional[str] = Query(None, description="Month in YYYY-MM format (defaults to current month)"),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional)
 ):
     """Get budget tracking status for a user.
     
@@ -1503,14 +1724,55 @@ def get_budget_tracking(
     
     Returns:
         Budget tracking data with budget vs actual spending
+    
+    Note: Users can always view their own budget data. Admins viewing other users' data require consent.
     """
     from insights.budget_tracker import BudgetTracker
+    
+    from guardrails.consent import ConsentManager
     
     session = get_session()
     try:
         user = session.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Simplified auth logic: Allow access by default, only block specific cases
+        # Users can ALWAYS view their own data regardless of consent
+        # Only block if admin viewing another user's data without consent
+        current_user = None
+        is_viewing_own_data = False
+        
+        if credentials:
+            try:
+                token = credentials.credentials
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                username = payload.get("sub")
+                if username:
+                    current_user = session.query(User).filter(
+                        (User.username == username) | (User.email == username)
+                    ).first()
+                    # Check if viewing own data
+                    if current_user and current_user.id == user_id:
+                        is_viewing_own_data = True
+            except (JWTError, Exception):
+                # JWT decode failed or other auth error - continue without current_user
+                # This allows unauthenticated access (fail open)
+                pass
+        
+        # If user is viewing their own data, always allow access
+        if is_viewing_own_data:
+            # User viewing own data - always allow regardless of consent
+            pass
+        elif current_user and current_user.is_admin and current_user.id != user_id:
+            # Admin viewing another user's data - require consent
+                            consent_manager = ConsentManager(session)
+                            if not consent_manager.has_consent(user_id):
+                                raise HTTPException(
+                                    status_code=403,
+                                    detail="User has not consented to data processing. Financial insights are not available."
+                                )
+        # All other cases (no auth, non-admin viewing other user, etc.) - allow access (fail open)
         
         tracker = BudgetTracker(session)
         tracking = tracker.track_budget(user_id, month)
@@ -1536,11 +1798,21 @@ def get_net_worth(
     """
     from insights.net_worth_tracker import NetWorthTracker
     
+    from guardrails.consent import ConsentManager
+    
     session = get_session()
     try:
         user = session.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check consent - admins cannot see financial insights without consent
+        consent_manager = ConsentManager(session)
+        if not consent_manager.has_consent(user_id):
+            raise HTTPException(
+                status_code=403,
+                detail="User has not consented to data processing. Financial insights are not available."
+            )
         
         tracker = NetWorthTracker(session)
         
@@ -1579,11 +1851,21 @@ def get_net_worth_history(
     from insights.net_worth_tracker import NetWorthTracker
     from datetime import datetime
     
+    from guardrails.consent import ConsentManager
+    
     session = get_session()
     try:
         user = session.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check consent - admins cannot see financial insights without consent
+        consent_manager = ConsentManager(session)
+        if not consent_manager.has_consent(user_id):
+            raise HTTPException(
+                status_code=403,
+                detail="User has not consented to data processing. Financial insights are not available."
+            )
         
         start = None
         end = None
@@ -2337,17 +2619,24 @@ async def submit_recommendation_feedback(user_id: str, recommendation_id: str, r
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Verify recommendation exists and is approved
+        # Verify recommendation exists and belongs to user
+        # Allow feedback on approved recommendations (user can only give feedback on approved ones)
         recommendation = session.query(Recommendation).filter(
             and_(
                 Recommendation.id == recommendation_id,
-                Recommendation.user_id == user_id,
-                Recommendation.approved == True
+                Recommendation.user_id == user_id
             )
         ).first()
         
         if not recommendation:
-            raise HTTPException(status_code=404, detail="Recommendation not found or not approved")
+            raise HTTPException(status_code=404, detail="Recommendation not found")
+        
+        # Only allow feedback on approved recommendations
+        if not recommendation.approved:
+            raise HTTPException(
+                status_code=400, 
+                detail="Can only provide feedback on approved recommendations"
+            )
         
         feedback_value = request.get('feedback')
         if feedback_value not in ['agreed', 'rejected']:
@@ -2399,8 +2688,12 @@ async def submit_recommendation_feedback(user_id: str, recommendation_id: str, r
         session.commit()
         
         # Broadcast feedback update via WebSocket
-        from api.websocket import manager
-        await manager.broadcast_recommendation_feedback(user_id, recommendation_id, feedback_value)
+        try:
+            from api.websocket import manager
+            await manager.broadcast_recommendation_feedback(user_id, recommendation_id, feedback_value)
+        except Exception as e:
+            # Log WebSocket error but don't fail the request
+            print(f"WebSocket broadcast error: {e}")
         
         return {
             "user_id": user_id,
@@ -2408,6 +2701,14 @@ async def submit_recommendation_feedback(user_id: str, recommendation_id: str, r
             "feedback": feedback_value,
             "message": f"Feedback submitted: {feedback_value}"
         }
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        print(f"Error submitting recommendation feedback: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
     finally:
         session.close()
 
@@ -2651,11 +2952,21 @@ def create_net_worth_snapshot(
     from insights.net_worth_tracker import NetWorthTracker
     from datetime import datetime
     
+    from guardrails.consent import ConsentManager
+    
     session = get_session()
     try:
         user = session.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Check consent - admins cannot create net worth snapshots without consent
+        consent_manager = ConsentManager(session)
+        if not consent_manager.has_consent(user_id):
+            raise HTTPException(
+                status_code=403,
+                detail="User has not consented to data processing. Financial insights are not available."
+            )
         
         date = None
         if snapshot_date:
@@ -2778,70 +3089,83 @@ def get_recommendation_queue(
             )
         # "all" doesn't filter
         
-        query = query.order_by(Recommendation.created_at.desc()).limit(limit)
+        # Sort by priority first (high=1, medium=2, low=3), then by created_at desc
+        # This ensures high-priority recommendations (like debt payoff) appear first
+        from sqlalchemy import case
+        priority_order = case(
+            (Recommendation.priority == 'high', 1),
+            (Recommendation.priority == 'medium', 2),
+            (Recommendation.priority == 'low', 3),
+            else_=4
+        )
+        query = query.order_by(priority_order.asc(), Recommendation.created_at.desc()).limit(limit)
         recommendations = query.all()
         
-        result = []
-        for rec in recommendations:
-            # Get persona info for the user
-            persona_data = None
-            try:
-                from personas.assigner import PersonaAssigner
-                assigner = PersonaAssigner(session)
-                persona_result = assigner.assign_persona(rec.user_id, window_days=180)
-                persona_data = {
-                    "primary_persona": persona_result.get("primary_persona"),
-                    "risk": persona_result.get("risk"),
-                    "risk_level": persona_result.get("risk_level")
-                }
-            except Exception as e:
-                # If persona assignment fails, continue without it
-                pass
-            
-            # Map persona_id to persona name for display
-            persona_name = None
-            if rec.persona_id:
+        # Create PersonaAssigner ONCE before the loop (optimized - no N+1 problem)
+        from personas.assigner import PersonaAssigner
+        assigner = PersonaAssigner(session)
+        try:
+            result = []
+            for rec in recommendations:
+                # Get persona info for the user
+                persona_data = None
                 try:
-                    from personas.definitions import get_persona_by_id
-                    persona = get_persona_by_id(rec.persona_id)
-                    if persona:
-                        persona_name = persona.name
-                except Exception:
+                    persona_result = assigner.assign_persona(rec.user_id, window_days=180)
+                    persona_data = {
+                        "primary_persona": persona_result.get("primary_persona"),
+                        "risk": persona_result.get("risk"),
+                        "risk_level": persona_result.get("risk_level")
+                    }
+                except Exception as e:
+                    # If persona assignment fails, continue without it
                     pass
+                
+                # Map persona_id to persona name for display
+                persona_name = None
+                if rec.persona_id:
+                    try:
+                        from personas.definitions import get_persona_by_id
+                        persona = get_persona_by_id(rec.persona_id)
+                        if persona:
+                            persona_name = persona.name
+                    except Exception:
+                        pass
+                
+                rec_dict = {
+                    "id": rec.id,
+                    "user_id": rec.user_id,
+                    "user_name": rec.user.name,
+                    "user_email": rec.user.email,
+                    "title": rec.title,
+                    "description": rec.description,
+                    "rationale": rec.rationale,
+                    "recommendation_type": rec.recommendation_type,
+                    "persona_id": rec.persona_id,
+                    "persona_name": persona_name,
+                    "content_id": rec.content_id,
+                    "action_items": rec.action_items if hasattr(rec, 'action_items') and rec.action_items else [],
+                    "expected_impact": rec.expected_impact if hasattr(rec, 'expected_impact') else None,
+                    "priority": rec.priority if hasattr(rec, 'priority') else None,
+                    "approved": rec.approved,
+                    "approved_at": rec.approved_at.isoformat() if rec.approved_at else None,
+                    "flagged": rec.flagged,
+                    "rejected": rec.rejected if hasattr(rec, 'rejected') else False,
+                    "rejected_at": rec.rejected_at.isoformat() if hasattr(rec, 'rejected_at') and rec.rejected_at else None,
+                    "rejected_by": rec.rejected_by if hasattr(rec, 'rejected_by') else None,
+                    "created_at": rec.created_at.isoformat() if rec.created_at else None,
+                    "updated_at": rec.updated_at.isoformat() if rec.updated_at else None,
+                    "persona_data": persona_data
+                }
+                
+                result.append(rec_dict)
             
-            rec_dict = {
-                "id": rec.id,
-                "user_id": rec.user_id,
-                "user_name": rec.user.name,
-                "user_email": rec.user.email,
-                "title": rec.title,
-                "description": rec.description,
-                "rationale": rec.rationale,
-                "recommendation_type": rec.recommendation_type,
-                "persona_id": rec.persona_id,
-                "persona_name": persona_name,
-                "content_id": rec.content_id,
-                "action_items": rec.action_items if hasattr(rec, 'action_items') and rec.action_items else [],
-                "expected_impact": rec.expected_impact if hasattr(rec, 'expected_impact') else None,
-                "priority": rec.priority if hasattr(rec, 'priority') else None,
-                "approved": rec.approved,
-                "approved_at": rec.approved_at.isoformat() if rec.approved_at else None,
-                "flagged": rec.flagged,
-                "rejected": rec.rejected if hasattr(rec, 'rejected') else False,
-                "rejected_at": rec.rejected_at.isoformat() if hasattr(rec, 'rejected_at') and rec.rejected_at else None,
-                "rejected_by": rec.rejected_by if hasattr(rec, 'rejected_by') else None,
-                "created_at": rec.created_at.isoformat() if rec.created_at else None,
-                "updated_at": rec.updated_at.isoformat() if rec.updated_at else None,
-                "persona_data": persona_data
+            return {
+                "recommendations": result,
+                "total": len(result),
+                "status": status
             }
-            
-            result.append(rec_dict)
-        
-        return {
-            "recommendations": result,
-            "total": len(result),
-            "status": status
-        }
+        finally:
+            assigner.close()
     finally:
         session.close()
 

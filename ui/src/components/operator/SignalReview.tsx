@@ -10,7 +10,7 @@ export default function SignalReview() {
 
   const { data: users } = useQuery({
     queryKey: ['users'],
-    queryFn: fetchUsers,
+    queryFn: () => fetchUsers(0, 50, false), // Fast: no persona computation, paginated
   })
 
   const { data: signals, isLoading, error } = useQuery({

@@ -17,6 +17,13 @@ export default function SuggestedBudgetCard({ userId, month, lookbackMonths = 6,
     queryKey: ['suggestedBudget', userId, month, lookbackMonths],
     queryFn: () => fetchSuggestedBudget(userId, month, lookbackMonths),
     enabled: !!userId,
+    retry: (failureCount, error: any) => {
+      // Don't retry on 403 errors (consent issues)
+      if (error?.status === 403 || error?.isConsentError) {
+        return false
+      }
+      return failureCount < 3
+    },
   })
   
   // Fetch current budget for admin view and tracking data
@@ -24,6 +31,13 @@ export default function SuggestedBudgetCard({ userId, month, lookbackMonths = 6,
     queryKey: ['budgetTracking', userId, month || new Date().toISOString().slice(0, 7)],
     queryFn: () => fetchBudgetTracking(userId, month || new Date().toISOString().slice(0, 7)),
     enabled: !!userId,
+    retry: (failureCount, error: any) => {
+      // Don't retry on 403 errors (consent issues)
+      if (error?.status === 403 || error?.isConsentError) {
+        return false
+      }
+      return failureCount < 3
+    },
   })
 
   // Auto-generate RAG budget on mount if no budget exists (only for non-admin users)
@@ -134,12 +148,19 @@ export default function SuggestedBudgetCard({ userId, month, lookbackMonths = 6,
     )
   }
 
-  if (error || !budget) {
+  // Don't show error UI for 403 consent errors (expected when user hasn't consented)
+  const isConsentError = (error as any)?.status === 403 || (error as any)?.isConsentError === true
+  if ((error || !budget) && !isConsentError) {
     return (
       <div className="relative bg-gradient-to-b from-[#F5E6D3] via-white to-[#F5E6D3] rounded-2xl overflow-hidden p-8">
         <div className="text-red-600">Failed to load budget suggestion</div>
       </div>
     )
+  }
+  
+  // Return null for consent errors (user hasn't consented, so don't show the card)
+  if (isConsentError || !budget) {
+    return null
   }
 
   // Show only spending vs budget, not income

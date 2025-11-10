@@ -14,10 +14,17 @@ export default function UserBudgetDisplay({ userId, month }: UserBudgetDisplayPr
   const [editAmount, setEditAmount] = useState<number>(0)
   const queryClient = useQueryClient()
 
-  const { data: tracking, isLoading } = useQuery({
+  const { data: tracking, isLoading, error } = useQuery({
     queryKey: ['budgetTracking', userId, month || new Date().toISOString().slice(0, 7)],
     queryFn: () => fetchBudgetTracking(userId, month || new Date().toISOString().slice(0, 7)),
     enabled: !!userId,
+    retry: (failureCount, error: any) => {
+      // Don't retry on 403 errors (consent issues)
+      if (error?.status === 403 || error?.isConsentError) {
+        return false
+      }
+      return failureCount < 3
+    },
   })
 
   // Auto-generate budget if none exists
@@ -68,6 +75,12 @@ export default function UserBudgetDisplay({ userId, month }: UserBudgetDisplayPr
         <div className="text-[#8B6F47]">Loading budget...</div>
       </div>
     )
+  }
+
+  // Don't show component for 403 consent errors (expected when user hasn't consented)
+  const isConsentError = (error as any)?.status === 403 || (error as any)?.isConsentError === true
+  if (isConsentError || (!tracking && error)) {
+    return null
   }
 
   const totalBudget = tracking?.total_budget || 0

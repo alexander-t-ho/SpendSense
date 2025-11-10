@@ -121,3 +121,6 @@ If volumes don't work, Railway also supports writing to the filesystem. The defa
 - **Environment Variable**: `DATABASE_URL=sqlite:////app/data/spendsense.db`
 - **Local Database**: `data/spendsense.db` (10MB, 150 users)
 
+
+
+

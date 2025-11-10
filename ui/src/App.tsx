@@ -1,8 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from './components/AuthContext'
 import UserDetail from './pages/UserDetail'
-import UserDashboard from './pages/user/UserDashboard'
+import UserDashboard from './pages/user/UserDashboard'  // Keep for old-my-dashboard
+import UserDashboardPage from './pages/user/UserDashboardPage'  // New preview-style dashboard
 import OperatorDashboard from './pages/operator/OperatorDashboard'
 import PreviewPage from './pages/PreviewPage'
 import LandingPage from './pages/LandingPage'
@@ -11,6 +12,12 @@ import AccountTransactions from './pages/AccountTransactions'
 import Layout from './components/Layout'
 
 const queryClient = new QueryClient()
+
+// Helper component to redirect /mydashboard/:userId to /my-dashboard/:userId
+function RedirectToMyDashboard() {
+  const { userId } = useParams<{ userId: string }>()
+  return <Navigate to={`/my-dashboard/${userId}`} replace />
+}
 
 // Protected Route component
 function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode, requireAdmin?: boolean }) {
@@ -50,16 +57,34 @@ function AppRoutes() {
       } />
       <Route path="/landing" element={<LandingPage />} />
       
-      {/* Preview/Home page with account banners - no Layout wrapper */}
+      {/* Preview/Home page with account banners - no Layout wrapper (for testing) */}
       <Route path="/preview" element={<PreviewPage />} />
       <Route path="/home" element={<PreviewPage />} />
       
-      {/* Protected user routes */}
+      {/* Redirect /mydashboard (no hyphen) to /my-dashboard (with hyphen) */}
+      <Route 
+        path="/mydashboard/:userId" 
+        element={
+          <ProtectedRoute>
+            <RedirectToMyDashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/mydashboard" 
+        element={
+          <ProtectedRoute>
+            {user ? <Navigate to={`/my-dashboard/${user.id}`} replace /> : <Navigate to="/login" replace />}
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* NEW: Preview-style dashboard as default my-dashboard (without monthly spending) */}
       <Route 
         path="/my-dashboard/:userId" 
         element={
           <ProtectedRoute>
-            <UserDashboard />
+            <UserDashboardPage />
           </ProtectedRoute>
         } 
       />
@@ -68,6 +93,24 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             {user ? <Navigate to={`/my-dashboard/${user.id}`} replace /> : <Navigate to="/login" replace />}
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* BACKUP: Old dashboard style at /old-my-dashboard */}
+      <Route 
+        path="/old-my-dashboard/:userId" 
+        element={
+          <ProtectedRoute>
+            <UserDashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/old-my-dashboard" 
+        element={
+          <ProtectedRoute>
+            {user ? <Navigate to={`/old-my-dashboard/${user.id}`} replace /> : <Navigate to="/login" replace />}
           </ProtectedRoute>
         } 
       />

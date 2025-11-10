@@ -40,7 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserInfo = async (authToken: string) => {
     try {
-      const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '')
+      // Use Vite proxy for local dev, or explicit URL for production
+      const API_URL = import.meta.env.VITE_API_URL 
+        ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
+        : '' // Empty string means use relative path (Vite proxy)
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000)
       
@@ -73,7 +76,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const login = async (username: string, password: string) => {
-    const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '')
+    // Use Vite proxy for local dev, or explicit URL for production
+    const API_URL = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
+      : '' // Empty string means use relative path (Vite proxy)
     
     // Create AbortController for timeout
     const controller = new AbortController()

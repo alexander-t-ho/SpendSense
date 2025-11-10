@@ -6,7 +6,7 @@ import { fetchUsers, fetchStats } from '../services/api'
 export default function Dashboard() {
   const { data: users, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ['users'],
-    queryFn: fetchUsers,
+    queryFn: () => fetchUsers(0, 50, false), // Fast: no persona computation, paginated
   })
 
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
@@ -28,7 +28,7 @@ export default function Dashboard() {
         <div className="text-red-600">
           <p className="font-semibold">Error loading data</p>
           <p className="text-sm mt-2">{usersError?.message || statsError?.message}</p>
-          <p className="text-xs mt-2 text-[#556B2F]">Make sure the backend API is running on http://localhost:8000</p>
+          <p className="text-xs mt-2 text-[#556B2F]">Make sure the backend API is running on http://localhost:8001</p>
         </div>
       </div>
     )
@@ -79,7 +79,7 @@ export default function Dashboard() {
         {!users || users.length === 0 ? (
           <div className="px-6 py-12 text-center text-[#556B2F]">
             <p>No users found. Make sure the backend API is running.</p>
-            <p className="text-sm mt-2">Backend should be at: http://localhost:8000</p>
+            <p className="text-sm mt-2">Backend should be at: http://localhost:8001</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -109,6 +109,37 @@ export default function Dashboard() {
               <tbody className="bg-white divide-y divide-amber-200">
                 {users.map((user: any) => {
                   const persona = user.persona || {}
+                  
+                  // Handle missing persona (when include_persona=false for performance)
+                  if (!persona || Object.keys(persona).length === 0) {
+                    return (
+                      <tr key={user.id} className="hover:bg-[#E8F5E9]">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#5D4037]">
+                          {user.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#556B2F]">
+                          {user.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#556B2F]">
+                          <span className="text-xs text-gray-500">Click to view persona</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#556B2F]">
+                          {user.account_count || 0}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#556B2F]">
+                          {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <Link
+                            to={`/user/${user.id}`}
+                            className="text-[#556B2F] hover:text-[#5D4037]"
+                          >
+                            View Details
+                          </Link>
+                        </td>
+                      </tr>
+                    )
+                  }
                   
                   // Check for dual persona format
                   const topPersonas = persona.top_personas || []

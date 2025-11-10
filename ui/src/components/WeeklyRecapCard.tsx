@@ -70,15 +70,6 @@ export default function WeeklyRecapCard({ userId, weekStart }: WeeklyRecapCardPr
 
       {/* Main Card */}
       <div className="relative bg-white/90 backdrop-blur-md rounded-xl border border-[#D4C4B0]/50 p-6 shadow-xl">
-          {/* Progress Indicators */}
-          <div className="flex justify-center gap-2 mb-4">
-            <div className="w-2 h-1 bg-[#556B2F] rounded-full" />
-            <div className="w-2 h-1 bg-[#E8F5E9] rounded-full border border-[#C8E6C9]" />
-            <div className="w-2 h-1 bg-[#E8F5E9] rounded-full border border-[#C8E6C9]" />
-            <div className="w-2 h-1 bg-[#E8F5E9] rounded-full border border-[#C8E6C9]" />
-            <div className="w-2 h-1 bg-[#E8F5E9] rounded-full border border-[#C8E6C9]" />
-          </div>
-
           {/* Main Heading */}
           <h2 className="text-2xl font-semibold text-[#5D4037] mb-1">
             You spent the most on {topCategory}.

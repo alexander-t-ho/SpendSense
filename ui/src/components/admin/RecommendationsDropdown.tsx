@@ -30,6 +30,8 @@ export default function RecommendationsDropdown({ userId }: RecommendationsDropd
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-recommendations-dropdown', userId] })
       queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['approved-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['all-recommendations'] })
     },
   })
 

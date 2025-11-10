@@ -1,16 +1,37 @@
 // Use environment variable for production, fallback to relative path for local dev (Vite proxy)
 const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api` : '/api'
 
-export async function fetchUsers() {
-  const response = await fetch(`${API_BASE_URL}/users`)
+// Helper function to get auth headers
+function getAuthHeaders(): HeadersInit {
+  const token = localStorage.getItem('auth_token')
+  const headers: HeadersInit = {}
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
+}
+
+export async function fetchUsers(skip: number = 0, limit: number = 50, includePersona: boolean = false) {
+  const params = new URLSearchParams({
+    skip: skip.toString(),
+    limit: limit.toString(),
+    include_persona: includePersona.toString()
+  })
+  const response = await fetch(`${API_BASE_URL}/users?${params}`)
   if (!response.ok) {
     throw new Error('Failed to fetch users')
   }
   return response.json()
 }
 
-export async function fetchUserDetail(userId: string, windowDays: number = 30) {
-  const response = await fetch(`${API_BASE_URL}/profile/${userId}?transaction_window=${windowDays}`)
+export async function fetchUserDetail(userId: string, windowDays: number = 30, includeFeatures: boolean = false) {
+  const params = new URLSearchParams({
+    transaction_window: windowDays.toString(),
+    include_features: includeFeatures.toString()
+  })
+  const response = await fetch(`${API_BASE_URL}/profile/${userId}?${params}`, {
+    headers: getAuthHeaders()
+  })
   if (!response.ok) {
     throw new Error('Failed to fetch user details')
   }
@@ -66,18 +87,30 @@ export async function fetchEvaluationMetrics(latencySampleSize?: number) {
 export async function fetchSuggestedBudget(userId: string, month?: string, lookbackMonths: number = 6) {
   const params = new URLSearchParams({ lookback_months: lookbackMonths.toString() })
   if (month) params.append('month', month)
-  const response = await fetch(`${INSIGHTS_API_BASE}/${userId}/suggested-budget?${params}`)
+  const response = await fetch(`${INSIGHTS_API_BASE}/${userId}/suggested-budget?${params}`, {
+    headers: getAuthHeaders()
+  })
   if (!response.ok) {
-    throw new Error('Failed to fetch suggested budget')
+    // Create error with status code for better handling
+    const error: any = new Error('Failed to fetch suggested budget')
+    error.status = response.status
+    error.isConsentError = response.status === 403
+    throw error
   }
   return response.json()
 }
 
 export async function fetchBudgetTracking(userId: string, month?: string) {
   const params = month ? `?month=${month}` : ''
-  const response = await fetch(`${INSIGHTS_API_BASE}/${userId}/budget-tracking${params}`)
+  const response = await fetch(`${INSIGHTS_API_BASE}/${userId}/budget-tracking${params}`, {
+    headers: getAuthHeaders()
+  })
   if (!response.ok) {
-    throw new Error('Failed to fetch budget tracking')
+    // Create error with status code for better handling
+    const error: any = new Error('Failed to fetch budget tracking')
+    error.status = response.status
+    error.isConsentError = response.status === 403
+    throw error
   }
   return response.json()
 }

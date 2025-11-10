@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router-dom'
-import { fetchUserDetail } from '../../services/api'
+import { fetchUserDetail, getConsentStatus, revokeConsent, grantConsent } from '../../services/api'
 import AccountCard from '../../components/AccountCard'
 import TransactionTable from '../../components/TransactionTable'
 import FinancialInsightsCarousel from '../../components/FinancialInsightsCarousel'
@@ -9,7 +9,6 @@ import RecommendationsSection from '../../components/RecommendationsSection'
 import ConsentModal from '../../components/ConsentModal'
 import { useState, useEffect } from 'react'
 import { FileText, BarChart3, Settings, MessageSquare } from 'lucide-react'
-import { getConsentStatus } from '../../services/api'
 
 /**
  * User Dashboard - End-user view
@@ -17,14 +16,15 @@ import { getConsentStatus } from '../../services/api'
  */
 export default function UserDashboard() {
   const { userId } = useParams<{ userId: string }>()
+  const queryClient = useQueryClient()
   const [windowDays, setWindowDays] = useState<number>(30)
-  const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'recommendations'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'recommendations' | 'settings'>('overview')
   const [activeSubTab, setActiveSubTab] = useState<'accounts' | 'transactions'>('accounts')
   const [consentModalOpen, setConsentModalOpen] = useState(false)
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['user', userId, windowDays],
-    queryFn: () => fetchUserDetail(userId!, windowDays),
+    queryFn: () => fetchUserDetail(userId!, windowDays, true), // Include features for user dashboard
     enabled: !!userId,
   })
 
@@ -96,7 +96,7 @@ export default function UserDashboard() {
                 : 'text-[#556B2F] hover:text-[#5D4037] hover:bg-[#F5E6D3]'
             }`}
           >
-            <Settings size={18} />
+            <BarChart3 size={18} />
             Financial Insights
           </button>
           <button
@@ -109,6 +109,20 @@ export default function UserDashboard() {
           >
             <MessageSquare size={18} />
             Recommendations
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('settings')
+              setConsentModalOpen(true)
+            }}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'settings'
+                ? 'text-[#556B2F] border-b-2 border-[#556B2F]'
+                : 'text-[#556B2F] hover:text-[#5D4037] hover:bg-[#F5E6D3]'
+            }`}
+          >
+            <Settings size={18} />
+            Settings
           </button>
         </div>
       </div>
@@ -212,23 +226,50 @@ export default function UserDashboard() {
             <FinancialInsightsCarousel userId={userId} />
           </div>
         )
-      ) : (
+      ) : activeTab === 'recommendations' ? (
         /* Recommendations Tab */
         userId && (
           <div className="space-y-6">
             <RecommendationsSection userId={userId} windowDays={windowDays} readOnly={false} />
           </div>
         )
+      ) : (
+        /* Settings Tab - Show Consent Modal or button to open it */
+        <div className="space-y-6">
+          <div className="bg-white shadow rounded-lg p-6 border border-[#D4C4B0]">
+            <h2 className="text-2xl font-bold text-[#5D4037] mb-4">Settings</h2>
+            <p className="text-[#556B2F] mb-4">
+              Manage your data processing consent and privacy settings.
+            </p>
+            {!consentModalOpen && (
+              <button
+                onClick={() => setConsentModalOpen(true)}
+                className="px-4 py-2 bg-[#556B2F] text-white rounded-md hover:bg-[#6B7A3C] transition-colors"
+              >
+                View Consent Form
+              </button>
+            )}
+          </div>
+        </div>
       )}
 
-      {/* Consent Modal */}
+      {/* Consent Modal - Show when Settings tab is clicked or when consentModalOpen is true */}
       {consentModalOpen && (
         <ConsentModal
           userId={userId!}
           isOpen={consentModalOpen}
-          onClose={() => setConsentModalOpen(false)}
+          keepOpenOnGrant={activeTab === 'settings'} // Keep modal open when granting from Settings tab
+          onClose={() => {
+            setConsentModalOpen(false)
+            // User stays on Settings tab, can reopen modal by clicking button or Settings tab again
+          }}
+          onConsentChange={(consented) => {
+            // If consent is revoked, the useEffect will auto-show modal next time user visits
+            // The modal will stay open so user can see the updated state
+          }}
         />
       )}
     </div>
   )
 }
+

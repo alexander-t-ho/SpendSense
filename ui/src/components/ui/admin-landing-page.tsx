@@ -720,6 +720,8 @@ function GenerateRecommendationsButton({ userId }: { userId: string }) {
         ) || null
       )
       queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['approved-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['all-recommendations'] })
     },
   })
 

@@ -24,7 +24,7 @@ class PersonaAssigner:
     # Risk thresholds
     RISK_THRESHOLDS = {
         'CRITICAL': 8.0,
-        'HIGH': 6.5,
+        'HIGH': 6.0,
         'MEDIUM': 5.0,
         'LOW': 3.5,
         'MINIMAL': 2.0,

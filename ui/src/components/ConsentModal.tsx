@@ -8,9 +8,10 @@ interface ConsentModalProps {
   isOpen: boolean
   onClose: () => void
   onConsentChange?: (consented: boolean) => void
+  keepOpenOnGrant?: boolean // If true, don't auto-close when granting consent
 }
 
-export default function ConsentModal({ userId, isOpen, onClose, onConsentChange }: ConsentModalProps) {
+export default function ConsentModal({ userId, isOpen, onClose, onConsentChange, keepOpenOnGrant = false }: ConsentModalProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'agreement'>('overview')
   const queryClient = useQueryClient()
 
@@ -28,8 +29,13 @@ export default function ConsentModal({ userId, isOpen, onClose, onConsentChange 
     onSuccess: (data) => {
       queryClient.setQueryData(['consent', userId], data)
       queryClient.invalidateQueries({ queryKey: ['recommendations', userId] })
+      queryClient.invalidateQueries({ queryKey: ['suggestedBudget', userId] })
+      queryClient.invalidateQueries({ queryKey: ['budgetTracking', userId] })
       onConsentChange?.(true)
-      onClose()
+      // Only auto-close if keepOpenOnGrant is false
+      if (!keepOpenOnGrant) {
+        onClose()
+      }
     },
     onError: (error) => {
       alert(`Failed to grant consent: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -41,7 +47,10 @@ export default function ConsentModal({ userId, isOpen, onClose, onConsentChange 
     onSuccess: (data) => {
       queryClient.setQueryData(['consent', userId], data)
       queryClient.invalidateQueries({ queryKey: ['recommendations', userId] })
+      queryClient.invalidateQueries({ queryKey: ['suggestedBudget', userId] })
+      queryClient.invalidateQueries({ queryKey: ['budgetTracking', userId] })
       onConsentChange?.(false)
+      // Don't close modal when revoking - let user see the updated state
     },
   })
 
@@ -61,7 +70,10 @@ export default function ConsentModal({ userId, isOpen, onClose, onConsentChange 
         <div className="flex items-center justify-between p-6 border-b border-[#D4C4B0] relative">
           <h2 className="text-2xl font-bold text-[#5D4037]">Data Consent & Privacy</h2>
           <button
-            onClick={onClose}
+            onClick={() => {
+              // Allow dismissing without granting consent
+              onClose()
+            }}
             className="p-2 text-[#5D4037] hover:bg-[#F5E6D3] rounded-md transition-colors relative z-10 cursor-pointer"
             aria-label="Close"
             type="button"

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import { Send, Loader2, X, CheckCircle, AlertCircle } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Send, Loader2, X, CheckCircle, AlertCircle, Flag } from 'lucide-react'
 import RecommendationsDropdown from './RecommendationsDropdown'
+import { approveRecommendation, rejectRecommendation, flagRecommendation } from '../../services/operatorApi'
 
 interface CustomRecommendationGeneratorProps {
   userId: string
@@ -14,6 +15,7 @@ export default function CustomRecommendationGenerator({
   contextData,
   onRecommendationGenerated
 }: CustomRecommendationGeneratorProps) {
+  const queryClient = useQueryClient()
   const [isOpen, setIsOpen] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [recommendationType, setRecommendationType] = useState<'actionable_recommendation' | 'readings'>('actionable_recommendation')
@@ -211,10 +213,80 @@ export default function CustomRecommendationGenerator({
               >
                 Generate Another
               </button>
+              {generatedRec?.id && (
+                <CustomRecommendationActions recommendationId={generatedRec.id} />
+              )}
             </div>
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function CustomRecommendationActions({ recommendationId }: { recommendationId: string }) {
+  const queryClient = useQueryClient()
+
+  const approveMutation = useMutation({
+    mutationFn: () => approveRecommendation(recommendationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['all-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['approved-recommendations'] })
+    },
+    onError: (error) => {
+      alert(`Failed to approve: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    },
+  })
+
+  const rejectMutation = useMutation({
+    mutationFn: () => rejectRecommendation(recommendationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['all-recommendations'] })
+    },
+    onError: (error) => {
+      alert(`Failed to reject: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    },
+  })
+
+  const flagMutation = useMutation({
+    mutationFn: () => flagRecommendation(recommendationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['all-recommendations'] })
+    },
+    onError: (error) => {
+      alert(`Failed to flag: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    },
+  })
+
+  return (
+    <div className="flex gap-2">
+      <button
+        onClick={() => approveMutation.mutate()}
+        disabled={approveMutation.isPending || rejectMutation.isPending || flagMutation.isPending}
+        className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+      >
+        <CheckCircle size={14} />
+        Approve
+      </button>
+      <button
+        onClick={() => rejectMutation.mutate()}
+        disabled={approveMutation.isPending || rejectMutation.isPending || flagMutation.isPending}
+        className="px-3 py-1.5 text-sm bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+      >
+        <AlertCircle size={14} />
+        Reject
+      </button>
+      <button
+        onClick={() => flagMutation.mutate()}
+        disabled={approveMutation.isPending || rejectMutation.isPending || flagMutation.isPending}
+        className="px-3 py-1.5 text-sm bg-yellow-600 text-white rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+      >
+        <Flag size={14} />
+        Flag
+      </button>
     </div>
   )
 }

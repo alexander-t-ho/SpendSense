@@ -2,11 +2,14 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Leaf, CreditCard, Wallet, Building2, DollarSign, Store, Settings } from "lucide-react";
-import { fetchUsers, fetchUserDetail, fetchSuggestedBudget, fetchBudgetTracking } from "../../services/api";
+import { fetchUsers, fetchUserDetail, fetchSuggestedBudget, fetchBudgetTracking, getConsentStatus } from "../../services/api";
 import FinancialInsightsCarousel from "../FinancialInsightsCarousel";
 import RecommendationsSection from "../RecommendationsSection";
 import { WeeklyExpenseCard, ExpenseItem } from "./weekly-expense-card";
 import CreditCardBrandLogo, { detectCreditCardBrand } from "../CreditCardBrandLogo";
+import CircularBudgetDial from "../CircularBudgetDial";
+import ConsentModal from "../ConsentModal";
+import { useAuth } from "../AuthContext";
 
 /** Leafly Fintech Landing Page (no browser chrome) */
 
@@ -264,9 +267,12 @@ function AccountCard({ account, index, userId }: { account: any; index: number; 
 
 interface LeaflyLandingPageProps {
   userId?: string;
+  hideMonthlySpending?: boolean; // Option to hide the monthly spending card
 }
 
-export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {}) {
+export default function LeaflyLandingPage({ userId, hideMonthlySpending = false }: LeaflyLandingPageProps = {}) {
+  const navigate = useNavigate();
+  const { user: currentUser, logout } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [budget, setBudget] = useState<any>(null);
@@ -274,6 +280,13 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'home' | 'insights' | 'recommendations'>('home');
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [consentStatus, setConsentStatus] = useState<any>(null);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -305,20 +318,43 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
         setAccounts(userDetail.accounts || []);
         setTransactions(userDetail.transactions || []);
         
-        // Fetch user's budget
+        // Check if user is viewing their own data
+        const isViewingOwnData = currentUser && currentUser.id === targetUserId;
+        
+        // Check consent status if viewing own data
+        if (isViewingOwnData) {
+          try {
+            const consent = await getConsentStatus(targetUserId);
+            setConsentStatus(consent);
+            // Show consent modal if user hasn't consented
+            if (!consent?.consented) {
+              setShowConsentModal(true);
+            }
+          } catch (error) {
+            console.error("Failed to check consent status:", error);
+          }
+        }
+        
+        // Fetch user's budget (users can see their own data regardless of consent)
         try {
           const budgetData = await fetchSuggestedBudget(targetUserId);
           setBudget(budgetData);
-        } catch (budgetError) {
+        } catch (budgetError: any) {
+          // Log errors, but don't block UI - users should see their own data
+          if (budgetError.status !== 403 || !isViewingOwnData) {
           console.error("Failed to load budget:", budgetError);
+          }
         }
         
-        // Fetch budget tracking to get spending data
+        // Fetch budget tracking to get spending data (users can see their own data regardless of consent)
         try {
           const trackingData = await fetchBudgetTracking(targetUserId);
           setBudgetTracking(trackingData);
-        } catch (trackingError) {
+        } catch (trackingError: any) {
+          // Log errors, but don't block UI - users should see their own data
+          if (trackingError.status !== 403 || !isViewingOwnData) {
           console.error("Failed to load budget tracking:", trackingError);
+          }
         }
       } catch (error) {
         console.error("Failed to load user:", error);
@@ -328,7 +364,7 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
     };
 
     loadUser();
-  }, [userId]);
+  }, [userId, currentUser]);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#F5E6D3] via-[#D4C4B0] to-[#5D4037]">
@@ -380,11 +416,14 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
           </button>
         </div>
         <div className="hidden gap-2 md:flex">
-          <button className="flex items-center gap-2 rounded-full px-4 py-2 text-sm text-[#5D4037] hover:bg-white/50">
+          <button 
+            onClick={() => setShowConsentModal(true)}
+            className="flex items-center gap-2 rounded-full px-4 py-2 text-sm text-[#5D4037] hover:bg-white/50"
+          >
             <Settings className="h-4 w-4" />
             Settings
           </button>
-          <SoftButton>Log Out</SoftButton>
+          <SoftButton onClick={handleLogout}>Log Out</SoftButton>
         </div>
       </nav>
 
@@ -399,8 +438,9 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
               <br />
               {loading ? "..." : user ? user.name : "User"}.
             </h1>
-            {/* Budget Expense Card */}
-            {budget && budget.total_budget && budgetTracking && (() => {
+            
+            {/* Budget Expense Card - Hidden if hideMonthlySpending is true */}
+            {!hideMonthlySpending && budget && budget.total_budget && budgetTracking && (() => {
               // Transform category breakdown into expense items for the chart
               // Colors adapted to match current color scheme: #556B2F (green), #8B6F47 (tan), #5D4037 (brown)
               const categoryColors: { [key: string]: string } = {
@@ -463,6 +503,53 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
                 </div>
               );
             })()}
+            
+            {/* Budget Dial - Monthly Spending Breakdown - Above Projected Monthly Income */}
+            {budget && budget.total_budget && budgetTracking && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="mt-6 p-6 rounded-xl bg-gradient-to-br from-[#556B2F] to-[#3E4A2F] shadow-lg"
+              >
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-semibold text-white/90 mb-1">Monthly Budget</h3>
+                  <p className="text-xs text-white/70">Spending Overview</p>
+                </div>
+                <div className="flex justify-center">
+                  <CircularBudgetDial
+                    spent={Math.abs(budgetTracking.total_spent || 0)}
+                    total={budgetTracking.total_budget || budget.total_budget || 0}
+                    size={240}
+                    strokeWidth={24}
+                  />
+                </div>
+                {/* Budget Summary Stats */}
+                <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/20">
+                  <div className="text-center">
+                    <p className="text-xs text-white/70 mb-1">Budget</p>
+                    <p className="text-sm font-semibold text-white">
+                      ${((budgetTracking.total_budget || budget.total_budget || 0) / 1000).toFixed(1)}k
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-white/70 mb-1">Spent</p>
+                    <p className="text-sm font-semibold text-white">
+                      ${(Math.abs(budgetTracking.total_spent || 0) / 1000).toFixed(1)}k
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-white/70 mb-1">Remaining</p>
+                    <p className={`text-sm font-semibold ${
+                      (budgetTracking.remaining || 0) >= 0 ? 'text-white' : 'text-red-300'
+                    }`}>
+                      ${(Math.abs(budgetTracking.remaining || 0) / 1000).toFixed(1)}k
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            
             {/* Projected Monthly Income Banner */}
             {(() => {
               // Calculate projected monthly income from payroll in past 30 days
@@ -531,18 +618,17 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
                 </p>
               </div>
             )}
-            {/* Most Frequent Merchant */}
+            {/* Most Frequent Merchant - Last 30 Days */}
             {(() => {
-              // Get current month's transactions
+              // Get past 30 days transactions
               const now = new Date();
-              const currentMonth = now.getMonth();
-              const currentYear = now.getFullYear();
+              const thirtyDaysAgo = new Date(now);
+              thirtyDaysAgo.setDate(now.getDate() - 30);
               
-              const currentMonthTransactions = (transactions || []).filter((tx: any) => {
+              const past30DaysTransactions = (transactions || []).filter((tx: any) => {
                 if (!tx.date) return false;
                 const txDate = new Date(tx.date);
-                const isCurrentMonth = txDate.getMonth() === currentMonth && 
-                                      txDate.getFullYear() === currentYear;
+                const isWithin30Days = txDate >= thirtyDaysAgo && txDate <= now;
                 const isSpending = tx.amount < 0; // Only spending transactions (negative amounts)
                 const merchantName = (tx.merchant_name || '').toLowerCase();
                 const isInterestCharge = merchantName.includes('interest charge') || 
@@ -551,7 +637,7 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
                                       tx.primary_category === 'Subscription' ||
                                       tx.detailed_category === 'Subscription';
                 
-                return isCurrentMonth && 
+                return isWithin30Days && 
                        isSpending && 
                        !isInterestCharge && 
                        !isSubscription &&
@@ -560,7 +646,7 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
 
               // Count merchant frequency
               const merchantCounts: { [key: string]: number } = {};
-              currentMonthTransactions.forEach((tx: any) => {
+              past30DaysTransactions.forEach((tx: any) => {
                 const merchant = tx.merchant_name || '';
                 if (merchant && merchant.trim() !== '') {
                   merchantCounts[merchant] = (merchantCounts[merchant] || 0) + 1;
@@ -581,7 +667,7 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
                         <Store className="h-5 w-5 text-[#8B6F47]" />
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs text-[#8B6F47] uppercase tracking-wider">Most Visited This Month</div>
+                        <div className="text-xs text-[#8B6F47] uppercase tracking-wider">Most Visited (Last 30 Days)</div>
                         <div className="text-lg font-semibold text-[#5D4037]">
                           {merchantName}
                         </div>
@@ -595,6 +681,13 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
               }
               return null;
             })()}
+            
+            {/* Notes Section */}
+            <div className="mt-6 pt-4 border-t border-[#D4C4B0]/50">
+              <p className="text-xs text-[#8B6F47]/70 italic">
+                This is from the last 30 days of purchases
+              </p>
+            </div>
           </div>
         </div>
 
@@ -669,6 +762,37 @@ export default function LeaflyLandingPage({ userId }: LeaflyLandingPageProps = {
       <footer className="mx-auto w-full max-w-[1180px] px-4 pb-10 text-center text-xs text-[#8B6F47]/70 md:px-0">
         © {new Date().getFullYear()} Leafly, Inc. All rights reserved.
       </footer>
+
+      {/* Consent Modal - Show when Settings button is clicked or when user hasn't consented and is viewing their own data */}
+      {user && currentUser && currentUser.id === user.id && (
+        <ConsentModal
+          userId={user.id}
+          isOpen={showConsentModal}
+          keepOpenOnGrant={true} // Keep modal open when granting from Settings so user can see confirmation
+          onClose={() => setShowConsentModal(false)}
+          onConsentChange={(consented) => {
+            if (consented) {
+              // Refetch budget data after consent is granted
+              const loadBudgetData = async () => {
+                try {
+                  const budgetData = await fetchSuggestedBudget(user.id);
+                  setBudget(budgetData);
+                } catch (error) {
+                  console.error("Failed to load budget:", error);
+                }
+                try {
+                  const trackingData = await fetchBudgetTracking(user.id);
+                  setBudgetTracking(trackingData);
+                } catch (error) {
+                  console.error("Failed to load budget tracking:", error);
+                }
+              };
+              loadBudgetData();
+              // Don't auto-close modal - let user close it manually after seeing confirmation
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

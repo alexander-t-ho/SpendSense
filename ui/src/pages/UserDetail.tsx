@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchUserDetail, getConsentStatus } from '../services/api'
 import AccountCard from '../components/AccountCard'
@@ -9,7 +9,7 @@ import PersonaPieChart from '../components/PersonaPieChart'
 import CustomRecommendationGenerator from '../components/admin/CustomRecommendationGenerator'
 import RecommendationsSection from '../components/RecommendationsSection'
 import ConsentInfoModal from '../components/admin/ConsentInfoModal'
-import { BarChart3, Settings, CheckCircle, XCircle, MessageSquare, Info } from 'lucide-react'
+import { BarChart3, Settings, CheckCircle, XCircle, MessageSquare, Info, Leaf, ArrowLeft } from 'lucide-react'
 
 export default function UserDetail() {
   const { userId } = useParams<{ userId: string }>()
@@ -20,7 +20,7 @@ export default function UserDetail() {
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['user', userId, windowDays],
-    queryFn: () => fetchUserDetail(userId!, windowDays),
+    queryFn: () => fetchUserDetail(userId!, windowDays, true), // Include features for detail view
     enabled: !!userId,
   })
 
@@ -65,9 +65,33 @@ export default function UserDetail() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <div className="bg-white shadow rounded-lg p-6 border border-[#D4C4B0]">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5E6D3] via-[#D4C4B0] to-[#5D4037]">
+      {/* Leafly Navigation Bar */}
+      <header className="bg-white shadow-sm border-b border-[#D4C4B0]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <Link to="/operator" className="flex items-center space-x-2 text-[#5D4037] hover:text-[#556B2F] transition-colors">
+              <ArrowLeft size={20} />
+              <Leaf className="h-8 w-8 text-[#556B2F]" />
+              <span className="text-2xl font-bold">Leafly</span>
+            </Link>
+            <nav className="flex items-center space-x-4">
+              <Link
+                to="/operator"
+                className="text-[#5D4037] hover:text-[#556B2F] px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Operator Dashboard
+              </Link>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
+          <div>
+            <div className="bg-white shadow rounded-lg p-6 border border-[#D4C4B0]">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-[#5D4037]">{user.name}</h1>
@@ -130,7 +154,6 @@ export default function UserDetail() {
               Recommendations
             </button>
           </div>
-        </div>
         
         {/* Tab Content */}
         {activeTab === 'overview' ? (
@@ -377,30 +400,42 @@ export default function UserDetail() {
                 </div>
               ) : (
                 <div>
-                  {/* Time Window Selector */}
-                  <div className="mb-4">
-                    <div className="flex items-center space-x-4">
-                      <label htmlFor="window-select" className="text-sm font-medium text-[#556B2F]">
-                        Transaction Window:
-                      </label>
-                      <select
-                        id="window-select"
-                        value={windowDays}
-                        onChange={(e) => setWindowDays(Number(e.target.value))}
-                        className="block rounded-md border-[#D4C4B0] shadow-sm focus:border-[#556B2F] focus:ring-blue-500 sm:text-sm"
-                      >
-                        <option value={30}>30 Days</option>
-                        <option value={180}>180 Days</option>
-                      </select>
-                    </div>
-                  </div>
+                  {/* Check if user has consented */}
+                  {consent?.consented ? (
+                    <>
+                      {/* Time Window Selector */}
+                      <div className="mb-4">
+                        <div className="flex items-center space-x-4">
+                          <label htmlFor="window-select" className="text-sm font-medium text-[#556B2F]">
+                            Transaction Window:
+                          </label>
+                          <select
+                            id="window-select"
+                            value={windowDays}
+                            onChange={(e) => setWindowDays(Number(e.target.value))}
+                            className="block rounded-md border-[#D4C4B0] shadow-sm focus:border-[#556B2F] focus:ring-blue-500 sm:text-sm"
+                          >
+                            <option value={30}>30 Days</option>
+                            <option value={180}>180 Days</option>
+                          </select>
+                        </div>
+                      </div>
 
-                  {/* Transactions Table */}
-                  {user.transactions && user.transactions.length > 0 ? (
-                    <TransactionTable transactions={user.transactions} />
+                      {/* Transactions Table */}
+                      {user.transactions && user.transactions.length > 0 ? (
+                        <TransactionTable transactions={user.transactions} />
+                      ) : (
+                        <div className="text-center py-8 text-[#8B6F47]">
+                          <p>No transactions found for the selected window.</p>
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    <div className="text-center py-8 text-[#8B6F47]">
-                      <p>No transactions found for the selected window.</p>
+                    <div className="text-center py-12 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-yellow-800 font-medium mb-2">Transactions Not Available</p>
+                      <p className="text-yellow-700 text-sm">
+                        This user has not consented to data processing. Transactions cannot be viewed.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -410,7 +445,16 @@ export default function UserDetail() {
         ) : activeTab === 'insights' ? (
           /* Financial Insights Tab */
           <div className="mt-4">
-            <FinancialInsightsCarousel userId={user.id} isAdmin={true} />
+            {consent?.consented ? (
+              <FinancialInsightsCarousel userId={user.id} isAdmin={true} />
+            ) : (
+              <div className="text-center py-12 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800 font-medium mb-2">Financial Insights Not Available</p>
+                <p className="text-yellow-700 text-sm">
+                  This user has not consented to data processing. Financial insights cannot be viewed.
+                </p>
+              </div>
+            )}
           </div>
         ) : (
           /* Recommendations Tab */
@@ -418,14 +462,17 @@ export default function UserDetail() {
             <RecommendationsSection userId={user.id} windowDays={windowDays} readOnly={true} />
           </div>
         )}
-      </div>
+        </div>
+        </div>
 
-      {/* Consent Info Modal */}
-      <ConsentInfoModal
-        isOpen={showConsentInfoModal}
-        onClose={() => setShowConsentInfoModal(false)}
-        userName={user?.name}
-      />
+        {/* Consent Info Modal */}
+        <ConsentInfoModal
+          isOpen={showConsentInfoModal}
+          onClose={() => setShowConsentInfoModal(false)}
+          userName={user?.name}
+        />
+      </div>
+      </main>
     </div>
   )
 }
@@ -485,6 +532,8 @@ function GenerateRecommendationsButton({ userId }: { userId: string }) {
         ) || null
       )
       queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['approved-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['all-recommendations'] })
     },
   })
 

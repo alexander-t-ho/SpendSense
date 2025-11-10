@@ -13,10 +13,7 @@ from sqlalchemy import and_, func, or_
 
 from ingest.schema import Account, Transaction, Budget
 from insights.utils import calculate_percentage_change
-<<<<<<< HEAD
-=======
 from features.payroll_utils import PayrollDetector
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
 
 
 class BudgetCalculator:
@@ -97,34 +94,6 @@ class BudgetCalculator:
         # Calculate monthly average from 180-day payroll: (180-day total / 180) * 365 / 12
         # This matches the "Monthly Average" shown in the Income Analysis card
         payroll_start_date = datetime.now() - timedelta(days=180)
-<<<<<<< HEAD
-        
-        # Get payroll transactions using flexible pattern matching (same as IncomeAnalyzer)
-        # This matches transactions with "PAYROLL" or "DEPOSIT" in merchant name, or "Transfer In" category
-        payroll_transactions = []
-        if depository_account_ids:
-            payroll_transactions = self.db.query(Transaction).filter(
-                and_(
-                    Transaction.account_id.in_(depository_account_ids),
-                    Transaction.date >= payroll_start_date,
-                    Transaction.amount > 0,  # Only positive amounts (deposits)
-                    or_(
-                        Transaction.merchant_name.like("%PAYROLL%"),
-                        Transaction.merchant_name.like("%DEPOSIT%"),
-                        Transaction.primary_category == "Transfer In"
-                    ),
-                    Transaction.amount >= 1000  # Reasonable minimum for payroll
-                )
-            ).all()
-        
-        # Calculate monthly average from payroll (same as income analysis)
-        # Formula: (180-day payroll total / 180) * 365 / 12
-        avg_monthly_income = 0.0
-        if payroll_transactions:
-            income_180d = sum(tx.amount for tx in payroll_transactions)
-            yearly_income = (income_180d / 180.0) * 365.0
-            avg_monthly_income = yearly_income / 12.0
-=======
         payroll_end_date = datetime.now()
         
         # Use shared PayrollDetector utility for consistent payroll detection
@@ -136,7 +105,6 @@ class BudgetCalculator:
         avg_monthly_income = PayrollDetector.calculate_monthly_income_from_payroll(
             payroll_transactions, days_in_period=180
         )
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
         
         # Separate expenses (from all accounts)
         expenses = [tx for tx in all_transactions if tx.amount < 0]
@@ -172,52 +140,10 @@ class BudgetCalculator:
         # Budget is 80% of the monthly average
         monthly_income = avg_monthly_income
         
-<<<<<<< HEAD
-        # Fallback to FeaturePipeline only if no payroll transactions found
-        # Use payroll-based income calculation from FeaturePipeline
-        if avg_monthly_income <= 0:
-            from features.pipeline import FeaturePipeline
-            import os
-            db_path = os.environ.get('DATABASE_PATH', 'data/spendsense.db')
-            feature_pipeline = FeaturePipeline(db_path)
-            features = feature_pipeline.compute_features_for_user(user_id, 180)  # Use 180 days to match income analysis
-            income_features = features.get('income', {})
-            
-            # Try to calculate from payroll transactions via FeaturePipeline
-            # If payroll is detected, calculate monthly average the same way
-            if income_features.get('has_payroll_detected', False):
-                avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
-                total_payroll_transactions = income_features.get('total_payroll_transactions', 0)
-                if avg_income_per_pay > 0 and total_payroll_transactions > 0:
-                    # Calculate 180-day total and then monthly average
-                    # This approximates the same calculation as direct transaction query
-                    income_180d = avg_income_per_pay * total_payroll_transactions
-                    yearly_income = (income_180d / 180.0) * 365.0
-                    avg_monthly_income = yearly_income / 12.0
-            
-            # If still no payroll-based income, try frequency-based calculation as last resort
-            if avg_monthly_income <= 0:
-                avg_income_per_pay = income_features.get('average_income_per_pay', 0.0)
-                frequency = income_features.get('payment_frequency', {}).get('frequency', 'monthly')
-                if avg_income_per_pay > 0:
-                    if frequency == 'weekly':
-                        monthly_income = avg_income_per_pay * 4.33
-                    elif frequency == 'biweekly':
-                        monthly_income = avg_income_per_pay * 2.17
-                    elif frequency == 'monthly':
-                        monthly_income = avg_income_per_pay
-                    else:
-                        monthly_income = income_features.get('minimum_monthly_income', 0.0)
-                else:
-                    monthly_income = income_features.get('minimum_monthly_income', 0.0)
-            else:
-                monthly_income = avg_monthly_income
-=======
         # Fallback to FeaturePipeline if no payroll transactions found
         monthly_income = self._calculate_monthly_income_with_fallback(
             user_id, avg_monthly_income
         )
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
         
         # Calculate total credit card debt
         credit_card_accounts = [acc for acc in user_accounts if acc.type == 'credit']
@@ -232,139 +158,22 @@ class BudgetCalculator:
             category_budgets = {}
         else:
             # Budget equals 80% of monthly income (avg_monthly_income from income analysis)
-<<<<<<< HEAD
-            # This ensures the budget is 80% of the monthly average for budget tracking
-            # CRITICAL: Budget is 80% of monthly_income (monthly average from payroll)
-            total_budget = monthly_income * 0.80  # 80% of monthly average
-            
-            if has_credit_card_debt:
-                # Debt-focused allocation: aggressive debt repayment
-                # Debt repayment: 30-35% of income (based solely on income, not credit card balances)
-                debt_repayment_percentage = 0.325  # 32.5% (middle of 30-35%)
-                debt_repayment_budget = total_budget * debt_repayment_percentage
-                
-                # Essential expenses kept minimal
-                housing_budget = total_budget * 0.275  # 27.5% (middle of 25-30%)
-                food_budget = total_budget * 0.10      # 10% (middle of 9-11%)
-                transportation_budget = total_budget * 0.06  # 6% (middle of 5-7%)
-                utilities_budget = total_budget * 0.045  # 4.5% (middle of 4-5%)
-                emergency_fund_budget = total_budget * 0.03  # 3% (middle of 2-4%)
-                other_necessities_budget = total_budget * 0.045  # 4.5% (middle of 4-5%)
-                discretionary_budget = total_budget * 0.03  # 3% (middle of 2-4%)
-                
-                # Calculate remaining for "Other" category
-                allocated = (housing_budget + food_budget + transportation_budget + 
-                           utilities_budget + emergency_fund_budget + other_necessities_budget + 
-                           discretionary_budget + debt_repayment_budget)
-                other_budget = total_budget - allocated
-                
-                # Build category budgets dictionary
-                category_budgets = {
-                    "Housing": housing_budget,
-                    "Food": food_budget,
-                    "Transportation": transportation_budget,
-                    "Utilities": utilities_budget,
-                    "Emergency Fund": emergency_fund_budget,
-                    "Other Necessities": other_necessities_budget,
-                    "Discretionary": discretionary_budget,
-                    "Debt Repayment": debt_repayment_budget,
-                    "Other": other_budget
-                }
-                
-                # Validate: Ensure sum of category budgets equals total_budget exactly
-                category_sum = sum(category_budgets.values())
-                if abs(category_sum - total_budget) > 0.01:  # Allow small floating point differences
-                    # Adjust "Other" category to ensure exact match
-                    category_budgets["Other"] = total_budget - (category_sum - other_budget)
-            else:
-                # No debt: standard allocation with savings
-                housing_budget = total_budget * 0.25  # 25%
-                food_budget = total_budget * 0.10     # 10%
-                transportation_budget = total_budget * 0.15  # 15%
-                savings_budget = total_budget * 0.20  # 20% for savings
-                emergency_fund_budget = total_budget * 0.03  # 3% (middle of 2-4%)
-                
-                # Calculate remaining for "Other" category
-                allocated = housing_budget + food_budget + transportation_budget + savings_budget + emergency_fund_budget
-                other_budget = total_budget - allocated
-                
-                # Build category budgets dictionary
-                category_budgets = {
-                    "Housing": housing_budget,
-                    "Food": food_budget,
-                    "Transportation": transportation_budget,
-                    "Savings": savings_budget,
-                    "Emergency Fund": emergency_fund_budget,
-                    "Other": other_budget
-                }
-                
-                # Validate: Ensure sum of category budgets equals total_budget exactly
-                category_sum = sum(category_budgets.values())
-                if abs(category_sum - total_budget) > 0.01:  # Allow small floating point differences
-                    # Adjust "Other" category to ensure exact match
-                    category_budgets["Other"] = total_budget - (category_sum - other_budget)
-=======
             total_budget = monthly_income * 0.80  # 80% of monthly average
             
             # Allocate budget based on debt status
             category_budgets = self._allocate_budget_categories(
                 total_budget, has_credit_card_debt
             )
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
         
         # Keep income/expense-based values for reference
         income_based_budget = avg_monthly_income * 0.80 if avg_monthly_income > 0 else 0.0
         expense_based_budget = avg_monthly_expenses * 1.10 if avg_monthly_expenses > 0 else 0.0
         
         # Generate rationale
-<<<<<<< HEAD
-        rationale_parts = []
-        if monthly_income > 0:
-            rationale_parts.append(
-                f"Based on your monthly average income of ${monthly_income:,.2f} (calculated from payroll deposits over 180 days), "
-                f"we suggest a monthly budget of ${total_budget:,.2f} (80% of your monthly average from income analysis)."
-            )
-            
-            if has_credit_card_debt:
-                debt_repayment_amount = category_budgets.get("Debt Repayment", 0)
-                rationale_parts.append(
-                    f"Budget allocation prioritizes aggressive debt repayment: Debt Repayment ({debt_repayment_amount/total_budget*100:.1f}%), "
-                    f"Housing (27.5%), Food (10%), Transportation (6%), Utilities (4.5%), Emergency Fund (3%), "
-                    f"and minimal discretionary spending (3%)."
-                )
-                rationale_parts.append(
-                    f"Debt Repayment of ${debt_repayment_amount:,.2f}/month is prioritized to help you pay down your ${total_credit_card_debt:,.2f} in credit card debt. "
-                    f"See Admin's recommendations for more information on debt payoff timeline and strategies."
-                )
-                emergency_fund_amount = category_budgets.get("Emergency Fund", 0)
-                if emergency_fund_amount > 0:
-                    months_to_1000 = 1000 / emergency_fund_amount if emergency_fund_amount > 0 else 0
-                    rationale_parts.append(
-                        f"Emergency Fund allocation of ${emergency_fund_amount:,.2f}/month will help you build a $1,000 emergency fund in approximately {months_to_1000:.0f} months."
-                    )
-            else:
-                rationale_parts.append(
-                    "Budget allocation follows financial best practices: Housing (25%), Food (10%), "
-                    "Transportation (15%), Savings (20%), Emergency Fund (3%), and Other expenses."
-                )
-                emergency_fund_amount = category_budgets.get("Emergency Fund", 0)
-                if emergency_fund_amount > 0:
-                    months_to_1000 = 1000 / emergency_fund_amount if emergency_fund_amount > 0 else 0
-                    rationale_parts.append(
-                        f"Emergency Fund allocation of ${emergency_fund_amount:,.2f}/month will help you build a $1,000 emergency fund in approximately {months_to_1000:.0f} months."
-                    )
-        else:
-            rationale_parts.append(
-                "No income data available for budget suggestions. Please ensure income transactions are properly categorized."
-            )
-        
-        rationale = " ".join(rationale_parts) if rationale_parts else "Budget suggestions based on historical spending patterns."
-=======
         rationale = self._generate_rationale(
             monthly_income, total_budget, category_budgets, 
             has_credit_card_debt, total_credit_card_debt
         )
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
         
         # Also get history for charting (using payroll transactions only)
         # Create monthly income dict from payroll transactions for history
@@ -527,8 +336,6 @@ class BudgetCalculator:
                 return True
         
         return False
-<<<<<<< HEAD
-=======
     
     def _calculate_monthly_income_with_fallback(
         self, user_id: str, avg_monthly_income: float
@@ -721,5 +528,4 @@ class BudgetCalculator:
             )
         
         return " ".join(rationale_parts) if rationale_parts else "Budget suggestions based on historical spending patterns."
->>>>>>> 8fa267a461e5ea19895459dde8fa79dd393d6af3
 

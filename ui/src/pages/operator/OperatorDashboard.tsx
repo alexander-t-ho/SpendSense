@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
-import { Users, DollarSign, CreditCard, TrendingUp, CheckCircle, FileText, BarChart3, Target, Flag, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { Users, DollarSign, CreditCard, TrendingUp, CheckCircle, FileText, BarChart3, Target, Flag, AlertCircle, ChevronDown, ChevronUp, LogOut } from 'lucide-react'
 import { fetchUsers, fetchStats } from '../../services/api'
 import { useState, useMemo, useEffect } from 'react'
 import RecommendationQueue from '../../components/operator/RecommendationQueue'
@@ -9,6 +9,7 @@ import DecisionTraceViewer from '../../components/operator/DecisionTraceViewer'
 import EvaluationMetrics from '../../components/EvaluationMetrics'
 import UserSearch from '../../components/operator/UserSearch'
 import { fetchRecommendationQueue, approveRecommendation, flagRecommendation, rejectRecommendation, OperatorRecommendation } from '../../services/operatorApi'
+import { useAuth } from '../../components/AuthContext'
 
 /**
  * Operator Dashboard - Admin view
@@ -17,9 +18,15 @@ import { fetchRecommendationQueue, approveRecommendation, flagRecommendation, re
  */
 export default function OperatorDashboard() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
   const [activeTab, setActiveTab] = useState<'overview' | 'recommendations' | 'signals' | 'traces' | 'evaluation'>('overview')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUserId, setSelectedUserId] = useState<string>('')
+  
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
   
   // Listen for tab change events from child components
   useEffect(() => {
@@ -32,44 +39,80 @@ export default function OperatorDashboard() {
     }
   }, [])
   
+  // Load users without persona first (fast initial load)
   const { data: users, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ['users'],
-    queryFn: fetchUsers,
+    queryFn: () => fetchUsers(0, 50, false), // Fast: no persona computation
+    staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
+    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   })
+
+  // Load persona data in background after users are loaded
+  // Only compute personas for first 20 users initially (much faster)
+  const { data: usersWithPersonas, isLoading: personasLoading } = useQuery({
+    queryKey: ['users-with-personas'],
+    queryFn: () => fetchUsers(0, 20, true), // Only compute personas for first 20 users
+    enabled: !!users && users.length > 0, // Only fetch after users are loaded
+    staleTime: 5 * 60 * 1000, // Cache persona data for 5 minutes
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+  })
+
+  // Merge persona data into users when available
+  const usersWithMergedPersonas = useMemo(() => {
+    if (!users) return []
+    if (!usersWithPersonas) return users
+    
+    // Create a map of user ID to persona data for quick lookup
+    const personaMap = new Map(
+      usersWithPersonas.map((user: any) => [user.id, user.persona])
+    )
+    
+    // Merge persona data into users
+    return users.map((user: any) => ({
+      ...user,
+      persona: personaMap.get(user.id) || user.persona,
+    }))
+  }, [users, usersWithPersonas])
 
   // Filter users for Overview tab
   const filteredUsers = useMemo(() => {
-    if (!users) return []
-    if (!searchQuery.trim()) return users
+    if (!usersWithMergedPersonas) return []
+    if (!searchQuery.trim()) return usersWithMergedPersonas
     
     const query = searchQuery.toLowerCase()
-    return users.filter(
+    return usersWithMergedPersonas.filter(
       (user: any) =>
         user.name.toLowerCase().includes(query) ||
         user.email.toLowerCase().includes(query)
     )
-  }, [users, searchQuery])
+  }, [usersWithMergedPersonas, searchQuery])
 
-  const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
+  // Load stats in background - don't block UI
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['stats'],
     queryFn: fetchStats,
+    // Don't block on stats - load in background
+    refetchOnWindowFocus: false,
   })
 
-  if (usersLoading || statsLoading) {
+  // Only block on users loading - show UI immediately when users are ready
+  if (usersLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-[#8B6F47]">Loading...</div>
+        <div className="text-[#8B6F47]">Loading users...</div>
       </div>
     )
   }
 
-  if (usersError || statsError) {
+  // Only show error if users fail - stats errors are non-critical
+  if (usersError) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-red-500">
-          <p className="font-semibold">Error loading data</p>
-          <p className="text-sm mt-2">{usersError?.message || statsError?.message}</p>
-          <p className="text-xs mt-2 text-[#8B6F47]">Make sure the backend API is running on http://localhost:8000</p>
+          <p className="font-semibold">Error loading users</p>
+          <p className="text-sm mt-2">{usersError?.message}</p>
+          <p className="text-xs mt-2 text-[#8B6F47]">Make sure the backend API is running on http://localhost:8001</p>
         </div>
       </div>
     )
@@ -83,20 +126,32 @@ export default function OperatorDashboard() {
           <p className="mt-2 text-[#556B2F]">System overview and user management</p>
         </div>
         
-        {/* User Search - Visible on all tabs, more prominent */}
-        <div className="w-96">
-          <UserSearch
-            users={users || []}
-            selectedUserId={selectedUserId}
-            onSelectUser={(userId) => {
-              setSelectedUserId(userId)
-              // If user is selected, navigate to their detail page
-              if (userId) {
-                navigate(`/user/${userId}`)
-              }
-            }}
-            placeholder="Search users by name or email..."
-          />
+        <div className="flex items-center gap-4">
+          {/* User Search - Visible on all tabs, more prominent */}
+          <div className="w-96">
+            <UserSearch
+              users={usersWithMergedPersonas || []}
+              selectedUserId={selectedUserId}
+              onSelectUser={(userId) => {
+                setSelectedUserId(userId)
+                // If user is selected, navigate to their detail page
+                if (userId) {
+                  navigate(`/user/${userId}`)
+                }
+              }}
+              placeholder="Search users by name or email..."
+            />
+          </div>
+          
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#5D4037] bg-white border border-[#D4C4B0] rounded-md hover:bg-[#F5E6D3] hover:border-[#556B2F] transition-colors"
+            title="Logout"
+          >
+            <LogOut size={18} />
+            <span>Logout</span>
+          </button>
         </div>
       </div>
 
@@ -169,25 +224,25 @@ export default function OperatorDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatCard
           title="Total Users"
-          value={stats?.total_users || 0}
+          value={statsLoading ? '...' : (stats?.total_users || 0)}
           icon={<Users className="h-6 w-6" />}
           color="blue"
         />
         <StatCard
           title="Total Accounts"
-          value={stats?.total_accounts || 0}
+          value={statsLoading ? '...' : (stats?.total_accounts || 0)}
           icon={<CreditCard className="h-6 w-6" />}
           color="green"
         />
         <StatCard
           title="Total Transactions"
-          value={stats?.total_transactions || 0}
+          value={statsLoading ? '...' : (stats?.total_transactions || 0)}
           icon={<DollarSign className="h-6 w-6" />}
           color="purple"
         />
         <StatCard
           title="Total Liabilities"
-          value={stats?.total_liabilities || 0}
+          value={statsLoading ? '...' : (stats?.total_liabilities || 0)}
           icon={<TrendingUp className="h-6 w-6" />}
           color="orange"
         />
@@ -199,8 +254,13 @@ export default function OperatorDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-[#5D4037]">
-                All Users {users && `(${users.length})`}
+                All Users {usersWithMergedPersonas && `(${usersWithMergedPersonas.length})`}
                 {searchQuery && filteredUsers && ` - Showing ${filteredUsers.length} results`}
+                {personasLoading && (
+                  <span className="ml-2 text-xs text-[#8B6F47] font-normal">
+                    (Loading risk levels...)
+                  </span>
+                )}
               </h2>
               <p className="text-sm text-[#556B2F] mt-1">Click on any user to view their details and manage their account</p>
             </div>
@@ -215,10 +275,10 @@ export default function OperatorDashboard() {
             </div>
           </div>
         </div>
-        {!users || users.length === 0 ? (
+        {!usersWithMergedPersonas || usersWithMergedPersonas.length === 0 ? (
           <div className="px-6 py-12 text-center text-[#8B6F47]">
             <p>No users found. Make sure the backend API is running.</p>
-            <p className="text-sm mt-2">Backend should be at: http://localhost:8000</p>
+            <p className="text-sm mt-2">Backend should be at: http://localhost:8001</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -266,6 +326,7 @@ export default function OperatorDashboard() {
                     }
                   }
                   
+                  const hasPersona = !!user.persona
                   const riskLevel = user.persona?.risk_level || 'VERY_LOW'
                   const riskPoints = user.persona?.total_risk_points || 0
                   
@@ -279,12 +340,20 @@ export default function OperatorDashboard() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRiskColor(riskLevel)}`}>
-                            {riskLevel}
-                          </span>
-                          <span className="text-xs text-[#8B6F47]">
-                            {riskPoints.toFixed(2)} pts
-                          </span>
+                          {hasPersona ? (
+                            <>
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRiskColor(riskLevel)}`}>
+                                {riskLevel}
+                              </span>
+                              <span className="text-xs text-[#8B6F47]">
+                                {riskPoints.toFixed(2)} pts
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-xs text-[#8B6F47] italic">
+                              {personasLoading ? 'Loading...' : 'N/A'}
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-[#8B6F47]">
@@ -358,6 +427,8 @@ function PendingRecommendationsSection() {
     mutationFn: approveRecommendation,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operator-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['approved-recommendations'] })
+      queryClient.invalidateQueries({ queryKey: ['all-recommendations'] })
     },
   })
 

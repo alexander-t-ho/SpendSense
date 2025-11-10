@@ -344,7 +344,17 @@ class ApprovedActionPlan(Base):
 # Database setup
 def get_engine(db_path: str = "data/spendsense.db"):
     """Get SQLAlchemy engine."""
-    return create_engine(f"sqlite:///{db_path}", echo=False)
+    # Add timeout settings for SQLite to prevent hangs
+    # timeout=20: Wait up to 20 seconds for database lock
+    # check_same_thread=False: Allow connections from different threads
+    return create_engine(
+        f"sqlite:///{db_path}",
+        echo=False,
+        connect_args={
+            "timeout": 20,  # Wait up to 20 seconds for database lock
+            "check_same_thread": False  # Allow connections from different threads
+        }
+    )
 
 
 def get_session(db_path: str = "data/spendsense.db"):

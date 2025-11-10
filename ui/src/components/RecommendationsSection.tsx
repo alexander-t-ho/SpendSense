@@ -24,6 +24,8 @@ export default function RecommendationsSection({ userId, windowDays = 180, readO
     },
     enabled: !!userId && readOnly,
     retry: false,
+    staleTime: 30000, // Cache for 30 seconds
+    cacheTime: 300000, // Keep in cache for 5 minutes
   })
 
   // For regular users, get approved recommendations
@@ -38,14 +40,21 @@ export default function RecommendationsSection({ userId, windowDays = 180, readO
     },
     enabled: !!userId && !readOnly,
     retry: false,
+    staleTime: 30000, // Cache for 30 seconds
+    cacheTime: 300000, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   })
 
   // Fallback to the original recommendation generator if no approved recommendations
+  // Only enable if we've confirmed there are no approved recommendations
+  const hasApprovedRecs = approvedRecs && approvedRecs.total > 0
   const { data: recommendations, isLoading, error, refetch } = useQuery({
     queryKey: ['recommendations', userId, windowDays],
     queryFn: () => fetchRecommendations(userId, windowDays),
-    enabled: !!userId && (!approvedRecs || approvedRecs.total === 0),
+    enabled: !!userId && !readOnly && !isLoadingApproved && !hasApprovedRecs,
     retry: false,
+    staleTime: 60000, // Cache for 1 minute (generated recommendations are expensive)
+    cacheTime: 600000, // Keep in cache for 10 minutes
   })
 
   // Listen for consent changes and refetch recommendations
@@ -112,10 +121,30 @@ export default function RecommendationsSection({ userId, windowDays = 180, readO
     displayRecommendations = recommendations
   }
 
-  if ((readOnly && isLoadingAll) || (!readOnly && (isLoadingApproved || isLoading))) {
+  // Show loading state only if we're still loading the primary query
+  // Don't block UI for fallback query
+  if (readOnly && isLoadingAll) {
     return (
       <div className="bg-white shadow rounded-lg p-6">
         <div className="text-[#8B6F47]">Loading recommendations...</div>
+      </div>
+    )
+  }
+  
+  if (!readOnly && isLoadingApproved) {
+    return (
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="text-[#8B6F47]">Loading recommendations...</div>
+      </div>
+    )
+  }
+  
+  // Show loading state for fallback only if we have no approved recommendations
+  if (!readOnly && !hasApprovedRecs && isLoading) {
+    return (
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="text-[#8B6F47]">Generating personalized recommendations...</div>
+        <p className="text-sm text-[#8B6F47] mt-2">This may take a moment...</p>
       </div>
     )
   }

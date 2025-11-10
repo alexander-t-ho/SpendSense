@@ -9,7 +9,7 @@ export default function DecisionTraceViewer() {
 
   const { data: users } = useQuery({
     queryKey: ['users'],
-    queryFn: fetchUsers,
+    queryFn: () => fetchUsers(0, 50, false), // Fast: no persona computation, paginated
   })
 
   const { data: tracesData, isLoading, error } = useQuery({

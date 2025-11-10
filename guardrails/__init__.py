@@ -1,9 +1,10 @@
 """Guardrails and compliance modules for SpendSense."""
 
-from guardrails.consent import ConsentManager
-from guardrails.eligibility import EligibilityChecker
-from guardrails.tone import ToneValidator
-from guardrails.disclosure import DisclosureManager
+# Note: Do not import modules here to avoid circular dependencies.
+# Import directly from the specific modules instead:
+#   from guardrails.consent import ConsentManager
+#   from guardrails.eligibility import EligibilityChecker
+#   etc.
 
 __all__ = [
     'ConsentManager',

@@ -13,10 +13,11 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 3004,
+    host: '0.0.0.0', // Listen on all interfaces (IPv4 and IPv6)
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        target: 'http://127.0.0.1:8001',
         changeOrigin: true,
         secure: false,
         // For insights endpoints, optionally proxy to Lambda API Gateway
@@ -31,7 +32,7 @@ export default defineConfig({
         // }
       },
       '/ws': {
-        target: 'ws://127.0.0.1:8000',
+        target: 'ws://127.0.0.1:8001',
         ws: true,
         changeOrigin: true,
         secure: false,
