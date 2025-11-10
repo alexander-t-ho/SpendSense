@@ -2,7 +2,7 @@
 
 import os
 import uuid
-from fastapi import FastAPI, HTTPException, Query, Body, WebSocket, WebSocketDisconnect, Depends, status
+from fastapi import FastAPI, HTTPException, Query, Body, WebSocket, WebSocketDisconnect, Depends, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -395,6 +395,61 @@ def generate_users_in_production(
             "traceback": error_details[:500] if error_details else "No traceback available",  # Limit traceback size
             "db_path": db_path
         }
+
+
+@app.post("/api/admin/upload-database")
+async def upload_database(file: UploadFile = File(...)):
+    """Temporary endpoint to upload database file to production. Remove after use.
+    
+    Upload your local database file (data/spendsense.db) to Railway.
+    This avoids needing to use Railway CLI linking.
+    
+    Usage:
+        curl -X POST https://web-production-ebdc6.up.railway.app/api/admin/upload-database \
+          -F "file=@data/spendsense.db"
+    """
+    db_path = get_db_path()
+    
+    try:
+        # Ensure directory exists
+        from pathlib import Path
+        db_file = Path(db_path)
+        db_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Read uploaded file
+        contents = await file.read()
+        
+        # Write to database path
+        with open(db_path, 'wb') as f:
+            f.write(contents)
+        
+        # Verify the database
+        session = get_session(db_path)
+        try:
+            user_count = session.query(func.count(User.id)).scalar()
+            account_count = session.query(func.count(Account.id)).scalar()
+            transaction_count = session.query(func.count(Transaction.id)).scalar()
+            
+            return {
+                "success": True,
+                "message": "Database uploaded successfully",
+                "database_path": db_path,
+                "file_size_bytes": len(contents),
+                "users": user_count,
+                "accounts": account_count,
+                "transactions": transaction_count
+            }
+        finally:
+            session.close()
+            
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error uploading database: {error_details}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error uploading database: {str(e)}"
+        )
 
 
 @app.post("/api/auth/logout")
