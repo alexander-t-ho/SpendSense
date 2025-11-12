@@ -7,7 +7,7 @@ set -e
 VERCEL_URL="https://spend-sense-o3df.vercel.app"
 BACKEND_URL="https://web-production-d242.up.railway.app"
 CORS_VALUE="http://localhost:3004,${VERCEL_URL}"
-PROJECT_NAME="respectful-surprise"
+PROJECT_NAME="Leafly"
 
 echo "🔧 SpendSense Railway CORS Setup"
 echo "================================="

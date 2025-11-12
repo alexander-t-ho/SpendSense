@@ -7,7 +7,7 @@ Run this command and select your project:
 railway link
 ```
 
-**Select the project that contains your backend service** (likely "respectful-surprise" - this is the SpendSense backend project).
+**Select the project that contains your backend service** (likely "Leafly" - this is the SpendSense backend project).
 
 ## Step 2: Set CORS
 

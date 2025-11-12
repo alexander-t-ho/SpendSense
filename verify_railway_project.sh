@@ -4,7 +4,7 @@
 set -e
 
 BACKEND_URL="https://web-production-d242.up.railway.app"
-PROJECT_NAME="respectful-surprise"
+PROJECT_NAME="Leafly"
 
 echo "🔍 Verifying Railway Project"
 echo "============================"
