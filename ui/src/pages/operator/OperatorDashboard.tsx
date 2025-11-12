@@ -42,16 +42,16 @@ export default function OperatorDashboard() {
   // Load users without persona first (fast initial load)
   const { data: users, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ['users'],
-    queryFn: () => fetchUsers(0, 50, false), // Fast: no persona computation
+    queryFn: () => fetchUsers(0, 150, false), // Fast: no persona computation, fetch all users
     staleTime: 2 * 60 * 1000, // Consider data fresh for 2 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   })
 
   // Load persona data in background after users are loaded
-  // Only compute personas for first 20 users initially (much faster)
+  // Compute personas for all users being displayed (150 users)
   const { data: usersWithPersonas, isLoading: personasLoading } = useQuery({
     queryKey: ['users-with-personas'],
-    queryFn: () => fetchUsers(0, 20, true), // Only compute personas for first 20 users
+    queryFn: () => fetchUsers(0, 150, true), // Compute personas for all displayed users
     enabled: !!users && users.length > 0, // Only fetch after users are loaded
     staleTime: 5 * 60 * 1000, // Cache persona data for 5 minutes
     gcTime: 10 * 60 * 1000,

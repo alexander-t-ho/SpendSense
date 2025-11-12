@@ -15,18 +15,28 @@ from features.pipeline import FeaturePipeline
 class CustomRecommendationGenerator:
     """Generates custom recommendations from admin prompts using RAG."""
     
-    def __init__(self, api_key: Optional[str] = None, db_path: str = "data/spendsense.db"):
+    def __init__(self, api_key: Optional[str] = None, db_path: str = "data/spendsense.db", use_openrouter: bool = False):
         """Initialize custom recommendation generator.
         
         Args:
-            api_key: OpenAI API key. If not provided, reads from OPENAI_API_KEY env var.
+            api_key: OpenAI or OpenRouter API key. If not provided, reads from OPENAI_API_KEY or OPENROUTER_API_KEY env var.
             db_path: Path to SQLite database
+            use_openrouter: If True, use OpenRouter API instead of OpenAI. Auto-detected if OPENROUTER_API_KEY is set.
         """
-        self.api_key = api_key or os.environ.get('OPENAI_API_KEY')
-        self.api_url = "https://api.openai.com/v1/chat/completions"
+        # Check for OpenRouter first if explicitly requested or if OPENROUTER_API_KEY is set
+        openrouter_key = os.environ.get('OPENROUTER_API_KEY')
+        if use_openrouter or (not api_key and openrouter_key):
+            self.api_key = api_key or openrouter_key
+            self.api_url = "https://openrouter.ai/api/v1/chat/completions"
+            self.use_openrouter = True
+        else:
+            self.api_key = api_key or os.environ.get('OPENAI_API_KEY')
+            self.api_url = "https://api.openai.com/v1/chat/completions"
+            self.use_openrouter = False
+        
         self.enabled = self.api_key is not None
         self.db_path = db_path
-        self.rag_enhancer = RAGEnhancementEngine(api_key)
+        self.rag_enhancer = RAGEnhancementEngine(api_key, use_openrouter=self.use_openrouter)
         self.knowledge_base = RecommendationKnowledgeBase()
         
     def generate_from_prompt(

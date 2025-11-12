@@ -13,14 +13,24 @@ from recommend.knowledge_base import RecommendationKnowledgeBase
 class RAGEnhancementEngine:
     """Enhances recommendations using RAG with OpenAI's o1-mini thinking model."""
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, use_openrouter: bool = False):
         """Initialize RAG enhancement engine.
         
         Args:
-            api_key: OpenAI API key. If not provided, reads from OPENAI_API_KEY env var.
+            api_key: OpenAI or OpenRouter API key. If not provided, reads from OPENAI_API_KEY or OPENROUTER_API_KEY env var.
+            use_openrouter: If True, use OpenRouter API instead of OpenAI. Auto-detected if OPENROUTER_API_KEY is set.
         """
-        self.api_key = api_key or os.environ.get('OPENAI_API_KEY')
-        self.api_url = "https://api.openai.com/v1/chat/completions"
+        # Check for OpenRouter first if explicitly requested or if OPENROUTER_API_KEY is set
+        openrouter_key = os.environ.get('OPENROUTER_API_KEY')
+        if use_openrouter or (not api_key and openrouter_key):
+            self.api_key = api_key or openrouter_key
+            self.api_url = "https://openrouter.ai/api/v1/chat/completions"
+            self.use_openrouter = True
+        else:
+            self.api_key = api_key or os.environ.get('OPENAI_API_KEY')
+            self.api_url = "https://api.openai.com/v1/chat/completions"
+            self.use_openrouter = False
+        
         self.enabled = self.api_key is not None
         
         self.validator = RecommendationValidator()
@@ -229,9 +239,17 @@ Return ONLY the JSON object, no other text or markdown formatting."""
             "Content-Type": "application/json"
         }
         
+        # OpenRouter requires additional headers
+        if self.use_openrouter:
+            headers["HTTP-Referer"] = "https://github.com/spendsense"
+            headers["X-Title"] = "SpendSense"
+        
         # o1-mini uses messages format but without system messages
+        # For OpenRouter, use openai/o1-mini model name
+        model = "openai/o1-mini" if self.use_openrouter else "o1-mini"
+        
         payload = {
-            "model": "o1-mini",
+            "model": model,
             "messages": [
                 {
                     "role": "user",

@@ -20,7 +20,7 @@ export default function RecommendationQueue() {
 
   const { data: users } = useQuery({
     queryKey: ['users'],
-    queryFn: () => fetchUsers(0, 50, false), // Fast: no persona computation, paginated
+    queryFn: () => fetchUsers(0, 150, false), // Fast: no persona computation, fetch all users
   })
 
   const { data, isLoading, error } = useQuery({

@@ -65,6 +65,24 @@ class PersonaAssigner:
         else:
             return 'VERY_LOW'
     
+    def assign_persona_with_features(
+        self,
+        user_id: str,
+        features: Dict[str, Any],
+        include_balanced: bool = True
+    ) -> Dict[str, Any]:
+        """Assign personas to a user using precomputed features (faster than computing on-the-fly).
+        
+        Args:
+            user_id: User ID
+            features: Precomputed features dictionary (from parquet or other source)
+            include_balanced: Whether to include fee_accumulator persona (replaces balanced_stable)
+        
+        Returns:
+            Dictionary with assignment results (same format as assign_persona)
+        """
+        return self._assign_persona_internal(user_id, features, include_balanced)
+    
     def assign_persona(
         self,
         user_id: str,
@@ -91,7 +109,24 @@ class PersonaAssigner:
         """
         # Compute features
         features = self.feature_pipeline.compute_features_for_user(user_id, window_days)
+        return self._assign_persona_internal(user_id, features, include_balanced)
+    
+    def _assign_persona_internal(
+        self,
+        user_id: str,
+        features: Dict[str, Any],
+        include_balanced: bool = True
+    ) -> Dict[str, Any]:
+        """Internal method to assign personas using provided features.
         
+        Args:
+            user_id: User ID
+            features: Features dictionary (computed or precomputed)
+            include_balanced: Whether to include fee_accumulator persona
+        
+        Returns:
+            Dictionary with assignment results
+        """
         # Score all personas
         all_matching_personas = []
         matching_results = {}

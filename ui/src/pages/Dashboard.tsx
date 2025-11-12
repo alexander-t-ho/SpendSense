@@ -6,7 +6,7 @@ import { fetchUsers, fetchStats } from '../services/api'
 export default function Dashboard() {
   const { data: users, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ['users'],
-    queryFn: () => fetchUsers(0, 50, false), // Fast: no persona computation, paginated
+    queryFn: () => fetchUsers(0, 150, false), // Fast: no persona computation, fetch all users
   })
 
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({

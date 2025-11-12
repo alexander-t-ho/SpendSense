@@ -54,21 +54,37 @@ class Persona:
         if self.id == 'high_utilization':
             card_details = credit.get('card_details', [])
             max_utilization = 0.0
-            for card in card_details:
-                util = card.get('utilization', {})
-                util_percent = util.get('utilization_percent', 0.0)
-                if util_percent > max_utilization:
-                    max_utilization = util_percent
+            
+            # Try to get utilization from card_details if available
+            if card_details:
+                for card in card_details:
+                    util = card.get('utilization', {})
+                    util_percent = util.get('utilization_percent', 0.0)
+                    if util_percent > max_utilization:
+                        max_utilization = util_percent
+            else:
+                # Fall back to boolean flags from parquet/precomputed features
+                # Estimate utilization based on flags
+                if credit.get('any_high_utilization_80', False):
+                    max_utilization = 85.0  # Estimate high utilization
+                elif credit.get('any_high_utilization_50', False):
+                    max_utilization = 65.0  # Estimate medium-high utilization
             
             # Criterion 1: Utilization ≥50%
-            if max_utilization >= 50.0:
+            if max_utilization >= 50.0 or credit.get('any_high_utilization_50', False):
                 matched_count += 1
-                reasons.append(f"Criterion 1: Credit utilization {max_utilization:.1f}% (≥50%)")
+                if max_utilization > 0:
+                    reasons.append(f"Criterion 1: Credit utilization {max_utilization:.1f}% (≥50%)")
+                else:
+                    reasons.append("Criterion 1: Credit utilization ≥50%")
             
             # Criterion 2: Utilization ≥80%
-            if max_utilization >= 80.0:
+            if max_utilization >= 80.0 or credit.get('any_high_utilization_80', False):
                 matched_count += 1
-                reasons.append(f"Criterion 2: Credit utilization {max_utilization:.1f}% (≥80%)")
+                if max_utilization > 0:
+                    reasons.append(f"Criterion 2: Credit utilization {max_utilization:.1f}% (≥80%)")
+                else:
+                    reasons.append("Criterion 2: Credit utilization ≥80%")
             
             # Criterion 3: Interest charges present
             has_interest = credit.get('any_interest_charges', False)

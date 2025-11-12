@@ -9,15 +9,24 @@ import requests
 class ChatGPTPersonalizer:
     """Uses ChatGPT API to generate personalized recommendation text."""
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, use_openrouter: bool = False):
         """Initialize ChatGPT personalizer.
         
         Args:
-            api_key: OpenAI API key. If not provided, reads from OPENAI_API_KEY env var.
+            api_key: OpenAI or OpenRouter API key. If not provided, reads from OPENAI_API_KEY or OPENROUTER_API_KEY env var.
+            use_openrouter: If True, use OpenRouter API instead of OpenAI. Auto-detected if OPENROUTER_API_KEY is set.
         """
-        # Use provided API key or environment variable
-        self.api_key = api_key or os.environ.get('OPENAI_API_KEY')
-        self.api_url = "https://api.openai.com/v1/chat/completions"
+        # Check for OpenRouter first if explicitly requested or if OPENROUTER_API_KEY is set
+        openrouter_key = os.environ.get('OPENROUTER_API_KEY')
+        if use_openrouter or (not api_key and openrouter_key):
+            self.api_key = api_key or openrouter_key
+            self.api_url = "https://openrouter.ai/api/v1/chat/completions"
+            self.use_openrouter = True
+        else:
+            self.api_key = api_key or os.environ.get('OPENAI_API_KEY')
+            self.api_url = "https://api.openai.com/v1/chat/completions"
+            self.use_openrouter = False
+        
         self.enabled = self.api_key is not None
         
         # Tone rules for all ChatGPT interactions
@@ -124,14 +133,22 @@ CRITICAL: Follow all tone rules above - use empowering, supportive language with
         return prompt
     
     def _call_chatgpt_api(self, prompt: str) -> str:
-        """Call ChatGPT API to generate personalized text."""
+        """Call ChatGPT API or OpenRouter to generate personalized text."""
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
         
+        # OpenRouter requires additional headers
+        if self.use_openrouter:
+            headers["HTTP-Referer"] = "https://github.com/spendsense"
+            headers["X-Title"] = "SpendSense"
+        
+        # For OpenRouter, use openai/gpt-3.5-turbo model name
+        model = "openai/gpt-3.5-turbo" if self.use_openrouter else "gpt-3.5-turbo"
+        
         payload = {
-            "model": "gpt-3.5-turbo",  # Use gpt-3.5-turbo for cost efficiency
+            "model": model,  # Use gpt-3.5-turbo for cost efficiency
             "messages": [
                 {
                     "role": "system",

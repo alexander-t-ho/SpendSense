@@ -3,6 +3,7 @@
 import os
 from fastapi import FastAPI, HTTPException, Query, Body, WebSocket, WebSocketDisconnect, Depends, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_
 from typing import Optional, Dict, Any
@@ -13,6 +14,7 @@ from features.payroll_utils import PayrollDetector
 from api.websocket import manager
 from api.auth import security, security_optional, get_current_user
 from api.routes import auth, admin
+from api.utils import get_db_path
 
 app = FastAPI(title="SpendSense API", version="1.0.0")
 
@@ -98,13 +100,90 @@ def get_users(
         # Compute personas if requested
         # Note: Using sequential processing because SQLite doesn't handle concurrent access well
         if include_persona and len(users_with_counts) > 0:
+            # Try to load features from parquet first (much faster)
+            import polars as pl
+            from pathlib import Path
+            from datetime import datetime, timedelta
+            
+            parquet_path = Path("data/features") / "features_180d.parquet"
+            features_map = {}
+            
+            if parquet_path.exists():
+                try:
+                    # Load all features from parquet into memory
+                    df = pl.read_parquet(parquet_path)
+                    features_dicts = df.to_dicts()
+                    
+                    # Convert flattened parquet features back to nested structure
+                    for flat_features in features_dicts:
+                        user_id = flat_features.get('user_id')
+                        if not user_id:
+                            continue
+                        
+                        # Reconstruct nested structure expected by PersonaAssigner
+                        features_map[user_id] = {
+                            "user_id": user_id,
+                            "window_days": flat_features.get('window_days', 180),
+                            "start_date": flat_features.get('start_date'),
+                            "end_date": flat_features.get('end_date'),
+                            "subscriptions": {
+                                "recurring_merchants": flat_features.get('recurring_merchants', []),
+                                "monthly_recurring_spend": flat_features.get('monthly_recurring_spend', 0.0),
+                                "subscription_share_of_total": flat_features.get('subscription_share_of_total', 0.0),
+                                "total_subscription_spend": flat_features.get('total_subscription_spend', 0.0),
+                            },
+                            "savings": {
+                                "net_inflow": flat_features.get('savings_net_inflow', 0.0),
+                                "monthly_net_inflow": flat_features.get('savings_monthly_net_inflow', 0.0),
+                                "growth_rate_percent": flat_features.get('savings_growth_rate', 0.0),
+                                "emergency_fund_coverage_months": flat_features.get('emergency_fund_coverage_months', 0.0),
+                                "total_savings_balance": flat_features.get('total_savings_balance', 0.0),
+                                "has_emergency_fund": flat_features.get('has_emergency_fund', False),
+                            },
+                            "credit": {
+                                "has_credit_cards": flat_features.get('has_credit_cards', False),
+                                "any_high_utilization_50": flat_features.get('any_high_utilization_50', False),
+                                "any_high_utilization_80": flat_features.get('any_high_utilization_80', False),
+                                "any_interest_charges": flat_features.get('any_interest_charges', False),
+                                "any_minimum_payment_only": flat_features.get('any_minimum_payment_only', False),
+                                "any_overdue": flat_features.get('any_overdue', False),
+                                "card_details": [],  # Not stored in parquet, will need to compute if needed
+                            },
+                            "income": {
+                                "has_payroll_detected": flat_features.get('has_payroll_detected', False),
+                                "median_pay_gap_days": flat_features.get('median_pay_gap_days', 0.0),
+                                "cash_flow_buffer_months": flat_features.get('cash_flow_buffer_months', 0.0),
+                                "is_variable_income": flat_features.get('is_variable_income', False),
+                                "payment_frequency": {
+                                    "frequency": flat_features.get('payment_frequency', 'monthly'),
+                                    "is_regular": flat_features.get('is_regular_income', False),
+                                },
+                            },
+                            "fees": {},  # Fees not stored in parquet
+                        }
+                    print(f"Loaded {len(features_map)} user features from parquet file")
+                except Exception as e:
+                    print(f"Error loading parquet file, falling back to on-the-fly computation: {e}")
+                    features_map = {}
+            
             db_path = get_db_path()
             # Use a single shared assigner for better performance
             assigner = PersonaAssigner(session, db_path)
             try:
                 for user_data in result:
                     try:
-                        persona_assignment_data = assigner.assign_persona(user_data["id"])
+                        user_id = user_data["id"]
+                        
+                        # Use precomputed features if available, otherwise compute on-the-fly
+                        if user_id in features_map:
+                            # Use precomputed features from parquet
+                            features = features_map[user_id]
+                            # Assign persona using precomputed features
+                            persona_assignment_data = assigner.assign_persona_with_features(user_id, features)
+                        else:
+                            # Fall back to computing features on-the-fly
+                            persona_assignment_data = assigner.assign_persona(user_id)
+                        
                         persona_obj = {
                             "id": persona_assignment_data.get('primary_persona'),
                             "name": persona_assignment_data.get('primary_persona_name'),
@@ -124,8 +203,25 @@ def get_users(
                         user_data["persona"] = persona_obj
                     except Exception as e:
                         print(f"Error computing persona for user {user_data['id']}: {e}")
-                        # Continue with next user even if one fails
-                        continue
+                        import traceback
+                        traceback.print_exc()
+                        # Provide default persona object instead of skipping
+                        user_data["persona"] = {
+                            "id": None,
+                            "name": "Unknown",
+                            "risk": 0,
+                            "risk_level": "VERY_LOW",
+                            "total_risk_points": 0.0,
+                            "top_personas": [],
+                            "all_matching_personas": [],
+                            "primary_persona": None,
+                            "primary_persona_name": "Unknown",
+                            "primary_persona_percentage": 100,
+                            "secondary_persona": None,
+                            "secondary_persona_name": None,
+                            "secondary_persona_percentage": 0,
+                            "rationale": "Unable to compute persona - insufficient data or error occurred"
+                        }
             finally:
                 assigner.close()
             
@@ -262,6 +358,8 @@ def get_user_profile(
     """
     # Import directly to avoid circular import issues
     from guardrails.consent import ConsentManager
+    from jose import JWTError, jwt
+    from api.auth import SECRET_KEY, ALGORITHM
     
     session = get_session()
     try:
@@ -712,6 +810,8 @@ def get_suggested_budget(
         
         if credentials:
             try:
+                from jose import JWTError, jwt
+                from api.auth import SECRET_KEY, ALGORITHM
                 token = credentials.credentials
                 payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
                 username = payload.get("sub")
@@ -1270,6 +1370,8 @@ def get_budget_tracking(
         
         if credentials:
             try:
+                from jose import JWTError, jwt
+                from api.auth import SECRET_KEY, ALGORITHM
                 token = credentials.credentials
                 payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
                 username = payload.get("sub")
@@ -2039,6 +2141,7 @@ def generate_custom_recommendation(request: Dict[str, Any] = Body(...)):
         
         # Store the recommendation in the database
         from ingest.schema import Recommendation
+        from datetime import datetime
         import uuid
         
         rec_id = recommendation.get('id', str(uuid.uuid4()))
@@ -2075,9 +2178,16 @@ def generate_custom_recommendation(request: Dict[str, Any] = Body(...)):
             "recommendation": recommendation
         }
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error generating custom recommendation (ValueError): {error_details}")
+        raise HTTPException(status_code=400, detail=str(e) if str(e) else "Invalid request: OpenAI API key not found. Set OPENAI_API_KEY or OPENROUTER_API_KEY environment variable.")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate recommendation: {str(e)}")
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error generating custom recommendation: {error_details}")
+        error_msg = str(e) if str(e) else "Unknown error occurred"
+        raise HTTPException(status_code=500, detail=f"Failed to generate recommendation: {error_msg}")
     finally:
         session.close()
 
@@ -2214,7 +2324,6 @@ async def submit_recommendation_feedback(user_id: str, recommendation_id: str, r
         
         # Broadcast feedback update via WebSocket
         try:
-            from api.websocket import manager
             await manager.broadcast_recommendation_feedback(user_id, recommendation_id, feedback_value)
         except Exception as e:
             # Log WebSocket error but don't fail the request
