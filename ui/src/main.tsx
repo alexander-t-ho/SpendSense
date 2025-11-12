@@ -49,8 +49,10 @@ window.addEventListener('unhandledrejection', (event) => {
 })
 
 // Suppress LastPass and other extension context menu errors
+// IMPORTANT: This must run BEFORE React renders to catch early errors
 const originalError = console.error
 const originalWarn = console.warn
+const originalLog = console.log
 
 // Helper function to check if message should be suppressed
 const shouldSuppressExtensionError = (message: string, args: any[]): boolean => {
@@ -80,10 +82,16 @@ const shouldSuppressExtensionError = (message: string, args: any[]): boolean => 
     'add item', 'add password', 'add address', 'add payment card',
     'add other item', 'save all entered data', 'generate secure password',
     'separator', 'fill -', 'edit -', 'copy first name', 'copy last name',
-    'copy address line', 'copy city', 'copy zip', 'copy postal code',
-    'copy email address', 'copy phone number'
+    'copy address line', 'copy city', 'copy town', 'copy zip', 'copy postal code',
+    'copy email address', 'copy phone number', 'copy city/town', 'copy zip/postal code'
   ]
   if (contextMenuItems.some(item => lowerMessage.includes(item))) {
+    return true
+  }
+  
+  // Check for numeric IDs in duplicate id errors (e.g., "5887735270156244167")
+  // These are typically from form fillers trying to create context menu items
+  if (lowerMessage.includes('duplicate id') && /\d{10,}/.test(message)) {
     return true
   }
   
@@ -162,6 +170,18 @@ console.warn = (...args: any[]) => {
   }
   
   originalWarn.apply(console, args)
+}
+
+// Also suppress console.log for extension errors (some extensions use console.log)
+console.log = (...args: any[]) => {
+  const message = args.join(' ')
+  
+  // Suppress browser extension logs
+  if (shouldSuppressExtensionError(message, args)) {
+    return // Suppress these logs
+  }
+  
+  originalLog.apply(console, args)
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
