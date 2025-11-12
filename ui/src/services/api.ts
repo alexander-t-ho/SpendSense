@@ -1,5 +1,20 @@
 // Use environment variable for production, fallback to relative path for local dev (Vite proxy)
-const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api` : '/api'
+export const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api` : '/api'
+
+// Log API configuration in development or if VITE_API_URL is missing in production
+if (import.meta.env.DEV || (import.meta.env.PROD && !import.meta.env.VITE_API_URL)) {
+  console.log('🔧 API Configuration:', {
+    VITE_API_URL: import.meta.env.VITE_API_URL || '(not set)',
+    API_BASE_URL: API_BASE_URL,
+    environment: import.meta.env.MODE,
+    isProduction: import.meta.env.PROD
+  })
+  
+  if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
+    console.warn('⚠️  VITE_API_URL is not set in production! API calls will fail.')
+    console.warn('   Set VITE_API_URL in Vercel environment variables and redeploy.')
+  }
+}
 
 // Helper function to get auth headers
 function getAuthHeaders(): HeadersInit {

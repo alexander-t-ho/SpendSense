@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Leaf, CreditCard, Wallet, Building2, Settings, CheckCircle, XCircle, Info } from "lucide-react";
-import { fetchUserDetail, getConsentStatus } from "../../services/api";
+import { fetchUserDetail, getConsentStatus, API_BASE_URL } from "../../services/api";
 import FinancialInsightsCarousel from "../FinancialInsightsCarousel";
 import RecommendationsSection from "../RecommendationsSection";
 import CreditCardBrandLogo, { detectCreditCardBrand } from "../CreditCardBrandLogo";
@@ -669,8 +669,7 @@ function GenerateRecommendationsButton({ userId }: { userId: string }) {
   const queryClient = useQueryClient()
   const [generatedRecommendations, setGeneratedRecommendations] = useState<any[] | null>(null)
 
-  // Use environment variable for production, fallback to relative path for local dev (Vite proxy)
-  const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api` : '/api'
+  // API_BASE_URL is imported from services/api
 
   const generateMutation = useMutation({
     mutationFn: async () => {
@@ -705,7 +704,7 @@ function GenerateRecommendationsButton({ userId }: { userId: string }) {
 
   const approveMutation = useMutation({
     mutationFn: async (recommendationId: string) => {
-      const response = await fetch(`/api/operator/recommendations/${recommendationId}/approve`, {
+      const response = await fetch(`${API_BASE_URL}/operator/recommendations/${recommendationId}/approve`, {
         method: 'PUT',
       })
       if (!response.ok) {
@@ -730,7 +729,7 @@ function GenerateRecommendationsButton({ userId }: { userId: string }) {
 
   const rejectMutation = useMutation({
     mutationFn: async (recommendationId: string) => {
-      const response = await fetch(`/api/operator/recommendations/${recommendationId}/reject`, {
+      const response = await fetch(`${API_BASE_URL}/operator/recommendations/${recommendationId}/reject`, {
         method: 'PUT',
       })
       if (!response.ok) {
@@ -753,7 +752,7 @@ function GenerateRecommendationsButton({ userId }: { userId: string }) {
 
   const flagMutation = useMutation({
     mutationFn: async (recommendationId: string) => {
-      const response = await fetch(`/api/operator/recommendations/${recommendationId}/flag`, {
+      const response = await fetch(`${API_BASE_URL}/operator/recommendations/${recommendationId}/flag`, {
         method: 'PUT',
       })
       if (!response.ok) {

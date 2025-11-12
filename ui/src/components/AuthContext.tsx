@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { API_BASE_URL } from '../services/api'
 
 interface User {
   id: string
@@ -40,14 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserInfo = async (authToken: string) => {
     try {
-      // Use Vite proxy for local dev, or explicit URL for production
-      const API_URL = import.meta.env.VITE_API_URL 
-        ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
-        : '' // Empty string means use relative path (Vite proxy)
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000)
       
-      const response = await fetch(`${API_URL}/api/auth/me`, {
+      // API_BASE_URL already includes /api, so we need to construct the auth endpoint
+      const authUrl = API_BASE_URL.replace('/api', '/api/auth/me')
+      const response = await fetch(authUrl, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         },
@@ -76,17 +75,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const login = async (username: string, password: string) => {
-    // Use Vite proxy for local dev, or explicit URL for production
-    const API_URL = import.meta.env.VITE_API_URL 
-      ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
-      : '' // Empty string means use relative path (Vite proxy)
-    
     // Create AbortController for timeout
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
     
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
+      // Verify API_BASE_URL is configured
+      if (API_BASE_URL === '/api' && import.meta.env.PROD) {
+        console.warn('VITE_API_URL is not set in production. Login may fail.')
+      }
+      
+      // API_BASE_URL already includes /api, so we need to construct the auth endpoint
+      const authUrl = API_BASE_URL.replace('/api', '/api/auth/login')
+      
+      const response = await fetch(authUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,8 +100,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearTimeout(timeoutId)
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: 'Login failed' }))
-        throw new Error(error.detail || 'Login failed')
+        // Handle 401 specifically with better error messages
+        if (response.status === 401) {
+          const error = await response.json().catch(() => ({ detail: 'Incorrect username or password' }))
+          const errorMessage = error.detail || 'Incorrect username or password'
+          
+          // Check if this might be a configuration issue
+          if (API_BASE_URL === '/api' && import.meta.env.PROD) {
+            throw new Error(`${errorMessage}. Also, VITE_API_URL environment variable may not be set in production.`)
+          }
+          
+          throw new Error(errorMessage)
+        }
+        
+        // Handle CORS errors
+        if (response.status === 0 || response.type === 'opaque') {
+          throw new Error('CORS error: Backend may not be configured to allow requests from this origin. Check CORS_ORIGINS on the backend.')
+        }
+        
+        const error = await response.json().catch(() => ({ detail: `Login failed with status ${response.status}` }))
+        throw new Error(error.detail || `Login failed with status ${response.status}`)
       }
 
       const data = await response.json()
@@ -117,6 +137,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearTimeout(timeoutId)
       if (error.name === 'AbortError') {
         throw new Error('Request timed out. Please check your connection and try again.')
+      }
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw new Error('Failed to connect to server. Please check that the backend is running and VITE_API_URL is configured correctly.')
       }
       if (error.message) {
         throw error

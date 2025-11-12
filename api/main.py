@@ -20,7 +20,14 @@ app = FastAPI(title="SpendSense API", version="1.0.0")
 
 # CORS middleware
 # Allow origins from environment variable for Lambda, fallback to localhost for local dev
-allowed_origins = os.environ.get("CORS_ORIGINS", "http://localhost:3004").split(",")
+# Support comma-separated list of origins
+cors_origins_env = os.environ.get("CORS_ORIGINS", "http://localhost:3004")
+allowed_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
+
+# Log CORS configuration for debugging (but not in production to avoid exposing config)
+if not os.environ.get("RAILWAY_ENVIRONMENT"):
+    print(f"CORS allowed origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,

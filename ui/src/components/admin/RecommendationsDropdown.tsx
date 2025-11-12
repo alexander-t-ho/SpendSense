@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, ChevronUp, Clock, Flag, XCircle, CheckCircle, AlertCircle } from 'lucide-react'
 import { approveRecommendation, flagRecommendation, rejectRecommendation, OperatorRecommendation } from '../../services/operatorApi'
+import { API_BASE_URL } from '../../services/api'
 
 interface RecommendationsDropdownProps {
   userId: string
@@ -15,7 +16,7 @@ export default function RecommendationsDropdown({ userId }: RecommendationsDropd
   const { data: allRecs, isLoading } = useQuery({
     queryKey: ['all-recommendations-dropdown', userId],
     queryFn: async () => {
-      const response = await fetch(`/api/operator/recommendations?status=all&user_id=${userId}&limit=100`)
+      const response = await fetch(`${API_BASE_URL}/operator/recommendations?status=all&user_id=${userId}&limit=100`)
       if (!response.ok) {
         throw new Error('Failed to fetch recommendations')
       }

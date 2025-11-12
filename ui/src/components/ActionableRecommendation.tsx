@@ -4,6 +4,7 @@ import { X, CheckCircle2, CheckCircle, Calendar, ThumbsUp, ThumbsDown } from 'lu
 import { SubscriptionWebSocket, SubscriptionCancellationUpdate } from '../services/subscriptionWebSocket'
 import { RecommendationFeedbackWebSocket, RecommendationFeedbackUpdate } from '../services/recommendationFeedbackWebSocket'
 import CompanyLogo from './CompanyLogo'
+import { API_BASE_URL } from '../services/api'
 
 interface Subscription {
   merchant_name: string
@@ -34,7 +35,7 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
   const { data: cancelledSubsData } = useQuery({
     queryKey: ['cancelled-subscriptions', userId],
     queryFn: async () => {
-      const response = await fetch(`/api/user/${userId}/subscriptions/cancelled`)
+      const response = await fetch(`${API_BASE_URL}/user/${userId}/subscriptions/cancelled`)
       if (!response.ok) {
         if (response.status === 404) {
           return { cancelled_merchants: [], total: 0 }
@@ -75,7 +76,7 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
   const { data: subscriptionsData, isLoading: isLoadingSubs } = useQuery({
     queryKey: ['user-subscriptions', userId],
     queryFn: async () => {
-      const response = await fetch(`/api/user/${userId}/subscriptions`)
+      const response = await fetch(`${API_BASE_URL}/user/${userId}/subscriptions`)
       if (!response.ok) {
         if (response.status === 404) {
           // User might not have subscriptions, return empty array
@@ -146,7 +147,7 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
   // Cancel subscription mutation
   const cancelMutation = useMutation({
     mutationFn: async (merchantName: string) => {
-      const response = await fetch(`/api/user/${userId}/subscriptions/cancel`, {
+      const response = await fetch(`${API_BASE_URL}/user/${userId}/subscriptions/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +169,7 @@ export default function ActionableRecommendation({ recommendation, userId }: Act
   // Uncancel subscription mutation
   const uncancelMutation = useMutation({
     mutationFn: async (merchantName: string) => {
-      const response = await fetch(`/api/user/${userId}/subscriptions/uncancel`, {
+      const response = await fetch(`${API_BASE_URL}/user/${userId}/subscriptions/uncancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -408,7 +409,7 @@ function RecommendationFeedback({ recommendationId, userId, hasOptions = false }
   const { data: feedbackData } = useQuery({
     queryKey: ['recommendation-feedback', recommendationId, userId],
     queryFn: async () => {
-      const response = await fetch(`/api/user/${userId}/recommendations/${recommendationId}/feedback`)
+      const response = await fetch(`${API_BASE_URL}/user/${userId}/recommendations/${recommendationId}/feedback`)
       if (!response.ok) {
         if (response.status === 404) {
           return { feedback: null }
@@ -448,7 +449,7 @@ function RecommendationFeedback({ recommendationId, userId, hasOptions = false }
 
   const agreeMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/user/${userId}/recommendations/${recommendationId}/feedback`, {
+      const response = await fetch(`${API_BASE_URL}/user/${userId}/recommendations/${recommendationId}/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ feedback: 'agreed' }),
@@ -467,7 +468,7 @@ function RecommendationFeedback({ recommendationId, userId, hasOptions = false }
 
   const rejectMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/user/${userId}/recommendations/${recommendationId}/feedback`, {
+      const response = await fetch(`${API_BASE_URL}/user/${userId}/recommendations/${recommendationId}/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ feedback: 'rejected' }),
@@ -556,7 +557,7 @@ function ActionPlanApproval({ recommendationId, userId, actionItems, recommendat
   const { data: approvedPlan, isLoading: isLoadingPlan } = useQuery({
     queryKey: ['approved-action-plan', userId, recommendationId],
     queryFn: async () => {
-      const response = await fetch(`/api/user/${userId}/action-plans/${recommendationId}`)
+      const response = await fetch(`${API_BASE_URL}/user/${userId}/action-plans/${recommendationId}`)
       if (!response.ok) {
         if (response.status === 404) {
           return null
@@ -588,7 +589,7 @@ function ActionPlanApproval({ recommendationId, userId, actionItems, recommendat
   // Approve plan mutation
   const approveMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/user/${userId}/action-plans/approve`, {
+      const response = await fetch(`${API_BASE_URL}/user/${userId}/action-plans/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -608,7 +609,7 @@ function ActionPlanApproval({ recommendationId, userId, actionItems, recommendat
   // Cancel plan mutation
   const cancelMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/user/${userId}/action-plans/${recommendationId}/cancel`, {
+      const response = await fetch(`${API_BASE_URL}/user/${userId}/action-plans/${recommendationId}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -630,7 +631,7 @@ function ActionPlanApproval({ recommendationId, userId, actionItems, recommendat
       if (isDebtPayoff && selectedOption === null) {
         throw new Error('Please select a payment option')
       }
-      const response = await fetch(`/api/user/${userId}/action-plans/approve`, {
+      const response = await fetch(`${API_BASE_URL}/user/${userId}/action-plans/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

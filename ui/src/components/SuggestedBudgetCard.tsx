@@ -3,6 +3,7 @@ import { fetchSuggestedBudget, fetchBudgetTracking, generateRAGBudget } from '..
 import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Legend, ReferenceLine } from 'recharts'
 import { useEffect, useState } from 'react'
 import { Save, Pencil } from 'lucide-react'
+import { API_BASE_URL } from '../services/api'
 
 interface SuggestedBudgetCardProps {
   userId: string
@@ -85,7 +86,7 @@ export default function SuggestedBudgetCard({ userId, month, lookbackMonths = 6,
   
   const saveBudgetMutation = useMutation({
     mutationFn: async (amount: number) => {
-      const response = await fetch(`/api/insights/${userId}/budget`, {
+      const response = await fetch(`${API_BASE_URL}/insights/${userId}/budget`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

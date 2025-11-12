@@ -3,6 +3,7 @@ import { fetchBudgetTracking, generateRAGBudget } from '../services/api'
 import { Pencil, Save, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { RadialBarChart, RadialBar, ResponsiveContainer } from 'recharts'
+import { API_BASE_URL } from '../services/api'
 
 interface UserBudgetDisplayProps {
   userId: string
@@ -38,7 +39,7 @@ export default function UserBudgetDisplay({ userId, month }: UserBudgetDisplayPr
 
   const saveBudgetMutation = useMutation({
     mutationFn: async (amount: number) => {
-      const response = await fetch(`/api/insights/${userId}/budget`, {
+      const response = await fetch(`${API_BASE_URL}/insights/${userId}/budget`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

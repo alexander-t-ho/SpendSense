@@ -7,17 +7,28 @@ import './index.css'
 window.addEventListener('unhandledrejection', (event) => {
   // Suppress browser extension errors
   const reason = event.reason?.message || event.reason?.toString() || ''
+  const reasonLower = reason.toLowerCase()
+  const stack = event.reason?.stack || ''
+  const stackLower = stack.toLowerCase()
   
   // Suppress common browser extension errors
   if (
-    reason.includes('message channel closed') ||
-    reason.includes('listener indicated an asynchronous response') ||
-    reason.includes('message channel closed before a response was received') ||
-    reason.includes('No tab with id') ||
-    reason.includes('Extension context invalidated') ||
-    event.reason?.stack?.includes('background-redux') ||
-    event.reason?.stack?.includes('chrome-extension://') ||
-    event.reason?.stack?.includes('moz-extension://')
+    reasonLower.includes('message channel closed') ||
+    reasonLower.includes('listener indicated an asynchronous response') ||
+    reasonLower.includes('message channel closed before a response was received') ||
+    reasonLower.includes('no tab with id') ||
+    reasonLower.includes('extension context invalidated') ||
+    reasonLower.includes('runtime.lasterror') ||
+    reasonLower.includes('cannot create item with duplicate id') ||
+    reasonLower.includes('duplicate id') ||
+    reasonLower.includes('lastpass') ||
+    reasonLower.includes('lp-push-server') ||
+    stackLower.includes('background-redux') ||
+    stackLower.includes('chrome-extension://') ||
+    stackLower.includes('moz-extension://') ||
+    stackLower.includes('safari-extension://') ||
+    stackLower.includes('extension://') ||
+    (reasonLower.includes('websocket') && (reasonLower.includes('lastpass') || reasonLower.includes('lp-push-server')))
   ) {
     event.preventDefault()
     return
@@ -27,7 +38,7 @@ window.addEventListener('unhandledrejection', (event) => {
   if (
     event.reason?.isConsentError === true ||
     event.reason?.status === 403 ||
-    (reason.includes('Failed to fetch') && (reason.includes('budget') || reason.includes('suggested budget') || reason.includes('budget tracking')))
+    (reasonLower.includes('failed to fetch') && (reasonLower.includes('budget') || reasonLower.includes('suggested budget') || reasonLower.includes('budget tracking')))
   ) {
     event.preventDefault()
     return
@@ -39,16 +50,89 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Suppress LastPass and other extension context menu errors
 const originalError = console.error
+const originalWarn = console.warn
+
+// Helper function to check if message should be suppressed
+const shouldSuppressExtensionError = (message: string, args: any[]): boolean => {
+  const lowerMessage = message.toLowerCase()
+  
+  // Check for runtime.lastError variations
+  if (
+    lowerMessage.includes('runtime.lasterror') ||
+    lowerMessage.includes('unchecked runtime.lasterror') ||
+    lowerMessage.includes('cannot create item with duplicate id') ||
+    lowerMessage.includes('duplicate id')
+  ) {
+    return true
+  }
+  
+  // Check for LastPass and password manager errors
+  if (
+    lowerMessage.includes('lastpass') ||
+    lowerMessage.includes('lp-push-server') ||
+    lowerMessage.includes('background-redux')
+  ) {
+    return true
+  }
+  
+  // Check for context menu items (LastPass, password managers, form fillers)
+  const contextMenuItems = [
+    'add item', 'add password', 'add address', 'add payment card',
+    'add other item', 'save all entered data', 'generate secure password',
+    'separator', 'fill -', 'edit -', 'copy first name', 'copy last name',
+    'copy address line', 'copy city', 'copy zip', 'copy postal code',
+    'copy email address', 'copy phone number'
+  ]
+  if (contextMenuItems.some(item => lowerMessage.includes(item))) {
+    return true
+  }
+  
+  // Check for extension URLs
+  if (
+    lowerMessage.includes('chrome-extension://') ||
+    lowerMessage.includes('moz-extension://') ||
+    lowerMessage.includes('safari-extension://') ||
+    lowerMessage.includes('extension://')
+  ) {
+    return true
+  }
+  
+  // Check for WebSocket errors from extensions
+  if (
+    lowerMessage.includes('websocket') &&
+    (lowerMessage.includes('lastpass') || lowerMessage.includes('lp-push-server'))
+  ) {
+    return true
+  }
+  
+  // Check error objects for extension-related content
+  const hasExtensionError = args.some(arg => {
+    if (arg && typeof arg === 'object') {
+      const argStr = JSON.stringify(arg).toLowerCase()
+      return argStr.includes('runtime.lasterror') || 
+             argStr.includes('duplicate id') ||
+             argStr.includes('lastpass') ||
+             argStr.includes('chrome-extension') ||
+             (arg.message && (
+               arg.message.toLowerCase().includes('runtime.lasterror') || 
+               arg.message.toLowerCase().includes('duplicate id') ||
+               arg.message.toLowerCase().includes('lastpass')
+             ))
+    }
+    return false
+  })
+  if (hasExtensionError) {
+    return true
+  }
+  
+  return false
+}
+
 console.error = (...args: any[]) => {
   const message = args.join(' ')
-  // Filter out LastPass and extension-related errors
-  if (
-    message.includes('runtime.lastError') ||
-    message.includes('Cannot create item with duplicate id') ||
-    message.includes('LastPass') ||
-    message.includes('chrome-extension://') ||
-    message.includes('moz-extension://')
-  ) {
+  
+  // Suppress browser extension errors
+  if (shouldSuppressExtensionError(message, args)) {
     return // Suppress these errors
   }
   
@@ -66,6 +150,18 @@ console.error = (...args: any[]) => {
   }
   
   originalError.apply(console, args)
+}
+
+// Also suppress warnings from browser extensions
+console.warn = (...args: any[]) => {
+  const message = args.join(' ')
+  
+  // Suppress browser extension warnings
+  if (shouldSuppressExtensionError(message, args)) {
+    return // Suppress these warnings
+  }
+  
+  originalWarn.apply(console, args)
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
