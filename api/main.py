@@ -1625,11 +1625,19 @@ def generate_persona_recommendations(
             }
         finally:
             generator.close()
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
         print(f"Error generating recommendations: {error_details}")
-        raise HTTPException(status_code=500, detail=f"Error generating recommendations: {str(e)}")
+        error_msg = str(e) if str(e) else "Unknown error occurred"
+        # Include error type for better debugging
+        error_type = type(e).__name__
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error generating recommendations: {error_type}: {error_msg}"
+        )
     finally:
         session.close()
 
