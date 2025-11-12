@@ -669,9 +669,12 @@ function GenerateRecommendationsButton({ userId }: { userId: string }) {
   const queryClient = useQueryClient()
   const [generatedRecommendations, setGeneratedRecommendations] = useState<any[] | null>(null)
 
+  // Use environment variable for production, fallback to relative path for local dev (Vite proxy)
+  const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api` : '/api'
+
   const generateMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/recommendations/generate/${userId}?num_recommendations=8`, {
+      const response = await fetch(`${API_BASE_URL}/recommendations/generate/${userId}?num_recommendations=8`, {
         method: 'POST',
       })
       if (!response.ok) {

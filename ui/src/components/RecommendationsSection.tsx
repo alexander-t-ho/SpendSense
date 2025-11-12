@@ -11,12 +11,15 @@ interface RecommendationsSectionProps {
 }
 
 export default function RecommendationsSection({ userId, windowDays = 180, readOnly = false }: RecommendationsSectionProps) {
+  // Use environment variable for production, fallback to relative path for local dev (Vite proxy)
+  const API_BASE_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api` : '/api'
+  
   // For admin/readOnly view, fetch all recommendations (pending, approved, etc.)
   // For regular users, only fetch approved recommendations
   const { data: allRecs, isLoading: isLoadingAll } = useQuery({
     queryKey: ['all-recommendations', userId],
     queryFn: async () => {
-      const response = await fetch(`/api/operator/recommendations?status=all&user_id=${userId}&limit=100`)
+      const response = await fetch(`${API_BASE_URL}/operator/recommendations?status=all&user_id=${userId}&limit=100`)
       if (!response.ok) {
         throw new Error('Failed to fetch recommendations')
       }
@@ -32,7 +35,7 @@ export default function RecommendationsSection({ userId, windowDays = 180, readO
   const { data: approvedRecs, isLoading: isLoadingApproved } = useQuery({
     queryKey: ['approved-recommendations', userId],
     queryFn: async () => {
-      const response = await fetch(`/api/recommendations/${userId}/approved`)
+      const response = await fetch(`${API_BASE_URL}/recommendations/${userId}/approved`)
       if (!response.ok) {
         throw new Error('Failed to fetch approved recommendations')
       }
