@@ -359,7 +359,23 @@ def get_engine(db_path: str = "data/spendsense.db"):
 
 def get_session(db_path: str = "data/spendsense.db"):
     """Get database session."""
-    engine = get_engine(db_path)
+    # Ensure database schema is initialized
+    # This is important for Railway where containers are ephemeral
+    try:
+        engine = get_engine(db_path)
+        # Check if tables exist by trying to query a table
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        if not tables:
+            # No tables found, initialize schema
+            init_db(db_path)
+            engine = get_engine(db_path)  # Recreate engine after init
+    except Exception:
+        # If check fails, try to initialize anyway
+        init_db(db_path)
+        engine = get_engine(db_path)
+    
     Session = sessionmaker(bind=engine)
     return Session()
 
