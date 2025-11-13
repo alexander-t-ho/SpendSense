@@ -13,7 +13,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3004,
+    port: 3006,
     host: '0.0.0.0', // Listen on all interfaces (IPv4 and IPv6)
     proxy: {
       '/api': {
